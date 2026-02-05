@@ -9,14 +9,20 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style>{`
+        <style dangerouslySetInnerHTML={{__html: `
+          @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+          
           * { margin: 0; padding: 0; box-sizing: border-box; }
           
           body {
             background: #f5f5f5;
             color: #333333;
-            font-family: 'Space Mono', 'Consolas', monospace;
+            font-family: 'Space Mono', 'Courier New', 'Courier', monospace !important;
             line-height: 1.6;
+          }
+          
+          * {
+            font-family: 'Space Mono', 'Courier New', 'Courier', monospace !important;
           }
           
           .scanlines {
@@ -24,6 +30,22 @@ export default function Home() {
             top: 0; left: 0; right: 0; bottom: 0;
             background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
             pointer-events: none;
+            z-index: 1000;
+          }
+          
+          .corner {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            opacity: 0.3;
+            z-index: 100;
+          }
+          .corner-tl { top: 20px; left: 20px; border-left: 1px solid #666; border-top: 1px solid #666; }
+          .corner-tr { top: 20px; right: 20px; border-right: 1px solid #666; border-top: 1px solid #666; }
+          .corner-bl { bottom: 20px; left: 20px; border-left: 1px solid #666; border-bottom: 1px solid #666; }
+          .corner-br { bottom: 20px; right: 20px; border-right: 1px solid #666; border-bottom: 1px solid #666; }
+        `}} />
+      </Head>
             z-index: 1000;
           }
           
