@@ -9,59 +9,69 @@ export default function Home() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-        <style dangerouslySetInnerHTML={{__html: `
-          @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-          
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          
-          body {
-            background: #f5f5f5;
-            color: #333333;
-            font-family: 'Space Mono', 'Courier New', 'Courier', monospace !important;
-            line-height: 1.6;
-          }
-          
-          * {
-            font-family: 'Space Mono', 'Courier New', 'Courier', monospace !important;
-          }
-          
-          .scanlines {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-            pointer-events: none;
-            z-index: 1000;
-          }
-          
-          .corner {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            opacity: 0.3;
-            z-index: 100;
-          }
-          .corner-tl { top: 20px; left: 20px; border-left: 1px solid #666; border-top: 1px solid #666; }
-          .corner-tr { top: 20px; right: 20px; border-right: 1px solid #666; border-top: 1px solid #666; }
-          .corner-bl { bottom: 20px; left: 20px; border-left: 1px solid #666; border-bottom: 1px solid #666; }
-          .corner-br { bottom: 20px; right: 20px; border-right: 1px solid #666; border-bottom: 1px solid #666; }
-        `}} />
       </Head>
-            z-index: 1000;
-          }
-          
-          .corner {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            opacity: 0.3;
-            z-index: 100;
-          }
-          .corner-tl { top: 20px; left: 20px; border-left: 1px solid #666; border-top: 1px solid #666; }
-          .corner-tr { top: 20px; right: 20px; border-right: 1px solid #666; border-top: 1px solid #666; }
-          .corner-bl { bottom: 20px; left: 20px; border-left: 1px solid #666; border-bottom: 1px solid #666; }
-          .corner-br { bottom: 20px; right: 20px; border-right: 1px solid #666; border-bottom: 1px solid #666; }
-        `}</style>
-      </Head>
+
+      <style jsx global>{`
+        * { 
+          margin: 0; 
+          padding: 0; 
+          box-sizing: border-box; 
+          font-family: 'Space Mono', 'Courier New', Courier, monospace;
+        }
+        
+        body {
+          background: #f5f5f5;
+          color: #333333;
+          line-height: 1.6;
+        }
+        
+        .scanlines {
+          position: fixed;
+          top: 0; 
+          left: 0; 
+          right: 0; 
+          bottom: 0;
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+          pointer-events: none;
+          z-index: 1000;
+        }
+        
+        .corner {
+          position: fixed;
+          width: 20px;
+          height: 20px;
+          opacity: 0.3;
+          z-index: 100;
+        }
+        
+        .corner-tl { 
+          top: 20px; 
+          left: 20px; 
+          border-left: 1px solid #666; 
+          border-top: 1px solid #666; 
+        }
+        
+        .corner-tr { 
+          top: 20px; 
+          right: 20px; 
+          border-right: 1px solid #666; 
+          border-top: 1px solid #666; 
+        }
+        
+        .corner-bl { 
+          bottom: 20px; 
+          left: 20px; 
+          border-left: 1px solid #666; 
+          border-bottom: 1px solid #666; 
+        }
+        
+        .corner-br { 
+          bottom: 20px; 
+          right: 20px; 
+          border-right: 1px solid #666; 
+          border-bottom: 1px solid #666; 
+        }
+      `}</style>
 
       <div className="scanlines"></div>
       <div className="corner corner-tl"></div>
@@ -104,28 +114,28 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
             <div style={{ background: '#ffffff', border: '1px solid #666', padding: '24px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '1px' }}>
-                BLOCKCHAIN GOVERNANCE
+                EPISTEMIC JUSTICE
               </h3>
               <p style={{ fontSize: '13px', lineHeight: 1.7 }}>
-                Exploring DAO structures and smart contracts for community-led urban planning
+                Addressing hermeneutical injustice in urban planning through blockchain-enabled participation
               </p>
             </div>
             
             <div style={{ background: '#ffffff', border: '1px solid #666', padding: '24px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '1px' }}>
-                DATA SOVEREIGNTY
+                DISABILITY & PLANNING
               </h3>
               <p style={{ fontSize: '13px', lineHeight: 1.7 }}>
-                Building frameworks for neighborhood-owned data systems that scale nationally
+                First empirical study of disabled participation in Welsh Place Plans
               </p>
             </div>
             
             <div style={{ background: '#ffffff', border: '1px solid #666', padding: '24px' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '1px' }}>
-                INCLUSIVE DESIGN
+                WEB3 GOVERNANCE
               </h3>
               <p style={{ fontSize: '13px', lineHeight: 1.7 }}>
-                Ensuring Web3 tools are accessible and center marginalized voices in planning
+                Applying blockchain technology to enable disabled-led urban planning processes
               </p>
             </div>
           </div>
@@ -133,7 +143,7 @@ export default function Home() {
 
         <section style={{ maxWidth: '1200px', margin: '0 auto 60px' }}>
           <p style={{ fontSize: '11px', letterSpacing: '2px', color: '#888', marginBottom: '16px', textTransform: 'uppercase' }}>
-            CURRENT PROJECTS
+            CURRENT PROJECT
           </p>
           
           <div style={{ background: '#ffffff', border: '1px solid #666', padding: '32px' }}>
@@ -141,15 +151,15 @@ export default function Home() {
               Blockchain-Enabled Place Plans
             </h3>
             <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '20px' }}>
-              Co-designing Web3 governance tools with disabled communities in Wales to 
-              enable genuine participation in local planning processes. Testing how 
-              blockchain can support the Well-being of Future Generations Act goals.
+              Co-designing Web3 governance tools with disabled communities in Wales to investigate how 
+              blockchain-enabled Place Plans can address hermeneutical injustice and enable 
+              disabled-led participation in urban planning processes.
             </p>
             
             <div style={{ borderTop: '1px solid #666', paddingTop: '16px' }}>
               <div style={{ display: 'flex', gap: '32px', fontSize: '13px', flexWrap: 'wrap' }}>
                 <div><span style={{ color: '#888' }}>STATUS:</span> Active</div>
-                <div><span style={{ color: '#888' }}>TIMELINE:</span> 2024-2027</div>
+                <div><span style={{ color: '#888' }}>TIMELINE:</span> 2025-2028</div>
                 <div><span style={{ color: '#888' }}>METHODS:</span> Institutional ethnography, co-production workshops</div>
               </div>
             </div>
