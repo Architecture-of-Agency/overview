@@ -821,7 +821,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `2px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '11px', color: theme === 'light' ? '#555' : '#bbb', letterSpacing: '1px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div>© 2025 Leol Lab</div>
+            <div>© 2026 Leol Lab</div>
             <div>{t.footer}</div>
           </div>
         </footer>
