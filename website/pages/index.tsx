@@ -81,7 +81,7 @@ export default function Home() {
       { name: 'Tongwynlais', x: 340, y: 130 },
     ]
 
-    // Wards without community councils (NO OVERLAPS - Heath moved away from center)
+    // Wards without community councils (Heath moved further away from Council center)
     const withoutCouncils = [
       // South (bottom row)
       { name: 'Grangetown', x: 340, y: 560 },
@@ -100,10 +100,10 @@ export default function Home() {
       { name: 'Gabalfa', x: 380, y: 350 },
       { name: 'Penylan', x: 740, y: 400 },
       
-      // North-Central (Heath moved to avoid Council overlap)
-      { name: 'Heath', x: 580, y: 280 },
+      // North-Central (Heath moved much further from Council)
+      { name: 'Heath', x: 620, y: 250 },
       { name: 'Cyncoed', x: 710, y: 330 },
-      { name: 'Llanishen', x: 650, y: 240 },
+      { name: 'Llanishen', x: 650, y: 200 },
       { name: 'Rhiwbina', x: 480, y: 230 },
       { name: 'Whitchurch', x: 420, y: 180 },
     ]
@@ -198,24 +198,24 @@ export default function Home() {
         svg.appendChild(label)
       }
 
-      // Knowledge extraction arrow to Council (very subtle)
+      // Knowledge extraction arrow to Council (more visible)
       const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line')
       arrow.setAttribute('x1', ward.x.toString())
       arrow.setAttribute('y1', ward.y.toString())
       arrow.setAttribute('x2', councilNode.x.toString())
       arrow.setAttribute('y2', councilNode.y.toString())
       arrow.setAttribute('stroke', hasCouncil ? '#00cc88' : '#ff4444')
-      arrow.setAttribute('stroke-width', '1')
-      arrow.setAttribute('opacity', hasCouncil ? '0.15' : '0.1')
-      arrow.setAttribute('stroke-dasharray', '2,4')
+      arrow.setAttribute('stroke-width', '1.5')
+      arrow.setAttribute('opacity', hasCouncil ? '0.35' : '0.25')
+      arrow.setAttribute('stroke-dasharray', '3,3')
       svg.appendChild(arrow)
 
-      // Animated knowledge particles (very sparse)
+      // Animated knowledge particles (clearer)
       if (i % 5 === 0) {
         const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-        particle.setAttribute('r', '2')
+        particle.setAttribute('r', '3')
         particle.setAttribute('fill', hasCouncil ? '#00cc88' : '#ff4444')
-        particle.setAttribute('opacity', '0.4')
+        particle.setAttribute('opacity', '0.7')
         
         const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion')
         animate.setAttribute('dur', '6s')
