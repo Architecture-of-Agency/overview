@@ -71,34 +71,41 @@ export default function Home() {
     outline.setAttribute('stroke-dasharray', '5,5')
     svg.appendChild(outline)
 
-    // Wards with community councils (North/Northwest - cleaner positioning)
+    // Wards with community councils (North/Northwest - well spaced)
     const withCouncils = [
-      { name: 'Lisvane', x: 750, y: 180 },
-      { name: 'Old St Mellons', x: 850, y: 280 },
-      { name: 'Pentyrch', x: 150, y: 200 },
-      { name: 'Radyr', x: 280, y: 220 },
-      { name: 'St Fagans', x: 200, y: 350 },
-      { name: 'Tongwynlais', x: 350, y: 150 },
+      { name: 'Lisvane', x: 780, y: 160 },
+      { name: 'Old St Mellons', x: 860, y: 260 },
+      { name: 'Pentyrch', x: 120, y: 180 },
+      { name: 'Radyr', x: 240, y: 200 },
+      { name: 'St Fagans', x: 180, y: 340 },
+      { name: 'Tongwynlais', x: 340, y: 130 },
     ]
 
-    // Wards without community councils (spread out to avoid overlap)
+    // Wards without community councils (NO OVERLAPS - strategic positioning)
     const withoutCouncils = [
-      { name: 'Grangetown', x: 380, y: 530 },
-      { name: 'Butetown', x: 500, y: 560 },
-      { name: 'Splott', x: 620, y: 540 },
-      { name: 'Adamsdown', x: 580, y: 470 },
-      { name: 'Canton', x: 320, y: 450 },
-      { name: 'Cathays', x: 480, y: 420 },
-      { name: 'Riverside', x: 350, y: 500 },
-      { name: 'Roath', x: 640, y: 430 },
-      { name: 'Penylan', x: 700, y: 390 },
-      { name: 'Plasnewydd', x: 580, y: 380 },
-      { name: 'Gabalfa', x: 420, y: 340 },
-      { name: 'Heath', x: 520, y: 300 },
-      { name: 'Llanishen', x: 620, y: 260 },
-      { name: 'Rhiwbina', x: 480, y: 240 },
-      { name: 'Whitchurch', x: 430, y: 190 },
-      { name: 'Cyncoed', x: 680, y: 320 },
+      // South (bottom row)
+      { name: 'Grangetown', x: 340, y: 560 },
+      { name: 'Butetown', x: 480, y: 580 },
+      { name: 'Splott', x: 630, y: 560 },
+      { name: 'Riverside', x: 280, y: 520 },
+      
+      // South-Central
+      { name: 'Canton', x: 260, y: 440 },
+      { name: 'Adamsdown', x: 580, y: 490 },
+      { name: 'Roath', x: 700, y: 460 },
+      
+      // Central
+      { name: 'Cathays', x: 460, y: 430 },
+      { name: 'Plasnewydd', x: 600, y: 390 },
+      { name: 'Gabalfa', x: 380, y: 350 },
+      { name: 'Penylan', x: 740, y: 400 },
+      
+      // North-Central
+      { name: 'Heath', x: 540, y: 310 },
+      { name: 'Cyncoed', x: 710, y: 330 },
+      { name: 'Llanishen', x: 650, y: 240 },
+      { name: 'Rhiwbina', x: 480, y: 230 },
+      { name: 'Whitchurch', x: 420, y: 180 },
     ]
 
     const allWards = [...withCouncils.map(w => ({...w, type: 'with'})), ...withoutCouncils.map(w => ({...w, type: 'without'}))]
@@ -144,7 +151,7 @@ export default function Home() {
       const wardCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
       wardCircle.setAttribute('cx', ward.x.toString())
       wardCircle.setAttribute('cy', ward.y.toString())
-      wardCircle.setAttribute('r', '30')
+      wardCircle.setAttribute('r', '28')
       wardCircle.setAttribute('fill', 'none')
       wardCircle.setAttribute('stroke', hasCouncil ? '#00cc88' : '#ff4444')
       wardCircle.setAttribute('stroke-width', '2')
@@ -158,13 +165,13 @@ export default function Home() {
       label.setAttribute('y', (ward.y + 3).toString())
       label.setAttribute('text-anchor', 'middle')
       label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-      label.setAttribute('font-size', '9')
+      label.setAttribute('font-size', '8')
       label.setAttribute('font-family', 'Space Mono, monospace')
       label.setAttribute('font-weight', '600')
       label.textContent = ward.name
       svg.appendChild(label)
 
-      // Knowledge extraction arrow to Council (lighter, less prominent)
+      // Knowledge extraction arrow to Council (very subtle)
       const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line')
       arrow.setAttribute('x1', ward.x.toString())
       arrow.setAttribute('y1', ward.y.toString())
@@ -172,21 +179,21 @@ export default function Home() {
       arrow.setAttribute('y2', councilNode.y.toString())
       arrow.setAttribute('stroke', hasCouncil ? '#00cc88' : '#ff4444')
       arrow.setAttribute('stroke-width', '1')
-      arrow.setAttribute('opacity', hasCouncil ? '0.2' : '0.15')
-      arrow.setAttribute('stroke-dasharray', '2,3')
+      arrow.setAttribute('opacity', hasCouncil ? '0.15' : '0.1')
+      arrow.setAttribute('stroke-dasharray', '2,4')
       svg.appendChild(arrow)
 
-      // Animated knowledge particles (fewer, less cluttered)
-      if (i % 4 === 0) {
+      // Animated knowledge particles (very sparse)
+      if (i % 5 === 0) {
         const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
         particle.setAttribute('r', '2')
         particle.setAttribute('fill', hasCouncil ? '#00cc88' : '#ff4444')
-        particle.setAttribute('opacity', '0.5')
+        particle.setAttribute('opacity', '0.4')
         
         const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion')
-        animate.setAttribute('dur', '5s')
+        animate.setAttribute('dur', '6s')
         animate.setAttribute('repeatCount', 'indefinite')
-        animate.setAttribute('begin', `${i * 0.4}s`)
+        animate.setAttribute('begin', `${i * 0.5}s`)
         
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'mpath')
         const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -252,7 +259,7 @@ export default function Home() {
     titleText.setAttribute('font-family', 'Space Mono, monospace')
     titleText.setAttribute('font-weight', '700')
     titleText.setAttribute('letter-spacing', '1')
-    titleText.textContent = 'CARDIFF: KNOWLEDGE FLOWS TO COUNCIL, ZERO COMMUNITY CONTROL'
+    titleText.textContent = 'CARDIFF: KNOWLEDGE FLOWS AND STRUCTURE'
     svg.appendChild(titleText)
 
   }, [mounted, theme])
