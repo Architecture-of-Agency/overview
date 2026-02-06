@@ -33,6 +33,7 @@ export default function Home() {
     svg.setAttribute('width', '100%')
     svg.setAttribute('height', '100%')
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
     mapSvg.appendChild(svg)
 
     // Grid background
@@ -81,7 +82,7 @@ export default function Home() {
       { name: 'Tongwynlais', x: 340, y: 130 },
     ]
 
-    // Wards without community councils (Heath moved further away from Council center)
+    // Wards without community councils (Heath moved further from Council)
     const withoutCouncils = [
       // South (bottom row)
       { name: 'Grangetown', x: 340, y: 560 },
@@ -100,7 +101,7 @@ export default function Home() {
       { name: 'Gabalfa', x: 380, y: 350 },
       { name: 'Penylan', x: 740, y: 400 },
       
-      // North-Central (Heath moved much further from Council)
+      // North-Central (Heath moved further from Council)
       { name: 'Heath', x: 620, y: 250 },
       { name: 'Cyncoed', x: 710, y: 330 },
       { name: 'Llanishen', x: 650, y: 200 },
@@ -272,6 +273,7 @@ export default function Home() {
         'All arrows point to LA = Knowledge extracted, zero community control',
         'Financial barrier: £50k+ to establish community council = democracy paywall'
       ],
+      vizSwipeHint: 'Swipe to explore the map',
       
       card1Title: 'Data sovereignty',
       card1Short: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Addressing epistemic injustice in urban governance systems.',
@@ -318,6 +320,7 @@ export default function Home() {
         'Mae pob saeth yn pwyntio at LA = Gwybodaeth wedi\'i echdynnu, dim rheolaeth gymunedol',
         'Rhwystr ariannol: £50k+ i sefydlu cyngor cymuned = wal dalu democratiaeth'
       ],
+      vizSwipeHint: 'Swipiwch i archwilio\'r map',
       
       card1Title: 'Sofraniaeth data',
       card1Short: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mynd i\'r afael â chyfiawnder epistemolegol mewn systemau llywodraethiant trefol.',
@@ -527,6 +530,50 @@ export default function Home() {
         a:hover {
           text-decoration: underline;
         }
+
+        .viz-scroll-container {
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: ${theme === 'light' ? '#999 #f5f5f5' : '#666 #1a1a1a'};
+        }
+
+        .viz-scroll-container::-webkit-scrollbar {
+          height: 8px;
+        }
+
+        .viz-scroll-container::-webkit-scrollbar-track {
+          background: ${theme === 'light' ? '#f5f5f5' : '#1a1a1a'};
+        }
+
+        .viz-scroll-container::-webkit-scrollbar-thumb {
+          background: ${theme === 'light' ? '#999' : '#666'};
+          border-radius: 4px;
+        }
+
+        .swipe-hint {
+          display: none;
+          text-align: center;
+          font-size: 10px;
+          color: ${theme === 'light' ? '#999' : '#666'};
+          padding: 8px 0;
+          letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+          .viz-scroll-container {
+            cursor: grab;
+          }
+
+          .viz-scroll-container:active {
+            cursor: grabbing;
+          }
+
+          .swipe-hint {
+            display: block;
+          }
+        }
         
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
@@ -603,7 +650,10 @@ export default function Home() {
             transition: 'background 0.3s ease, border 0.3s ease',
             marginBottom: '20px'
           }}>
-            <div ref={mapSvgRef} style={{ width: '100%', height: '700px' }} />
+            <div className="viz-scroll-container">
+              <div ref={mapSvgRef} style={{ width: '100%', minWidth: '800px', height: '700px' }} />
+            </div>
+            <div className="swipe-hint">← {t.vizSwipeHint} →</div>
           </div>
           
           <div style={{ 
