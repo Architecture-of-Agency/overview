@@ -7,7 +7,7 @@ export default function PlaceBasedDataSovereignty() {
   const [theme, setTheme] = useState('light')
   const [activeLayer, setActiveLayer] = useState('ownership')
   const [mounted, setMounted] = useState(false)
-  const vizSvgRef = useRef(null)
+  const vizSvgRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -39,20 +39,20 @@ export default function PlaceBasedDataSovereignty() {
     const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g')
     for (let x = 0; x < width; x += 30) {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      line.setAttribute('x1', x)
-      line.setAttribute('y1', 0)
-      line.setAttribute('x2', x)
-      line.setAttribute('y2', height)
+      line.setAttribute('x1', x.toString())
+      line.setAttribute('y1', '0')
+      line.setAttribute('x2', x.toString())
+      line.setAttribute('y2', height.toString())
       line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
       line.setAttribute('stroke-width', '1')
       grid.appendChild(line)
     }
     for (let y = 0; y < height; y += 30) {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      line.setAttribute('x1', 0)
-      line.setAttribute('y1', y)
-      line.setAttribute('x2', width)
-      line.setAttribute('y2', y)
+      line.setAttribute('x1', '0')
+      line.setAttribute('y1', y.toString())
+      line.setAttribute('x2', width.toString())
+      line.setAttribute('y2', y.toString())
       line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
       line.setAttribute('stroke-width', '1')
       grid.appendChild(line)
@@ -60,7 +60,7 @@ export default function PlaceBasedDataSovereignty() {
     svg.appendChild(grid)
 
     // Layer-specific visualization
-    const layerConfig = {
+    const layerConfig: Record<string, any> = {
       ownership: {
         current: { label: 'Authority owns', color: '#ff4444', nodes: [{x: width/4, y: 100, r: 60}] },
         proposed: { label: 'Community owns', color: '#00cc88', nodes: [{x: 3*width/4, y: 100, r: 60}] }
@@ -118,11 +118,11 @@ export default function PlaceBasedDataSovereignty() {
 
     // Current system (left)
     const currentGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    config.current.nodes.forEach((node, i) => {
+    config.current.nodes.forEach((node: any, i: number) => {
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-      circle.setAttribute('cx', node.x)
-      circle.setAttribute('cy', node.y)
-      circle.setAttribute('r', node.r)
+      circle.setAttribute('cx', node.x.toString())
+      circle.setAttribute('cy', node.y.toString())
+      circle.setAttribute('r', node.r.toString())
       circle.setAttribute('fill', config.current.color)
       circle.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
       circle.setAttribute('stroke-width', '2')
@@ -131,8 +131,8 @@ export default function PlaceBasedDataSovereignty() {
 
       if (node.label) {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-        text.setAttribute('x', node.x)
-        text.setAttribute('y', node.y + 4)
+        text.setAttribute('x', node.x.toString())
+        text.setAttribute('y', (node.y + 4).toString())
         text.setAttribute('text-anchor', 'middle')
         text.setAttribute('fill', '#ffffff')
         text.setAttribute('font-size', '11')
@@ -144,10 +144,10 @@ export default function PlaceBasedDataSovereignty() {
       // Connections for knowledge flow
       if (activeLayer === 'knowledge' && i < config.current.nodes.length - 1) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-        line.setAttribute('x1', node.x)
-        line.setAttribute('y1', node.y)
-        line.setAttribute('x2', config.current.nodes[i + 1].x)
-        line.setAttribute('y2', config.current.nodes[i + 1].y)
+        line.setAttribute('x1', node.x.toString())
+        line.setAttribute('y1', node.y.toString())
+        line.setAttribute('x2', config.current.nodes[i + 1].x.toString())
+        line.setAttribute('y2', config.current.nodes[i + 1].y.toString())
         line.setAttribute('stroke', config.current.color)
         line.setAttribute('stroke-width', '2')
         line.setAttribute('opacity', '0.5')
@@ -158,11 +158,11 @@ export default function PlaceBasedDataSovereignty() {
 
     // Proposed system (right)
     const proposedGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    config.proposed.nodes.forEach((node, i) => {
+    config.proposed.nodes.forEach((node: any, i: number) => {
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-      circle.setAttribute('cx', node.x)
-      circle.setAttribute('cy', node.y)
-      circle.setAttribute('r', node.r)
+      circle.setAttribute('cx', node.x.toString())
+      circle.setAttribute('cy', node.y.toString())
+      circle.setAttribute('r', node.r.toString())
       circle.setAttribute('fill', config.proposed.color)
       circle.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
       circle.setAttribute('stroke-width', '2')
@@ -171,8 +171,8 @@ export default function PlaceBasedDataSovereignty() {
 
       if (node.label) {
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-        text.setAttribute('x', node.x)
-        text.setAttribute('y', node.y + 4)
+        text.setAttribute('x', node.x.toString())
+        text.setAttribute('y', (node.y + 4).toString())
         text.setAttribute('text-anchor', 'middle')
         text.setAttribute('fill', '#ffffff')
         text.setAttribute('font-size', '11')
@@ -183,13 +183,13 @@ export default function PlaceBasedDataSovereignty() {
 
       // Connections for distributed ledger
       if (activeLayer === 'ledger' && config.proposed.nodes.length > 1) {
-        config.proposed.nodes.forEach((otherNode, j) => {
+        config.proposed.nodes.forEach((otherNode: any, j: number) => {
           if (i < j) {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-            line.setAttribute('x1', node.x)
-            line.setAttribute('y1', node.y)
-            line.setAttribute('x2', otherNode.x)
-            line.setAttribute('y2', otherNode.y)
+            line.setAttribute('x1', node.x.toString())
+            line.setAttribute('y1', node.y.toString())
+            line.setAttribute('x2', otherNode.x.toString())
+            line.setAttribute('y2', otherNode.y.toString())
             line.setAttribute('stroke', config.proposed.color)
             line.setAttribute('stroke-width', '1')
             line.setAttribute('opacity', '0.2')
@@ -201,10 +201,10 @@ export default function PlaceBasedDataSovereignty() {
       // Connections for knowledge flow
       if (activeLayer === 'knowledge' && i > 0) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-        line.setAttribute('x1', config.proposed.nodes[0].x)
-        line.setAttribute('y1', config.proposed.nodes[0].y)
-        line.setAttribute('x2', node.x)
-        line.setAttribute('y2', node.y)
+        line.setAttribute('x1', config.proposed.nodes[0].x.toString())
+        line.setAttribute('y1', config.proposed.nodes[0].y.toString())
+        line.setAttribute('x2', node.x.toString())
+        line.setAttribute('y2', node.y.toString())
         line.setAttribute('stroke', config.proposed.color)
         line.setAttribute('stroke-width', '2')
         line.setAttribute('opacity', '0.4')
@@ -216,8 +216,8 @@ export default function PlaceBasedDataSovereignty() {
 
     // Labels
     const currentLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    currentLabel.setAttribute('x', width/4)
-    currentLabel.setAttribute('y', 30)
+    currentLabel.setAttribute('x', (width/4).toString())
+    currentLabel.setAttribute('y', '30')
     currentLabel.setAttribute('text-anchor', 'middle')
     currentLabel.setAttribute('fill', theme === 'light' ? '#666' : '#999')
     currentLabel.setAttribute('font-size', '12')
@@ -227,8 +227,8 @@ export default function PlaceBasedDataSovereignty() {
     svg.appendChild(currentLabel)
 
     const proposedLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    proposedLabel.setAttribute('x', 3*width/4)
-    proposedLabel.setAttribute('y', 30)
+    proposedLabel.setAttribute('x', (3*width/4).toString())
+    proposedLabel.setAttribute('y', '30')
     proposedLabel.setAttribute('text-anchor', 'middle')
     proposedLabel.setAttribute('fill', theme === 'light' ? '#666' : '#999')
     proposedLabel.setAttribute('font-size', '12')
