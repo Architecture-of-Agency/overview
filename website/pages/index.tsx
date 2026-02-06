@@ -111,7 +111,7 @@ export default function Home() {
 
     const allWards = [...withCouncils.map(w => ({...w, type: 'with'})), ...withoutCouncils.map(w => ({...w, type: 'without'}))]
 
-    // Cardiff Council headquarters (center)
+    // Local Authority headquarters (center)
     const councilNode = { x: width/2, y: height/2 - 20 }
     const councilCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
     councilCircle.setAttribute('cx', councilNode.x.toString())
@@ -127,10 +127,10 @@ export default function Home() {
     councilText1.setAttribute('y', (councilNode.y - 5).toString())
     councilText1.setAttribute('text-anchor', 'middle')
     councilText1.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
-    councilText1.setAttribute('font-size', '14')
+    councilText1.setAttribute('font-size', '13')
     councilText1.setAttribute('font-family', 'Space Mono, monospace')
     councilText1.setAttribute('font-weight', '700')
-    councilText1.textContent = 'Cardiff'
+    councilText1.textContent = 'Local'
     svg.appendChild(councilText1)
 
     const councilText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
@@ -138,10 +138,10 @@ export default function Home() {
     councilText2.setAttribute('y', (councilNode.y + 12).toString())
     councilText2.setAttribute('text-anchor', 'middle')
     councilText2.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
-    councilText2.setAttribute('font-size', '14')
+    councilText2.setAttribute('font-size', '13')
     councilText2.setAttribute('font-family', 'Space Mono, monospace')
     councilText2.setAttribute('font-weight', '700')
-    councilText2.textContent = 'Council'
+    councilText2.textContent = 'Authority'
     svg.appendChild(councilText2)
 
     // Draw wards and knowledge extraction arrows
@@ -245,7 +245,7 @@ export default function Home() {
     titleText.setAttribute('font-family', 'Space Mono, monospace')
     titleText.setAttribute('font-weight', '700')
     titleText.setAttribute('letter-spacing', '1')
-    titleText.textContent = 'Cardiff: Knowledge flows and structure'
+    titleText.textContent = 'Cardiff: Current knowledge flows and structure'
     svg.appendChild(titleText)
 
   }, [mounted, theme])
@@ -270,7 +270,7 @@ export default function Home() {
       vizLabels: [
         'Green = Formal channel exists (but tokenistic - can propose, cannot decide)',
         'Red = No formal channel (sporadic ad-hoc consultation only)',
-        'All arrows point to LA = Knowledge extracted, zero community control',
+        'All arrows point to Local Authority = Knowledge extracted, zero community control',
         'Financial barrier: £50k+ to establish community council = democracy paywall'
       ],
       vizSwipeHint: 'Swipe to explore the map',
@@ -317,7 +317,7 @@ export default function Home() {
       vizLabels: [
         'Gwyrdd = Sianel ffurfiol yn bodoli (ond tocenistig - gall gynnig, ni all benderfynu)',
         'Coch = Dim sianel ffurfiol (ymgynghoriad achlysurol yn unig)',
-        'Mae pob saeth yn pwyntio at LA = Gwybodaeth wedi\'i echdynnu, dim rheolaeth gymunedol',
+        'Mae pob saeth yn pwyntio at Awdurdod Lleol = Gwybodaeth wedi\'i echdynnu, dim rheolaeth gymunedol',
         'Rhwystr ariannol: £50k+ i sefydlu cyngor cymuned = wal dalu democratiaeth'
       ],
       vizSwipeHint: 'Swipiwch i archwilio\'r map',
@@ -643,24 +643,13 @@ export default function Home() {
         <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
           <h2 className="section-label">{t.vizTitle}</h2>
           
-          <div style={{ 
-            background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
-            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
-            padding: '20px',
-            transition: 'background 0.3s ease, border 0.3s ease',
-            marginBottom: '20px'
-          }}>
-            <div className="viz-scroll-container">
-              <div ref={mapSvgRef} style={{ width: '100%', minWidth: '800px', height: '700px' }} />
-            </div>
-            <div className="swipe-hint">← {t.vizSwipeHint} →</div>
-          </div>
-          
+          {/* Info box BEFORE map */}
           <div style={{ 
             background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
             border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
             padding: '24px',
-            transition: 'background 0.3s ease, border 0.3s ease'
+            transition: 'background 0.3s ease, border 0.3s ease',
+            marginBottom: '20px'
           }}>
             <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
               {t.vizDesc}
@@ -670,6 +659,27 @@ export default function Home() {
                 <li key={i}>[·] {label}</li>
               ))}
             </ul>
+          </div>
+
+          {/* Swipe hint BEFORE map */}
+          <div className="swipe-hint" style={{ 
+            background: theme === 'light' ? '#ffffff' : '#1a1a1a',
+            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
+            marginBottom: '20px'
+          }}>
+            ← {t.vizSwipeHint} →
+          </div>
+          
+          {/* Map visualization */}
+          <div style={{ 
+            background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
+            padding: '20px',
+            transition: 'background 0.3s ease, border 0.3s ease'
+          }}>
+            <div className="viz-scroll-container">
+              <div ref={mapSvgRef} style={{ width: '100%', minWidth: '800px', height: '700px' }} />
+            </div>
           </div>
         </section>
 
@@ -821,7 +831,7 @@ export default function Home() {
         {/* Footer */}
         <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `2px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '11px', color: theme === 'light' ? '#555' : '#bbb', letterSpacing: '1px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div>© 2026 Leol Lab</div>
+            <div>© 2025 Leol Lab</div>
             <div>{t.footer}</div>
           </div>
         </footer>
