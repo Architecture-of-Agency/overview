@@ -1,231 +1,17 @@
 import Head from 'next/head'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function PlaceBasedDataSovereignty() {
   const [lang, setLang] = useState('en')
   const [theme, setTheme] = useState('light')
-  const [activeLayer, setActiveLayer] = useState('ownership')
   const [mounted, setMounted] = useState(false)
-  const vizSvgRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
     const savedTheme = localStorage.getItem('theme') || 'light'
     setTheme(savedTheme)
   }, [])
-
-  useEffect(() => {
-    if (!mounted || typeof window === 'undefined') return
-
-    const vizSvg = vizSvgRef.current
-    if (!vizSvg) return
-
-    const width = 1000
-    const height = 600
-    const centerX = width / 2
-    const centerY = height / 2
-    const radius = 220
-    
-    // Clear existing
-    while (vizSvg.firstChild) {
-      vizSvg.removeChild(vizSvg.firstChild)
-    }
-
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    svg.setAttribute('width', '100%')
-    svg.setAttribute('height', '100%')
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
-    vizSvg.appendChild(svg)
-
-    // Grid background
-    const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    grid.setAttribute('opacity', '0.3')
-    for (let x = 0; x < width; x += 40) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      line.setAttribute('x1', x.toString())
-      line.setAttribute('y1', '0')
-      line.setAttribute('x2', x.toString())
-      line.setAttribute('y2', height.toString())
-      line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
-      line.setAttribute('stroke-width', '1')
-      grid.appendChild(line)
-    }
-    for (let y = 0; y < height; y += 40) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      line.setAttribute('x1', '0')
-      line.setAttribute('y1', y.toString())
-      line.setAttribute('x2', width.toString())
-      line.setAttribute('y2', y.toString())
-      line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
-      line.setAttribute('stroke-width', '1')
-      grid.appendChild(line)
-    }
-    svg.appendChild(grid)
-
-    // Define segments for current vs proposed
-    interface Segment {
-      label: string
-      startAngle: number
-      endAngle: number
-      color: string
-      power: number
-    }
-
-    const currentSegments: Segment[] = [
-      { label: 'LA', startAngle: -45, endAngle: 135, color: '#ff4444', power: 10 },
-      { label: 'Landowners', startAngle: 135, endAngle: 225, color: '#ff6666', power: 8 },
-      { label: 'Comm 1', startAngle: 225, endAngle: 255, color: '#666', power: 1 },
-      { label: 'Comm 2', startAngle: 255, endAngle: 285, color: '#666', power: 1 },
-      { label: 'Comm 3', startAngle: 285, endAngle: 315, color: '#666', power: 1 },
-      { label: 'Consult', startAngle: 315, endAngle: 345, color: '#999', power: 2 },
-    ]
-
-    const proposedSegments: Segment[] = [
-      { label: 'Community', startAngle: -30, endAngle: 90, color: '#00cc88', power: 10 },
-      { label: 'Architects', startAngle: 90, endAngle: 150, color: '#00aa77', power: 5 },
-      { label: 'Developers', startAngle: 150, endAngle: 210, color: '#00aa77', power: 5 },
-      { label: 'Local Auth', startAngle: 210, endAngle: 270, color: '#00aa77', power: 5 },
-      { label: 'Government', startAngle: 270, endAngle: 330, color: '#00aa77', power: 5 },
-    ]
-
-    const segments = currentSegments
-    const isCurrent = true
-
-    // Draw circular segments
-    segments.forEach(segment => {
-      const startRad = (segment.startAngle * Math.PI) / 180
-      const endRad = (segment.endAngle * Math.PI) / 180
-      const innerRadius = radius - (segment.power * 8)
-      
-      // Create arc path
-      const x1 = centerX + radius * Math.cos(startRad)
-      const y1 = centerY + radius * Math.sin(startRad)
-      const x2 = centerX + radius * Math.cos(endRad)
-      const y2 = centerY + radius * Math.sin(endRad)
-      const x3 = centerX + innerRadius * Math.cos(endRad)
-      const y3 = centerY + innerRadius * Math.sin(endRad)
-      const x4 = centerX + innerRadius * Math.cos(startRad)
-      const y4 = centerY + innerRadius * Math.sin(startRad)
-
-      const largeArc = endRad - startRad > Math.PI ? 1 : 0
-
-      const pathData = `
-        M ${x1} ${y1}
-        A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}
-        L ${x3} ${y3}
-        A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x4} ${y4}
-        Z
-      `
-
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-      path.setAttribute('d', pathData)
-      path.setAttribute('fill', segment.color)
-      path.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
-      path.setAttribute('stroke-width', '2')
-      path.setAttribute('opacity', '0.7')
-      svg.appendChild(path)
-
-      // Label
-      const midAngle = (startRad + endRad) / 2
-      const labelRadius = radius + 30
-      const labelX = centerX + labelRadius * Math.cos(midAngle)
-      const labelY = centerY + labelRadius * Math.sin(midAngle)
-
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-      label.setAttribute('x', labelX.toString())
-      label.setAttribute('y', labelY.toString())
-      label.setAttribute('text-anchor', 'middle')
-      label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-      label.setAttribute('font-size', '11')
-      label.setAttribute('font-family', 'Space Mono, monospace')
-      label.setAttribute('font-weight', '700')
-      label.textContent = segment.label
-      svg.appendChild(label)
-    })
-
-    // Draw ribbons based on active layer
-    const drawRibbon = (from: number, to: number, color: string, opacity: number, bidirectional: boolean = false) => {
-      const fromAngle = ((currentSegments[from].startAngle + currentSegments[from].endAngle) / 2 * Math.PI) / 180
-      const toAngle = ((currentSegments[to].startAngle + currentSegments[to].endAngle) / 2 * Math.PI) / 180
-      
-      const fromX = centerX + (radius - 60) * Math.cos(fromAngle)
-      const fromY = centerY + (radius - 60) * Math.sin(fromAngle)
-      const toX = centerX + (radius - 60) * Math.cos(toAngle)
-      const toY = centerY + (radius - 60) * Math.sin(toAngle)
-
-      // Control points for curved ribbon
-      const ctrlX1 = centerX + 80 * Math.cos(fromAngle)
-      const ctrlY1 = centerY + 80 * Math.sin(fromAngle)
-      const ctrlX2 = centerX + 80 * Math.cos(toAngle)
-      const ctrlY2 = centerY + 80 * Math.sin(toAngle)
-
-      const ribbonPath = `M ${fromX} ${fromY} Q ${ctrlX1} ${ctrlY1}, ${centerX} ${centerY} Q ${ctrlX2} ${ctrlY2}, ${toX} ${toY}`
-
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-      path.setAttribute('d', ribbonPath)
-      path.setAttribute('fill', 'none')
-      path.setAttribute('stroke', color)
-      path.setAttribute('stroke-width', '3')
-      path.setAttribute('opacity', opacity.toString())
-      svg.appendChild(path)
-
-      // Arrow marker
-      if (!bidirectional) {
-        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-        marker.setAttribute('cx', toX.toString())
-        marker.setAttribute('cy', toY.toString())
-        marker.setAttribute('r', '4')
-        marker.setAttribute('fill', color)
-        marker.setAttribute('opacity', opacity.toString())
-        svg.appendChild(marker)
-      }
-    }
-
-    // Layer-specific ribbons
-    if (activeLayer === 'ownership') {
-      // Communities -> LA (extraction)
-      drawRibbon(2, 0, '#ff4444', 0.6, false)
-      drawRibbon(3, 0, '#ff4444', 0.6, false)
-      drawRibbon(4, 0, '#ff4444', 0.6, false)
-    } else if (activeLayer === 'knowledge') {
-      // Communities -> Consultation -> LA (filtered)
-      drawRibbon(2, 5, '#ff6666', 0.5, false)
-      drawRibbon(3, 5, '#ff6666', 0.5, false)
-      drawRibbon(4, 5, '#ff6666', 0.5, false)
-      drawRibbon(5, 0, '#ff4444', 0.7, false)
-    } else if (activeLayer === 'contracts') {
-      // LA -> Landowners (opaque deals)
-      drawRibbon(0, 1, '#ff4444', 0.6, false)
-    } else if (activeLayer === 'risk') {
-      // Multiple manipulation vectors
-      drawRibbon(0, 1, '#ff4444', 0.4, false)
-      drawRibbon(0, 5, '#ff4444', 0.4, false)
-      drawRibbon(1, 0, '#ff6666', 0.3, false)
-    }
-
-    // Center annotation
-    const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    centerText.setAttribute('x', centerX.toString())
-    centerText.setAttribute('y', (centerY - 20).toString())
-    centerText.setAttribute('text-anchor', 'middle')
-    centerText.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-    centerText.setAttribute('font-size', '10')
-    centerText.setAttribute('font-family', 'Space Mono, monospace')
-    centerText.textContent = 'Current System'
-    svg.appendChild(centerText)
-
-    const centerDesc = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    centerDesc.setAttribute('x', centerX.toString())
-    centerDesc.setAttribute('y', centerY.toString())
-    centerDesc.setAttribute('text-anchor', 'middle')
-    centerDesc.setAttribute('fill', theme === 'light' ? '#999' : '#666')
-    centerDesc.setAttribute('font-size', '9')
-    centerDesc.setAttribute('font-family', 'Space Mono, monospace')
-    centerDesc.textContent = 'Extraction / Concentration'
-    svg.appendChild(centerDesc)
-
-  }, [mounted, theme, activeLayer])
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
@@ -238,16 +24,6 @@ export default function PlaceBasedDataSovereignty() {
       backHome: '[←] back to home',
       projectTitle: 'Place-based Data Sovereignty',
       tagline: 'Co-designing community-owned data systems in Cardiff',
-      
-      vizTitle: 'Relational power analysis',
-      vizDesc: 'Circular network showing power distribution and knowledge flows. Toggle layers to see different dimensions of control.',
-      vizLayers: 'Analysis layers',
-      layerOwnership: 'Ownership',
-      layerRecording: 'Recording',
-      layerContracts: 'Contracts',
-      layerLedger: 'Ledger',
-      layerKnowledge: 'Knowledge flow',
-      layerRisk: 'Manipulation risk',
       
       overview: 'Overview',
       overviewText: 'This PhD research project explores how blockchain and Web3 technologies can enable genuine data sovereignty for communities in urban planning. Working with communities in Cardiff, Wales, we are co-designing place-based data systems that give residents real control over information about their neighbourhoods—challenging who gets to define, own, and use urban data to shape the built environment.',
@@ -296,16 +72,6 @@ export default function PlaceBasedDataSovereignty() {
       backHome: '[←] nôl i\'r hafan',
       projectTitle: 'Sofraniaeth Data Lle-seiliedig',
       tagline: 'Cyd-gynllunio systemau data sy\'n eiddo i\'r gymuned yng Nghaerdydd',
-      
-      vizTitle: 'Dadansoddiad pŵer perthynol',
-      vizDesc: 'Rhwydwaith crwn yn dangos dosbarthiad pŵer a llifau gwybodaeth. Toglo haenau i weld dimensiynau gwahanol o reolaeth.',
-      vizLayers: 'Haenau dadansoddi',
-      layerOwnership: 'Perchnogaeth',
-      layerRecording: 'Cofnodi',
-      layerContracts: 'Contractau',
-      layerLedger: 'Cyfriflyfr',
-      layerKnowledge: 'Llif gwybodaeth',
-      layerRisk: 'Risg trin data',
       
       overview: 'Trosolwg',
       overviewText: 'Mae\'r prosiect ymchwil PhD hwn yn archwilio sut gall technolegau blockchain a Gwe3 alluogi sofraniaeth data wirioneddol ar gyfer cymunedau mewn cynllunio trefol. Gan weithio gyda chymunedau yng Nghaerdydd, Cymru, rydym yn cyd-gynllunio systemau data lle-seiliedig sy\'n rhoi rheolaeth real i drigolion dros wybodaeth am eu cymdogaethau—herio pwy sy\'n cael diffinio, perchnogi a defnyddio data trefol i lunio\'r amgylchedd adeiledig.',
@@ -442,30 +208,6 @@ export default function PlaceBasedDataSovereignty() {
         .back-link:hover {
           color: ${theme === 'light' ? '#1a1a1a' : '#e0e0e0'};
         }
-
-        .layer-btn {
-          background: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
-          border: 1px solid ${theme === 'light' ? '#666' : '#999'};
-          color: ${theme === 'light' ? '#666' : '#999'};
-          padding: 8px 12px;
-          font-size: 10px;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-family: 'Space Mono', monospace;
-          font-weight: 700;
-          letter-spacing: 1px;
-          margin-right: 8px;
-          margin-bottom: 8px;
-        }
-
-        .layer-btn:hover {
-          border-color: ${theme === 'light' ? '#444' : '#bbb'};
-        }
-
-        .layer-btn.active {
-          background: ${theme === 'light' ? '#1a1a1a' : '#e0e0e0'};
-          color: ${theme === 'light' ? '#ffffff' : '#0a0a0a'};
-        }
       `}</style>
 
       {/* Theme & Language Toggle */}
@@ -494,7 +236,7 @@ export default function PlaceBasedDataSovereignty() {
       </div>
 
       <main style={{ minHeight: '100vh', padding: '60px 40px 40px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <Link href="/" className="back-link">
             {t.backHome}
           </Link>
@@ -512,40 +254,6 @@ export default function PlaceBasedDataSovereignty() {
               </h1>
               <p style={{ fontSize: '14px', color: theme === 'light' ? '#666' : '#999' }}>
                 {t.tagline}
-              </p>
-            </div>
-          </section>
-
-          {/* Interactive Circos Visualization */}
-          <section className="fade-in" style={{ marginBottom: '60px' }}>
-            <h2 className="section-label">{t.vizTitle}</h2>
-            
-            <div style={{ 
-              background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
-              border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
-              padding: '24px',
-              transition: 'background 0.3s ease, border 0.3s ease',
-              marginBottom: '20px'
-            }}>
-              <div style={{ marginBottom: '20px' }}>
-                <div className="section-label" style={{ fontSize: '10px', marginBottom: '12px' }}>{t.vizLayers}</div>
-                <div>
-                  {['ownership', 'knowledge', 'contracts', 'recording', 'ledger', 'risk'].map(layer => (
-                    <button
-                      key={layer}
-                      className={`layer-btn ${activeLayer === layer ? 'active' : ''}`}
-                      onClick={() => setActiveLayer(layer)}
-                    >
-                      {t[`layer${layer.charAt(0).toUpperCase() + layer.slice(1)}`]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div ref={vizSvgRef} style={{ width: '100%', height: '600px' }} />
-              
-              <p style={{ fontSize: '12px', color: theme === 'light' ? '#666' : '#999', marginTop: '20px', lineHeight: 1.7 }}>
-                {t.vizDesc}
               </p>
             </div>
           </section>
