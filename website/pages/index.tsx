@@ -81,7 +81,7 @@ export default function Home() {
       { name: 'Tongwynlais', x: 340, y: 130 },
     ]
 
-    // Wards without community councils (NO OVERLAPS - strategic positioning)
+    // Wards without community councils (NO OVERLAPS - Heath moved away from center)
     const withoutCouncils = [
       // South (bottom row)
       { name: 'Grangetown', x: 340, y: 560 },
@@ -100,8 +100,8 @@ export default function Home() {
       { name: 'Gabalfa', x: 380, y: 350 },
       { name: 'Penylan', x: 740, y: 400 },
       
-      // North-Central
-      { name: 'Heath', x: 540, y: 310 },
+      // North-Central (Heath moved to avoid Council overlap)
+      { name: 'Heath', x: 580, y: 280 },
       { name: 'Cyncoed', x: 710, y: 330 },
       { name: 'Llanishen', x: 650, y: 240 },
       { name: 'Rhiwbina', x: 480, y: 230 },
@@ -159,17 +159,44 @@ export default function Home() {
       wardCircle.setAttribute('opacity', '0.7')
       svg.appendChild(wardCircle)
 
-      // Ward label
-      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-      label.setAttribute('x', ward.x.toString())
-      label.setAttribute('y', (ward.y + 3).toString())
-      label.setAttribute('text-anchor', 'middle')
-      label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-      label.setAttribute('font-size', '8')
-      label.setAttribute('font-family', 'Space Mono, monospace')
-      label.setAttribute('font-weight', '600')
-      label.textContent = ward.name
-      svg.appendChild(label)
+      // Ward label - handle multi-line text for long names
+      const splitNames: { [key: string]: string[] } = {
+        'Old St Mellons': ['Old St', 'Mellons'],
+        'Tongwynlais': ['Tongwyn', 'lais'],
+        'Whitchurch': ['White', 'church'],
+        'Plasnewydd': ['Plasne', 'wydd'],
+        'Grangetown': ['Grange', 'town']
+      }
+
+      if (splitNames[ward.name]) {
+        // Multi-line text
+        const lines = splitNames[ward.name]
+        lines.forEach((line, lineIndex) => {
+          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+          label.setAttribute('x', ward.x.toString())
+          const yOffset = (lineIndex - (lines.length - 1) / 2) * 9
+          label.setAttribute('y', (ward.y + yOffset + 3).toString())
+          label.setAttribute('text-anchor', 'middle')
+          label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+          label.setAttribute('font-size', '8')
+          label.setAttribute('font-family', 'Space Mono, monospace')
+          label.setAttribute('font-weight', '600')
+          label.textContent = line
+          svg.appendChild(label)
+        })
+      } else {
+        // Single-line text
+        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+        label.setAttribute('x', ward.x.toString())
+        label.setAttribute('y', (ward.y + 3).toString())
+        label.setAttribute('text-anchor', 'middle')
+        label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+        label.setAttribute('font-size', '8')
+        label.setAttribute('font-family', 'Space Mono, monospace')
+        label.setAttribute('font-weight', '600')
+        label.textContent = ward.name
+        svg.appendChild(label)
+      }
 
       // Knowledge extraction arrow to Council (very subtle)
       const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line')
@@ -208,49 +235,7 @@ export default function Home() {
       }
     })
 
-    // Legend
-    const legendY = 50
-    
-    // With council legend
-    const withLegendCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    withLegendCircle.setAttribute('cx', '750')
-    withLegendCircle.setAttribute('cy', legendY.toString())
-    withLegendCircle.setAttribute('r', '10')
-    withLegendCircle.setAttribute('fill', 'none')
-    withLegendCircle.setAttribute('stroke', '#00cc88')
-    withLegendCircle.setAttribute('stroke-width', '2')
-    svg.appendChild(withLegendCircle)
-
-    const withLegendText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    withLegendText.setAttribute('x', '768')
-    withLegendText.setAttribute('y', (legendY + 4).toString())
-    withLegendText.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-    withLegendText.setAttribute('font-size', '10')
-    withLegendText.setAttribute('font-family', 'Space Mono, monospace')
-    withLegendText.textContent = 'Has community council'
-    svg.appendChild(withLegendText)
-
-    // Without council legend
-    const withoutLegendCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    withoutLegendCircle.setAttribute('cx', '750')
-    withoutLegendCircle.setAttribute('cy', (legendY + 25).toString())
-    withoutLegendCircle.setAttribute('r', '10')
-    withoutLegendCircle.setAttribute('fill', 'none')
-    withoutLegendCircle.setAttribute('stroke', '#ff4444')
-    withoutLegendCircle.setAttribute('stroke-width', '2')
-    withoutLegendCircle.setAttribute('stroke-dasharray', '4,2')
-    svg.appendChild(withoutLegendCircle)
-
-    const withoutLegendText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    withoutLegendText.setAttribute('x', '768')
-    withoutLegendText.setAttribute('y', (legendY + 29).toString())
-    withoutLegendText.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-    withoutLegendText.setAttribute('font-size', '10')
-    withoutLegendText.setAttribute('font-family', 'Space Mono, monospace')
-    withoutLegendText.textContent = 'No formal structure'
-    svg.appendChild(withoutLegendText)
-
-    // Title annotation
+    // Title annotation (no caps)
     const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     titleText.setAttribute('x', '70')
     titleText.setAttribute('y', '35')
@@ -259,7 +244,7 @@ export default function Home() {
     titleText.setAttribute('font-family', 'Space Mono, monospace')
     titleText.setAttribute('font-weight', '700')
     titleText.setAttribute('letter-spacing', '1')
-    titleText.textContent = 'CARDIFF: KNOWLEDGE FLOWS AND STRUCTURE'
+    titleText.textContent = 'Cardiff: Knowledge flows and structure'
     svg.appendChild(titleText)
 
   }, [mounted, theme])
@@ -384,24 +369,10 @@ export default function Home() {
           to { opacity: 1; transform: translateY(0); }
         }
         
-        @keyframes randomGlitch {
-          0%, 90%, 100% { opacity: 0.15; transform: translateX(0) scaleX(1); }
-          91% { opacity: 0.4; transform: translateX(5px) scaleX(1.1); }
-          93% { opacity: 0.3; transform: translateX(-4px) scaleX(0.9); }
-          95% { opacity: 0.35; transform: translateX(3px) scaleX(1.05); }
-          97% { opacity: 0.2; transform: translateX(-2px) scaleX(0.95); }
-        }
-        
         @keyframes cornerFlicker {
           0%, 100% { opacity: 0.4; }
           50% { opacity: 0.15; }
           75% { opacity: 0.3; }
-        }
-        
-        @keyframes streamScroll {
-          0% { transform: translateY(0); opacity: 0.2; }
-          50% { opacity: 0.1; }
-          100% { transform: translateY(30px); opacity: 0.2; }
         }
         
         * { 
@@ -442,51 +413,6 @@ export default function Home() {
           background: repeating-linear-gradient(0deg, transparent, transparent 2px, ${theme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)'} 2px, ${theme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)'} 4px);
           pointer-events: none;
           z-index: 1000;
-        }
-        
-        .glitch-bar {
-          position: fixed;
-          height: 2px;
-          background: ${theme === 'light' ? '#666' : '#999'};
-          opacity: 0.15;
-          pointer-events: none;
-          z-index: 999;
-        }
-        
-        .glitch-bar:nth-child(1) {
-          top: 15%;
-          left: 0;
-          width: 60%;
-          animation: randomGlitch 6s ease-in-out infinite;
-        }
-        
-        .glitch-bar:nth-child(2) {
-          top: 45%;
-          left: 25%;
-          width: 70%;
-          opacity: 0.12;
-          animation: randomGlitch 9s ease-in-out infinite 2s;
-        }
-        
-        .glitch-bar:nth-child(3) {
-          top: 72%;
-          left: 0;
-          width: 45%;
-          opacity: 0.1;
-          animation: randomGlitch 11s ease-in-out infinite 4s;
-        }
-        
-        .data-stream {
-          position: fixed;
-          top: 20px;
-          right: 120px;
-          font-size: 9px;
-          color: ${theme === 'light' ? '#666' : '#999'};
-          opacity: 0.2;
-          z-index: 50;
-          line-height: 1.3;
-          animation: streamScroll 25s linear infinite;
-          pointer-events: none;
         }
         
         .corner {
@@ -607,7 +533,7 @@ export default function Home() {
             animation-duration: 0.01ms !important;
             transition-duration: 0.01ms !important;
           }
-          .glitch-bar, .data-stream, .corner, .fade-in, .card-clickable, .card-expandable {
+          .corner, .fade-in, .card-clickable, .card-expandable {
             animation: none !important;
           }
           .card-clickable:hover, .card-expandable:hover {
@@ -617,19 +543,10 @@ export default function Home() {
       `}</style>
 
       <div className="scanlines" aria-hidden="true"></div>
-      <div className="glitch-bar" aria-hidden="true"></div>
-      <div className="glitch-bar" aria-hidden="true"></div>
-      <div className="glitch-bar" aria-hidden="true"></div>
       <div className="corner corner-tl" aria-hidden="true"></div>
       <div className="corner corner-tr" aria-hidden="true"></div>
       <div className="corner corner-bl" aria-hidden="true"></div>
       <div className="corner corner-br" aria-hidden="true"></div>
-      
-      {/* Binary for "Leol Lab" */}
-      <div className="data-stream" aria-hidden="true">
-        01001100 01100101 01101111 01101100<br/>
-        00100000 01001100 01100001 01100010
-      </div>
 
       {/* Theme & Language Toggle */}
       <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 2000, display: 'flex', gap: '8px' }}>
