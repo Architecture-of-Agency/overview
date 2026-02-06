@@ -7,8 +7,8 @@ export default function Home() {
   const [theme, setTheme] = useState('light')
   const [expandedCard, setExpandedCard] = useState(null)
   const [mounted, setMounted] = useState(false)
-  const currentCanvasRef = useRef(null)
-  const proposedCanvasRef = useRef(null)
+  const currentSvgRef = useRef(null)
+  const proposedSvgRef = useRef(null)
 
   useEffect(() => {
     setMounted(true)
@@ -17,108 +17,314 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted || typeof window === 'undefined') return
 
-    // Current system - flatline with occasional spikes
-    const currentCanvas = currentCanvasRef.current
-    if (currentCanvas) {
-      const ctx = currentCanvas.getContext('2d')
-      const width = currentCanvas.width
-      const height = currentCanvas.height
-      let x = 0
-
-      const drawCurrent = () => {
-        ctx.strokeStyle = theme === 'light' ? '#666' : '#999'
-        ctx.lineWidth = 2
-        ctx.clearRect(0, 0, width, height)
-        
-        // Grid
-        ctx.strokeStyle = theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)'
-        ctx.lineWidth = 1
-        for (let i = 0; i < width; i += 20) {
-          ctx.beginPath()
-          ctx.moveTo(i, 0)
-          ctx.lineTo(i, height)
-          ctx.stroke()
-        }
-        for (let i = 0; i < height; i += 20) {
-          ctx.beginPath()
-          ctx.moveTo(0, i)
-          ctx.lineTo(width, i)
-          ctx.stroke()
-        }
-
-        // Flatline with spikes
-        ctx.strokeStyle = theme === 'light' ? '#ff4444' : '#ff6666'
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        ctx.moveTo(0, height / 2)
-        
-        for (let i = 0; i < width; i++) {
-          const spikePoint1 = Math.floor(width * 0.3)
-          const spikePoint2 = Math.floor(width * 0.7)
-          
-          if (Math.abs(i - spikePoint1 - (x % 60)) < 3) {
-            ctx.lineTo(i, height / 2 - 40)
-          } else if (Math.abs(i - spikePoint2 - (x % 60)) < 3) {
-            ctx.lineTo(i, height / 2 - 40)
-          } else {
-            ctx.lineTo(i, height / 2)
-          }
-        }
-        ctx.stroke()
-        
-        x += 0.5
-        requestAnimationFrame(drawCurrent)
+    // Current System Visualization
+    const currentSvg = currentSvgRef.current
+    if (currentSvg) {
+      const width = 400
+      const height = 300
+      
+      // Clear existing
+      while (currentSvg.firstChild) {
+        currentSvg.removeChild(currentSvg.firstChild)
       }
-      drawCurrent()
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      svg.setAttribute('width', '100%')
+      svg.setAttribute('height', '100%')
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+      currentSvg.appendChild(svg)
+
+      // Grid background
+      const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      for (let x = 0; x < width; x += 20) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        line.setAttribute('x1', x)
+        line.setAttribute('y1', 0)
+        line.setAttribute('x2', x)
+        line.setAttribute('y2', height)
+        line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
+        line.setAttribute('stroke-width', '1')
+        grid.appendChild(line)
+      }
+      for (let y = 0; y < height; y += 20) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        line.setAttribute('x1', 0)
+        line.setAttribute('y1', y)
+        line.setAttribute('x2', width)
+        line.setAttribute('y2', y)
+        line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
+        line.setAttribute('stroke-width', '1')
+        grid.appendChild(line)
+      }
+      svg.appendChild(grid)
+
+      // Authority node (top, large)
+      const authNode = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      authNode.setAttribute('cx', width / 2)
+      authNode.setAttribute('cy', 60)
+      authNode.setAttribute('r', 40)
+      authNode.setAttribute('fill', theme === 'light' ? '#1a1a1a' : '#0a0a0a')
+      authNode.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
+      authNode.setAttribute('stroke-width', '2')
+      svg.appendChild(authNode)
+
+      const authText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      authText.setAttribute('x', width / 2)
+      authText.setAttribute('y', 65)
+      authText.setAttribute('text-anchor', 'middle')
+      authText.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
+      authText.setAttribute('font-size', '11')
+      authText.setAttribute('font-family', 'Space Mono, monospace')
+      authText.textContent = 'Authority'
+      svg.appendChild(authText)
+
+      // Community nodes (bottom, small, scattered)
+      const communityNodes = [
+        { x: width * 0.25, y: height - 60 },
+        { x: width * 0.5, y: height - 60 },
+        { x: width * 0.75, y: height - 60 }
+      ]
+
+      communityNodes.forEach((pos, i) => {
+        const node = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+        node.setAttribute('cx', pos.x)
+        node.setAttribute('cy', pos.y)
+        node.setAttribute('r', 20)
+        node.setAttribute('fill', theme === 'light' ? '#e0e0e0' : '#333')
+        node.setAttribute('stroke', theme === 'light' ? '#999' : '#666')
+        node.setAttribute('stroke-width', '2')
+        node.setAttribute('opacity', '0.6')
+        svg.appendChild(node)
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+        text.setAttribute('x', pos.x)
+        text.setAttribute('y', pos.y + 4)
+        text.setAttribute('text-anchor', 'middle')
+        text.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+        text.setAttribute('font-size', '9')
+        text.setAttribute('font-family', 'Space Mono, monospace')
+        text.textContent = 'Comm'
+        svg.appendChild(text)
+
+        // Extraction arrows
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        arrow.setAttribute('x1', pos.x)
+        arrow.setAttribute('y1', pos.y - 20)
+        arrow.setAttribute('x2', width / 2)
+        arrow.setAttribute('y2', 100)
+        arrow.setAttribute('stroke', '#ff4444')
+        arrow.setAttribute('stroke-width', '2')
+        arrow.setAttribute('opacity', '0.7')
+        arrow.setAttribute('marker-end', 'url(#arrowhead-current)')
+        svg.appendChild(arrow)
+
+        // Animated particles flowing UP
+        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+        particle.setAttribute('r', '3')
+        particle.setAttribute('fill', '#ff4444')
+        
+        const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion')
+        animate.setAttribute('dur', '3s')
+        animate.setAttribute('repeatCount', 'indefinite')
+        animate.setAttribute('begin', `${i * 1}s`)
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'mpath')
+        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        pathEl.setAttribute('d', `M ${pos.x},${pos.y - 20} L ${width / 2},${100}`)
+        pathEl.setAttribute('id', `extraction-path-${i}`)
+        svg.appendChild(pathEl)
+        path.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#extraction-path-${i}`)
+        
+        animate.appendChild(path)
+        particle.appendChild(animate)
+        svg.appendChild(particle)
+      })
+
+      // Arrow marker
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
+      marker.setAttribute('id', 'arrowhead-current')
+      marker.setAttribute('markerWidth', '10')
+      marker.setAttribute('markerHeight', '10')
+      marker.setAttribute('refX', '5')
+      marker.setAttribute('refY', '3')
+      marker.setAttribute('orient', 'auto')
+      const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+      polygon.setAttribute('points', '0 0, 10 3, 0 6')
+      polygon.setAttribute('fill', '#ff4444')
+      marker.appendChild(polygon)
+      defs.appendChild(marker)
+      svg.insertBefore(defs, svg.firstChild)
     }
 
-    // Proposed system - continuous sine wave
-    const proposedCanvas = proposedCanvasRef.current
-    if (proposedCanvas) {
-      const ctx = proposedCanvas.getContext('2d')
-      const width = proposedCanvas.width
-      const height = proposedCanvas.height
-      let offset = 0
-
-      const drawProposed = () => {
-        ctx.strokeStyle = theme === 'light' ? '#666' : '#999'
-        ctx.lineWidth = 2
-        ctx.clearRect(0, 0, width, height)
-        
-        // Grid
-        ctx.strokeStyle = theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)'
-        ctx.lineWidth = 1
-        for (let i = 0; i < width; i += 20) {
-          ctx.beginPath()
-          ctx.moveTo(i, 0)
-          ctx.lineTo(i, height)
-          ctx.stroke()
-        }
-        for (let i = 0; i < height; i += 20) {
-          ctx.beginPath()
-          ctx.moveTo(0, i)
-          ctx.lineTo(width, i)
-          ctx.stroke()
-        }
-
-        // Continuous sine wave
-        ctx.strokeStyle = theme === 'light' ? '#00cc88' : '#00ff99'
-        ctx.lineWidth = 2
-        ctx.beginPath()
-        
-        for (let i = 0; i < width; i++) {
-          const y = height / 2 + Math.sin((i + offset) * 0.05) * 30
-          if (i === 0) ctx.moveTo(i, y)
-          else ctx.lineTo(i, y)
-        }
-        ctx.stroke()
-        
-        offset += 2
-        requestAnimationFrame(drawProposed)
+    // Proposed System Visualization
+    const proposedSvg = proposedSvgRef.current
+    if (proposedSvg) {
+      const width = 400
+      const height = 300
+      
+      // Clear existing
+      while (proposedSvg.firstChild) {
+        proposedSvg.removeChild(proposedSvg.firstChild)
       }
-      drawProposed()
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      svg.setAttribute('width', '100%')
+      svg.setAttribute('height', '100%')
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
+      proposedSvg.appendChild(svg)
+
+      // Grid background
+      const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      for (let x = 0; x < width; x += 20) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        line.setAttribute('x1', x)
+        line.setAttribute('y1', 0)
+        line.setAttribute('x2', x)
+        line.setAttribute('y2', height)
+        line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
+        line.setAttribute('stroke-width', '1')
+        grid.appendChild(line)
+      }
+      for (let y = 0; y < height; y += 20) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        line.setAttribute('x1', 0)
+        line.setAttribute('y1', y)
+        line.setAttribute('x2', width)
+        line.setAttribute('y2', y)
+        line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)')
+        line.setAttribute('stroke-width', '1')
+        grid.appendChild(line)
+      }
+      svg.appendChild(grid)
+
+      // Arrow markers
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
+      marker.setAttribute('id', 'arrowhead-proposed')
+      marker.setAttribute('markerWidth', '10')
+      marker.setAttribute('markerHeight', '10')
+      marker.setAttribute('refX', '5')
+      marker.setAttribute('refY', '3')
+      marker.setAttribute('orient', 'auto')
+      const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+      polygon.setAttribute('points', '0 0, 10 3, 0 6')
+      polygon.setAttribute('fill', '#00cc88')
+      marker.appendChild(polygon)
+      defs.appendChild(marker)
+      svg.insertBefore(defs, svg.firstChild)
+
+      // Community node (center, large)
+      const commNode = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+      commNode.setAttribute('cx', width / 2)
+      commNode.setAttribute('cy', height / 2)
+      commNode.setAttribute('r', 50)
+      commNode.setAttribute('fill', theme === 'light' ? '#00cc88' : '#008855')
+      commNode.setAttribute('stroke', theme === 'light' ? '#00aa77' : '#00aa77')
+      commNode.setAttribute('stroke-width', '3')
+      svg.appendChild(commNode)
+
+      const commText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      commText.setAttribute('x', width / 2)
+      commText.setAttribute('y', height / 2 + 5)
+      commText.setAttribute('text-anchor', 'middle')
+      commText.setAttribute('fill', '#ffffff')
+      commText.setAttribute('font-size', '12')
+      commText.setAttribute('font-family', 'Space Mono, monospace')
+      commText.setAttribute('font-weight', '700')
+      commText.textContent = 'Community'
+      svg.appendChild(commText)
+
+      // Stakeholder nodes around center
+      const stakeholders = [
+        { label: 'Arch', angle: 0 },
+        { label: 'Dev', angle: Math.PI / 2 },
+        { label: 'LA', angle: Math.PI },
+        { label: 'Gov', angle: (3 * Math.PI) / 2 }
+      ]
+
+      stakeholders.forEach((stakeholder, i) => {
+        const distance = 100
+        const x = width / 2 + Math.cos(stakeholder.angle) * distance
+        const y = height / 2 + Math.sin(stakeholder.angle) * distance
+
+        // Bidirectional connection
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        line.setAttribute('x1', width / 2)
+        line.setAttribute('y1', height / 2)
+        line.setAttribute('x2', x)
+        line.setAttribute('y2', y)
+        line.setAttribute('stroke', '#00cc88')
+        line.setAttribute('stroke-width', '2')
+        line.setAttribute('opacity', '0.5')
+        line.setAttribute('marker-end', 'url(#arrowhead-proposed)')
+        svg.appendChild(line)
+
+        // Animated particles (bidirectional)
+        const particle1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+        particle1.setAttribute('r', '3')
+        particle1.setAttribute('fill', '#00cc88')
+        
+        const animate1 = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion')
+        animate1.setAttribute('dur', '4s')
+        animate1.setAttribute('repeatCount', 'indefinite')
+        animate1.setAttribute('begin', `${i * 1}s`)
+        
+        const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'mpath')
+        const pathEl1 = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        pathEl1.setAttribute('d', `M ${width / 2},${height / 2} L ${x},${y}`)
+        pathEl1.setAttribute('id', `access-path-out-${i}`)
+        svg.appendChild(pathEl1)
+        path1.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#access-path-out-${i}`)
+        
+        animate1.appendChild(path1)
+        particle1.appendChild(animate1)
+        svg.appendChild(particle1)
+
+        // Return particle
+        const particle2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+        particle2.setAttribute('r', '3')
+        particle2.setAttribute('fill', '#00cc88')
+        particle2.setAttribute('opacity', '0.5')
+        
+        const animate2 = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion')
+        animate2.setAttribute('dur', '4s')
+        animate2.setAttribute('repeatCount', 'indefinite')
+        animate2.setAttribute('begin', `${i * 1 + 2}s`)
+        
+        const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'mpath')
+        const pathEl2 = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+        pathEl2.setAttribute('d', `M ${x},${y} L ${width / 2},${height / 2}`)
+        pathEl2.setAttribute('id', `access-path-in-${i}`)
+        svg.appendChild(pathEl2)
+        path2.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#access-path-in-${i}`)
+        
+        animate2.appendChild(path2)
+        particle2.appendChild(animate2)
+        svg.appendChild(particle2)
+
+        // Stakeholder node
+        const node = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+        node.setAttribute('cx', x)
+        node.setAttribute('cy', y)
+        node.setAttribute('r', 25)
+        node.setAttribute('fill', theme === 'light' ? '#ffffff' : '#1a1a1a')
+        node.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
+        node.setAttribute('stroke-width', '2')
+        svg.appendChild(node)
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+        text.setAttribute('x', x)
+        text.setAttribute('y', y + 4)
+        text.setAttribute('text-anchor', 'middle')
+        text.setAttribute('fill', theme === 'light' ? '#1a1a1a' : '#e0e0e0')
+        text.setAttribute('font-size', '10')
+        text.setAttribute('font-family', 'Space Mono, monospace')
+        text.textContent = stakeholder.label
+        svg.appendChild(text)
+      })
     }
   }, [mounted, theme])
 
@@ -137,17 +343,21 @@ export default function Home() {
       contact: 'Contact',
       contactAvailability: 'Available for meetings in Cardiff/Online',
       
-      vizTitle: 'SYSTEM_COMPARISON',
-      vizCurrent: 'CURRENT_SYSTEM',
-      vizProposed: 'PROPOSED_SYSTEM',
-      vizCurrentStatus: 'STATUS: 0x01_DORMANT',
-      vizProposedStatus: 'STATUS: 0xFF_ACTIVE',
-      vizOwnership1: 'OWNERSHIP: 0xAUTH',
-      vizOwnership2: 'OWNERSHIP: 0xCOMM',
-      vizRisk1: 'RISK: 0xHIGH',
-      vizRisk2: 'RISK: 0xLOW',
-      vizTransparency1: 'TRANSPARENCY: 0x00',
-      vizTransparency2: 'TRANSPARENCY: 0xFF',
+      vizTitle: 'System transformation',
+      vizCurrent: 'Current: Extraction',
+      vizProposed: 'Proposed: Sovereignty',
+      vizCurrentLabels: [
+        'Data extracted from communities',
+        'One-way flow to authority',
+        'No community control',
+        'Opaque processes'
+      ],
+      vizProposedLabels: [
+        'Community retains ownership',
+        'Controlled access by stakeholders',
+        'Transparent and auditable',
+        'Blockchain-verified'
+      ],
       
       card1Title: 'Data sovereignty',
       card1Short: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Addressing epistemic justice in urban governance systems.',
@@ -161,8 +371,8 @@ export default function Home() {
       card3Short: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes.',
       card3Full: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes. We explore how decentralised technologies can enable genuine community control over planning and design decisions—moving beyond extractive consultation toward meaningful devolved power. Our research investigates smart contracts for transparent decision-making, DAOs for community governance, and blockchain for creating auditable, community-owned records of planning processes that shape the built environment. The goal is accountability: tools that make power visible and challengeable.',
       
-      clickToExpand: '[+] EXPAND',
-      clickToCollapse: '[-] COLLAPSE',
+      clickToExpand: '[+] expand',
+      clickToCollapse: '[-] collapse',
       
       projectTitle: 'Place-based Data Sovereignty',
       projectDesc: 'Co-designing place-based data systems with communities in Cardiff, Wales. Testing how blockchain can support transparency, accountability and real devolved power to communities in shaping the built environment and planning processes.',
@@ -173,10 +383,10 @@ export default function Home() {
       project3Title: 'Place-based Digital Identity',
       project3Text: 'Investigating place and location as identity mechanisms for engaging with governance processes. Avoiding surveillance systems and traditional digital IDs while enabling meaningful participation in shaping places.',
       
-      viewProject: '[→] VIEW_PROJECT',
-      ongoing: 'STATUS: ONGOING',
-      funding: 'OPEN_TO_PARTNERSHIPS',
-      footer: 'WEB3 :: GOVERNANCE :: INCLUSION'
+      viewProject: '[→] view project',
+      ongoing: 'Ongoing',
+      funding: 'Open to partnerships and funding',
+      footer: 'Web3 :: Governance :: Inclusion'
     },
     cy: {
       mission: 'Ymchwilio i systemau llywodraethiant cynhwysol Web3-alluog ar gyfer data cymdogaeth sofran - llunio\'r amgylchedd adeiledig a lle o lefel stryd i lefel genedlaethol',
@@ -186,17 +396,21 @@ export default function Home() {
       contact: 'Cysylltu',
       contactAvailability: 'Ar gael ar gyfer cyfarfodydd yng Nghaerdydd/Ar-lein',
       
-      vizTitle: 'CYMHARIAETH_SYSTEM',
-      vizCurrent: 'SYSTEM_BRESENNOL',
-      vizProposed: 'SYSTEM_ARFAETHEDIG',
-      vizCurrentStatus: 'STATWS: 0x01_SEGUR',
-      vizProposedStatus: 'STATWS: 0xFF_GWEITHREDOL',
-      vizOwnership1: 'PERCHNOGAETH: 0xAWDURDOD',
-      vizOwnership2: 'PERCHNOGAETH: 0xCYMUNED',
-      vizRisk1: 'RISG: 0xUCHEL',
-      vizRisk2: 'RISG: 0xISEL',
-      vizTransparency1: 'TRYLOYWDER: 0x00',
-      vizTransparency2: 'TRYLOYWDER: 0xFF',
+      vizTitle: 'Trawsnewidiad system',
+      vizCurrent: 'Cyfredol: Echdynnu',
+      vizProposed: 'Arfaethedig: Sofraniaeth',
+      vizCurrentLabels: [
+        'Data yn cael ei echdynnu o gymunedau',
+        'Llif un ffordd at awdurdod',
+        'Dim rheolaeth gymunedol',
+        'Prosesau anhryloyw'
+      ],
+      vizProposedLabels: [
+        'Cymuned yn cadw perchnogaeth',
+        'Mynediad rheoledig gan randdeiliaid',
+        'Tryloyw ac archwiliadwy',
+        'Wedi\'i ddilysu gan blockchain'
+      ],
       
       card1Title: 'Sofraniaeth data',
       card1Short: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mynd i\'r afael â chyfiawnder epistemolegol mewn systemau llywodraethiant trefol.',
@@ -210,8 +424,8 @@ export default function Home() {
       card3Short: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol.',
       card3Full: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol. Rydym yn archwilio sut gall technolegau datganoledig alluogi rheolaeth gymunedol wirioneddol dros benderfyniadau cynllunio a dylunio—symud y tu hwnt i ymgynghori echdynnol tuag at bŵer datganoledig ystyrlon. Mae ein hymchwil yn ymchwilio i gontractau craff ar gyfer gwneud penderfyniadau tryloyw, DAOs ar gyfer llywodraethiant cymunedol, a blockchain ar gyfer creu cofnodion archwiliadwy, sy\'n eiddo i\'r gymuned.',
       
-      clickToExpand: '[+] EHANGU',
-      clickToCollapse: '[-] CAU',
+      clickToExpand: '[+] ehangu',
+      clickToCollapse: '[-] cau',
       
       projectTitle: 'Sofraniaeth Data Lle-seiliedig',
       projectDesc: 'Cyd-gynllunio systemau data lle-seiliedig gyda chymunedau yng Nghaerdydd, Cymru. Profi sut gall blockchain gefnogi tryloywder, atebolrwydd a gwir bŵer datganoledig i gymunedau mewn llunio\'r amgylchedd adeiledig a phrosesau cynllunio.',
@@ -222,10 +436,10 @@ export default function Home() {
       project3Title: 'Hunaniaeth Ddigidol Lle-seiliedig',
       project3Text: 'Ymchwilio i le a lleoliad fel mecanweithiau hunaniaeth ar gyfer ymgysylltu â phrosesau llywodraethiant. Osgoi systemau gwyliadwriaeth a hunoliaethau digidol traddodiadol tra\'n galluogi cyfranogiad ystyrlon mewn llunio lleoedd.',
       
-      viewProject: '[→] GWELD_PROSIECT',
-      ongoing: 'STATWS: AR_Y_GWEILL',
-      funding: 'AGORED_I_BARTNERIAETHAU',
-      footer: 'GWE3 :: LLYWODRAETHIANT :: CYNHWYSIANT'
+      viewProject: '[→] gweld prosiect',
+      ongoing: 'Ar y gweill',
+      funding: 'Agored i bartneriaethau a chyllid',
+      footer: 'Gwe3 :: Llywodraethiant :: Cynhwysiant'
     }
   }
   
@@ -465,29 +679,6 @@ export default function Home() {
         a:hover {
           text-decoration: underline;
         }
-
-        .viz-box {
-          background: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
-          border: 2px solid ${theme === 'light' ? '#666' : '#999'};
-          padding: 20px;
-          font-family: 'Space Mono', monospace;
-          transition: background 0.3s ease, border 0.3s ease;
-        }
-
-        .viz-label {
-          font-size: 10px;
-          letter-spacing: 2px;
-          color: ${theme === 'light' ? '#666' : '#999'};
-          margin-bottom: 12px;
-        }
-
-        .viz-status {
-          font-size: 9px;
-          letter-spacing: 1px;
-          color: ${theme === 'light' ? '#888' : '#aaa'};
-          margin-top: 12px;
-          line-height: 1.8;
-        }
         
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
@@ -553,7 +744,7 @@ export default function Home() {
             transition: 'background 0.3s ease, border 0.3s ease'
           }}>
             <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2, letterSpacing: '-1px' }}>
-              LEOL_LAB
+              Leol Lab
             </h1>
             
             <p style={{ fontSize: '16px', lineHeight: 1.7, maxWidth: '800px' }}>
@@ -562,45 +753,49 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Waveform Visualization */}
+        {/* D3 Network Visualization */}
         <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
           <h2 className="section-label">{t.vizTitle}</h2>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {/* Current System */}
-            <div className="viz-box">
-              <div className="viz-label">{t.vizCurrent}</div>
-              <div className="viz-label" style={{ fontSize: '9px', marginBottom: '16px' }}>{t.vizCurrentStatus}</div>
+            <div style={{ 
+              background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+              border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
+              padding: '20px',
+              transition: 'background 0.3s ease, border 0.3s ease'
+            }}>
+              <h3 style={{ fontSize: '12px', fontWeight: 700, marginBottom: '16px', letterSpacing: '1px', color: theme === 'light' ? '#666' : '#999' }}>
+                {t.vizCurrent}
+              </h3>
               
-              <canvas 
-                ref={currentCanvasRef}
-                width={400}
-                height={120}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
+              <div ref={currentSvgRef} style={{ width: '100%', height: '300px', marginBottom: '16px' }} />
               
-              <div className="viz-status">
-                <div>{t.vizOwnership1} :: {t.vizRisk1}</div>
-                <div>{t.vizTransparency1}</div>
-              </div>
+              <ul style={{ listStyle: 'none', fontSize: '11px', lineHeight: 1.8, color: theme === 'light' ? '#666' : '#999' }}>
+                {t.vizCurrentLabels.map((label, i) => (
+                  <li key={i}>[·] {label}</li>
+                ))}
+              </ul>
             </div>
 
             {/* Proposed System */}
-            <div className="viz-box">
-              <div className="viz-label">{t.vizProposed}</div>
-              <div className="viz-label" style={{ fontSize: '9px', marginBottom: '16px' }}>{t.vizProposedStatus}</div>
+            <div style={{ 
+              background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+              border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
+              padding: '20px',
+              transition: 'background 0.3s ease, border 0.3s ease'
+            }}>
+              <h3 style={{ fontSize: '12px', fontWeight: 700, marginBottom: '16px', letterSpacing: '1px', color: theme === 'light' ? '#666' : '#999' }}>
+                {t.vizProposed}
+              </h3>
               
-              <canvas 
-                ref={proposedCanvasRef}
-                width={400}
-                height={120}
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
+              <div ref={proposedSvgRef} style={{ width: '100%', height: '300px', marginBottom: '16px' }} />
               
-              <div className="viz-status">
-                <div>{t.vizOwnership2} :: {t.vizRisk2}</div>
-                <div>{t.vizTransparency2}</div>
-              </div>
+              <ul style={{ listStyle: 'none', fontSize: '11px', lineHeight: 1.8, color: theme === 'light' ? '#666' : '#999' }}>
+                {t.vizProposedLabels.map((label, i) => (
+                  <li key={i}>[·] {label}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
@@ -624,8 +819,8 @@ export default function Home() {
                 }}
                 onClick={() => setExpandedCard(expandedCard === cardNum ? null : cardNum)}
               >
-                <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '1px' }}>
-                  {t[`card${cardNum}Title`].toUpperCase()}
+                <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '0.5px' }}>
+                  {t[`card${cardNum}Title`]}
                 </h3>
                 <p style={{ fontSize: '14px', lineHeight: 1.7 }}>
                   {expandedCard === cardNum ? t[`card${cardNum}Full`] : t[`card${cardNum}Short`]}
@@ -651,8 +846,8 @@ export default function Home() {
               padding: '32px',
               transition: 'background 0.3s ease, border 0.3s ease'
             }}>
-              <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700, letterSpacing: '1px' }}>
-                {t.projectTitle.toUpperCase()}
+              <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700, letterSpacing: '0.5px' }}>
+                {t.projectTitle}
               </h3>
               <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
                 {t.projectDesc}
@@ -678,8 +873,8 @@ export default function Home() {
                 padding: '28px',
                 transition: 'background 0.3s ease, border 0.3s ease'
               }}>
-                <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700, letterSpacing: '1px' }}>
-                  {t.project2Title.toUpperCase()}
+                <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700, letterSpacing: '0.5px' }}>
+                  {t.project2Title}
                 </h3>
                 <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
                   {t.project2Text}
@@ -702,8 +897,8 @@ export default function Home() {
                 padding: '28px',
                 transition: 'background 0.3s ease, border 0.3s ease'
               }}>
-                <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700, letterSpacing: '1px' }}>
-                  {t.project3Title.toUpperCase()}
+                <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700, letterSpacing: '0.5px' }}>
+                  {t.project3Title}
                 </h3>
                 <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
                   {t.project3Text}
@@ -733,8 +928,8 @@ export default function Home() {
             padding: '32px',
             transition: 'background 0.3s ease, border 0.3s ease'
           }}>
-            <p style={{ fontSize: '14px', marginBottom: '8px', letterSpacing: '1px' }}>
-              <strong>LUCY_DUNHILL</strong> :: PHD_RESEARCHER
+            <p style={{ fontSize: '14px', marginBottom: '8px', letterSpacing: '0.5px' }}>
+              <strong>Lucy Dunhill</strong>, PhD Researcher
             </p>
             <p style={{ fontSize: '13px', color: theme === 'light' ? '#555' : '#bbb', marginBottom: '8px' }}>
               Welsh School of Architecture, Cardiff University
@@ -744,16 +939,16 @@ export default function Home() {
                 dunhilll@cardiff.ac.uk
               </a>
             </p>
-            <p style={{ fontSize: '11px', color: theme === 'light' ? '#666' : '#999', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '16px', letterSpacing: '1px' }}>
+            <p style={{ fontSize: '11px', color: theme === 'light' ? '#666' : '#999', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '16px', letterSpacing: '0.5px' }}>
               {t.contactAvailability}
             </p>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `2px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '11px', color: theme === 'light' ? '#555' : '#bbb', letterSpacing: '2px' }}>
+        <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `2px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '11px', color: theme === 'light' ? '#555' : '#bbb', letterSpacing: '1px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div>© 2025 LEOL_LAB</div>
+            <div>© 2025 Leol Lab</div>
             <div>{t.footer}</div>
           </div>
         </footer>
