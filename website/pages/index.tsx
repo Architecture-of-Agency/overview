@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 export default function Home() {
@@ -7,13 +7,120 @@ export default function Home() {
   const [theme, setTheme] = useState('light')
   const [expandedCard, setExpandedCard] = useState(null)
   const [mounted, setMounted] = useState(false)
+  const currentCanvasRef = useRef(null)
+  const proposedCanvasRef = useRef(null)
 
   useEffect(() => {
     setMounted(true)
-    // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme') || 'light'
     setTheme(savedTheme)
   }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
+    // Current system - flatline with occasional spikes
+    const currentCanvas = currentCanvasRef.current
+    if (currentCanvas) {
+      const ctx = currentCanvas.getContext('2d')
+      const width = currentCanvas.width
+      const height = currentCanvas.height
+      let x = 0
+
+      const drawCurrent = () => {
+        ctx.strokeStyle = theme === 'light' ? '#666' : '#999'
+        ctx.lineWidth = 2
+        ctx.clearRect(0, 0, width, height)
+        
+        // Grid
+        ctx.strokeStyle = theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)'
+        ctx.lineWidth = 1
+        for (let i = 0; i < width; i += 20) {
+          ctx.beginPath()
+          ctx.moveTo(i, 0)
+          ctx.lineTo(i, height)
+          ctx.stroke()
+        }
+        for (let i = 0; i < height; i += 20) {
+          ctx.beginPath()
+          ctx.moveTo(0, i)
+          ctx.lineTo(width, i)
+          ctx.stroke()
+        }
+
+        // Flatline with spikes
+        ctx.strokeStyle = theme === 'light' ? '#ff4444' : '#ff6666'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(0, height / 2)
+        
+        for (let i = 0; i < width; i++) {
+          const spikePoint1 = Math.floor(width * 0.3)
+          const spikePoint2 = Math.floor(width * 0.7)
+          
+          if (Math.abs(i - spikePoint1 - (x % 60)) < 3) {
+            ctx.lineTo(i, height / 2 - 40)
+          } else if (Math.abs(i - spikePoint2 - (x % 60)) < 3) {
+            ctx.lineTo(i, height / 2 - 40)
+          } else {
+            ctx.lineTo(i, height / 2)
+          }
+        }
+        ctx.stroke()
+        
+        x += 0.5
+        requestAnimationFrame(drawCurrent)
+      }
+      drawCurrent()
+    }
+
+    // Proposed system - continuous sine wave
+    const proposedCanvas = proposedCanvasRef.current
+    if (proposedCanvas) {
+      const ctx = proposedCanvas.getContext('2d')
+      const width = proposedCanvas.width
+      const height = proposedCanvas.height
+      let offset = 0
+
+      const drawProposed = () => {
+        ctx.strokeStyle = theme === 'light' ? '#666' : '#999'
+        ctx.lineWidth = 2
+        ctx.clearRect(0, 0, width, height)
+        
+        // Grid
+        ctx.strokeStyle = theme === 'light' ? 'rgba(102,102,102,0.1)' : 'rgba(153,153,153,0.1)'
+        ctx.lineWidth = 1
+        for (let i = 0; i < width; i += 20) {
+          ctx.beginPath()
+          ctx.moveTo(i, 0)
+          ctx.lineTo(i, height)
+          ctx.stroke()
+        }
+        for (let i = 0; i < height; i += 20) {
+          ctx.beginPath()
+          ctx.moveTo(0, i)
+          ctx.lineTo(width, i)
+          ctx.stroke()
+        }
+
+        // Continuous sine wave
+        ctx.strokeStyle = theme === 'light' ? '#00cc88' : '#00ff99'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        
+        for (let i = 0; i < width; i++) {
+          const y = height / 2 + Math.sin((i + offset) * 0.05) * 30
+          if (i === 0) ctx.moveTo(i, y)
+          else ctx.lineTo(i, y)
+        }
+        ctx.stroke()
+        
+        offset += 2
+        requestAnimationFrame(drawProposed)
+      }
+      drawProposed()
+    }
+  }, [mounted, theme])
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
@@ -30,9 +137,17 @@ export default function Home() {
       contact: 'Contact',
       contactAvailability: 'Available for meetings in Cardiff/Online',
       
-      vizTitle: 'Transforming community data',
-      vizCurrent: 'Current system',
-      vizProposed: 'Proposed system',
+      vizTitle: 'SYSTEM_COMPARISON',
+      vizCurrent: 'CURRENT_SYSTEM',
+      vizProposed: 'PROPOSED_SYSTEM',
+      vizCurrentStatus: 'STATUS: 0x01_DORMANT',
+      vizProposedStatus: 'STATUS: 0xFF_ACTIVE',
+      vizOwnership1: 'OWNERSHIP: 0xAUTH',
+      vizOwnership2: 'OWNERSHIP: 0xCOMM',
+      vizRisk1: 'RISK: 0xHIGH',
+      vizRisk2: 'RISK: 0xLOW',
+      vizTransparency1: 'TRANSPARENCY: 0x00',
+      vizTransparency2: 'TRANSPARENCY: 0xFF',
       
       card1Title: 'Data sovereignty',
       card1Short: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Addressing epistemic justice in urban governance systems.',
@@ -46,8 +161,8 @@ export default function Home() {
       card3Short: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes.',
       card3Full: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes. We explore how decentralised technologies can enable genuine community control over planning and design decisions—moving beyond extractive consultation toward meaningful devolved power. Our research investigates smart contracts for transparent decision-making, DAOs for community governance, and blockchain for creating auditable, community-owned records of planning processes that shape the built environment. The goal is accountability: tools that make power visible and challengeable.',
       
-      clickToExpand: 'Click to read more',
-      clickToCollapse: 'Click to collapse',
+      clickToExpand: '[+] EXPAND',
+      clickToCollapse: '[-] COLLAPSE',
       
       projectTitle: 'Place-based Data Sovereignty',
       projectDesc: 'Co-designing place-based data systems with communities in Cardiff, Wales. Testing how blockchain can support transparency, accountability and real devolved power to communities in shaping the built environment and planning processes.',
@@ -58,10 +173,10 @@ export default function Home() {
       project3Title: 'Place-based Digital Identity',
       project3Text: 'Investigating place and location as identity mechanisms for engaging with governance processes. Avoiding surveillance systems and traditional digital IDs while enabling meaningful participation in shaping places.',
       
-      viewProject: 'View full project',
-      ongoing: 'Ongoing',
-      funding: 'Open to partnerships and funding',
-      footer: 'Web3 · Governance · Inclusion'
+      viewProject: '[→] VIEW_PROJECT',
+      ongoing: 'STATUS: ONGOING',
+      funding: 'OPEN_TO_PARTNERSHIPS',
+      footer: 'WEB3 :: GOVERNANCE :: INCLUSION'
     },
     cy: {
       mission: 'Ymchwilio i systemau llywodraethiant cynhwysol Web3-alluog ar gyfer data cymdogaeth sofran - llunio\'r amgylchedd adeiledig a lle o lefel stryd i lefel genedlaethol',
@@ -71,9 +186,17 @@ export default function Home() {
       contact: 'Cysylltu',
       contactAvailability: 'Ar gael ar gyfer cyfarfodydd yng Nghaerdydd/Ar-lein',
       
-      vizTitle: 'Trawsnewid data cymunedol',
-      vizCurrent: 'System bresennol',
-      vizProposed: 'System arfaethedig',
+      vizTitle: 'CYMHARIAETH_SYSTEM',
+      vizCurrent: 'SYSTEM_BRESENNOL',
+      vizProposed: 'SYSTEM_ARFAETHEDIG',
+      vizCurrentStatus: 'STATWS: 0x01_SEGUR',
+      vizProposedStatus: 'STATWS: 0xFF_GWEITHREDOL',
+      vizOwnership1: 'PERCHNOGAETH: 0xAWDURDOD',
+      vizOwnership2: 'PERCHNOGAETH: 0xCYMUNED',
+      vizRisk1: 'RISG: 0xUCHEL',
+      vizRisk2: 'RISG: 0xISEL',
+      vizTransparency1: 'TRYLOYWDER: 0x00',
+      vizTransparency2: 'TRYLOYWDER: 0xFF',
       
       card1Title: 'Sofraniaeth data',
       card1Short: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mynd i\'r afael â chyfiawnder epistemolegol mewn systemau llywodraethiant trefol.',
@@ -87,8 +210,8 @@ export default function Home() {
       card3Short: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol.',
       card3Full: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol. Rydym yn archwilio sut gall technolegau datganoledig alluogi rheolaeth gymunedol wirioneddol dros benderfyniadau cynllunio a dylunio—symud y tu hwnt i ymgynghori echdynnol tuag at bŵer datganoledig ystyrlon. Mae ein hymchwil yn ymchwilio i gontractau craff ar gyfer gwneud penderfyniadau tryloyw, DAOs ar gyfer llywodraethiant cymunedol, a blockchain ar gyfer creu cofnodion archwiliadwy, sy\'n eiddo i\'r gymuned.',
       
-      clickToExpand: 'Cliciwch i ddarllen mwy',
-      clickToCollapse: 'Cliciwch i gau',
+      clickToExpand: '[+] EHANGU',
+      clickToCollapse: '[-] CAU',
       
       projectTitle: 'Sofraniaeth Data Lle-seiliedig',
       projectDesc: 'Cyd-gynllunio systemau data lle-seiliedig gyda chymunedau yng Nghaerdydd, Cymru. Profi sut gall blockchain gefnogi tryloywder, atebolrwydd a gwir bŵer datganoledig i gymunedau mewn llunio\'r amgylchedd adeiledig a phrosesau cynllunio.',
@@ -99,10 +222,10 @@ export default function Home() {
       project3Title: 'Hunaniaeth Ddigidol Lle-seiliedig',
       project3Text: 'Ymchwilio i le a lleoliad fel mecanweithiau hunaniaeth ar gyfer ymgysylltu â phrosesau llywodraethiant. Osgoi systemau gwyliadwriaeth a hunoliaethau digidol traddodiadol tra\'n galluogi cyfranogiad ystyrlon mewn llunio lleoedd.',
       
-      viewProject: 'Gweld prosiect llawn',
-      ongoing: 'Ar y gweill',
-      funding: 'Agored i bartneriaethau a chyllid',
-      footer: 'Gwe3 · Llywodraethiant · Cynhwysiant'
+      viewProject: '[→] GWELD_PROSIECT',
+      ongoing: 'STATWS: AR_Y_GWEILL',
+      funding: 'AGORED_I_BARTNERIAETHAU',
+      footer: 'GWE3 :: LLYWODRAETHIANT :: CYNHWYSIANT'
     }
   }
   
@@ -144,22 +267,6 @@ export default function Home() {
           50% { opacity: 0.1; }
           100% { transform: translateY(30px); opacity: 0.2; }
         }
-
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-
-        @keyframes extractFlow {
-          0% { transform: translateY(0); opacity: 1; }
-          100% { transform: translateY(-50px); opacity: 0; }
-        }
-
-        @keyframes sovereignFlow {
-          0% { transform: scale(1); opacity: 0.8; }
-          50% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(1); opacity: 0.8; }
-        }
         
         * { 
           margin: 0; 
@@ -169,8 +276,8 @@ export default function Home() {
         }
         
         body {
-          background: ${theme === 'light' ? '#f5f5f5' : '#1a1a1a'};
-          color: ${theme === 'light' ? '#1a1a1a' : '#f5f5f5'};
+          background: ${theme === 'light' ? '#f5f5f5' : '#0a0a0a'};
+          color: ${theme === 'light' ? '#1a1a1a' : '#e0e0e0'};
           line-height: 1.6;
           overflow-x: hidden;
           font-size: 16px;
@@ -236,7 +343,7 @@ export default function Home() {
         .data-stream {
           position: fixed;
           top: 20px;
-          right: 60px;
+          right: 120px;
           font-size: 9px;
           color: ${theme === 'light' ? '#666' : '#999'};
           opacity: 0.2;
@@ -291,8 +398,8 @@ export default function Home() {
         }
         
         .section-label {
-          font-size: 12px;
-          letter-spacing: 1px;
+          font-size: 11px;
+          letter-spacing: 2px;
           color: ${theme === 'light' ? '#666' : '#999'};
           margin-bottom: 16px;
           font-weight: 700;
@@ -305,7 +412,7 @@ export default function Home() {
         
         .card-clickable:hover {
           transform: translateY(-4px);
-          box-shadow: 0 8px 16px ${theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'};
+          box-shadow: 0 8px 16px ${theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)'};
           border-color: ${theme === 'light' ? '#444' : '#bbb'};
         }
         
@@ -317,36 +424,37 @@ export default function Home() {
         .card-expandable:hover {
           transform: translateY(-2px);
           border-color: ${theme === 'light' ? '#444' : '#bbb'};
-          box-shadow: 0 4px 8px ${theme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)'};
+          box-shadow: 0 4px 8px ${theme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.04)'};
         }
         
         .expand-indicator {
-          font-size: 11px;
+          font-size: 10px;
           color: ${theme === 'light' ? '#888' : '#aaa'};
           margin-top: 12px;
-          font-style: italic;
+          letter-spacing: 1px;
         }
         
         .theme-btn, .lang-btn {
-          background: ${theme === 'light' ? '#ffffff' : '#2a2a2a'};
+          background: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
           border: 1px solid ${theme === 'light' ? '#666' : '#999'};
-          color: ${theme === 'light' ? '#1a1a1a' : '#f5f5f5'};
-          padding: 8px 16px;
-          font-size: 13px;
+          color: ${theme === 'light' ? '#1a1a1a' : '#e0e0e0'};
+          padding: 8px 12px;
+          font-size: 11px;
           cursor: pointer;
           transition: all 0.2s;
           font-family: 'Space Mono', monospace;
           font-weight: 700;
+          letter-spacing: 1px;
         }
         
         .theme-btn:hover, .lang-btn:hover {
-          background: ${theme === 'light' ? '#f0f0f0' : '#3a3a3a'};
+          background: ${theme === 'light' ? '#f0f0f0' : '#2a2a2a'};
           border-color: ${theme === 'light' ? '#444' : '#bbb'};
         }
         
         .lang-btn.active {
-          background: ${theme === 'light' ? '#1a1a1a' : '#f5f5f5'};
-          color: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
+          background: ${theme === 'light' ? '#1a1a1a' : '#e0e0e0'};
+          color: ${theme === 'light' ? '#ffffff' : '#0a0a0a'};
         }
         
         a {
@@ -356,6 +464,29 @@ export default function Home() {
         
         a:hover {
           text-decoration: underline;
+        }
+
+        .viz-box {
+          background: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
+          border: 2px solid ${theme === 'light' ? '#666' : '#999'};
+          padding: 20px;
+          font-family: 'Space Mono', monospace;
+          transition: background 0.3s ease, border 0.3s ease;
+        }
+
+        .viz-label {
+          font-size: 10px;
+          letter-spacing: 2px;
+          color: ${theme === 'light' ? '#666' : '#999'};
+          margin-bottom: 12px;
+        }
+
+        .viz-status {
+          font-size: 9px;
+          letter-spacing: 1px;
+          color: ${theme === 'light' ? '#888' : '#aaa'};
+          margin-top: 12px;
+          line-height: 1.8;
         }
         
         @media (prefers-reduced-motion: reduce) {
@@ -394,7 +525,7 @@ export default function Home() {
           onClick={toggleTheme}
           aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
         >
-          {theme === 'light' ? '☀️' : '🌙'}
+          {theme === 'light' ? '[0x00]' : '[0xFF]'}
         </button>
         <button 
           className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
@@ -416,157 +547,59 @@ export default function Home() {
         {/* Hero */}
         <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
           <div style={{ 
-            background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-            border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+            background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
             padding: '40px',
             transition: 'background 0.3s ease, border 0.3s ease'
           }}>
-            <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
-              Leol Lab
+            <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2, letterSpacing: '-1px' }}>
+              LEOL_LAB
             </h1>
             
-            <p style={{ fontSize: '18px', lineHeight: 1.7, maxWidth: '800px' }}>
+            <p style={{ fontSize: '16px', lineHeight: 1.7, maxWidth: '800px' }}>
               {t.mission}
             </p>
           </div>
         </section>
 
-        {/* Simplified Visualization */}
+        {/* Waveform Visualization */}
         <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
           <h2 className="section-label">{t.vizTitle}</h2>
           
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 1fr', 
-            gap: '20px',
-            marginTop: '20px'
-          }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             {/* Current System */}
-            <div style={{ 
-              background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-              border: `1px solid ${theme === 'light' ? '#666' : '#999'}`,
-              padding: '24px',
-              transition: 'background 0.3s ease, border 0.3s ease'
-            }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '20px', letterSpacing: '1px', color: theme === 'light' ? '#666' : '#999' }}>
-                {t.vizCurrent}
-              </h3>
+            <div className="viz-box">
+              <div className="viz-label">{t.vizCurrent}</div>
+              <div className="viz-label" style={{ fontSize: '9px', marginBottom: '16px' }}>{t.vizCurrentStatus}</div>
               
-              <div style={{ position: 'relative', height: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                {/* Authority/Black box at top */}
-                <div style={{ 
-                  background: theme === 'light' ? '#1a1a1a' : '#0a0a0a', 
-                  padding: '12px', 
-                  textAlign: 'center',
-                  fontSize: '12px',
-                  color: '#f5f5f5',
-                  border: `1px solid ${theme === 'light' ? '#666' : '#444'}`
-                }}>
-                  Authority / Developer
-                </div>
-                
-                {/* Extraction arrows */}
-                <div style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {mounted && [1, 2, 3].map(i => (
-                    <div key={i} style={{
-                      position: 'absolute',
-                      width: '2px',
-                      height: '30px',
-                      background: '#ff4444',
-                      animation: 'extractFlow 2s ease-in-out infinite',
-                      animationDelay: `${i * 0.7}s`,
-                      left: `${20 + i * 20}%`
-                    }} />
-                  ))}
-                  <div style={{ fontSize: '24px', color: theme === 'light' ? '#666' : '#999' }}>↑</div>
-                </div>
-                
-                {/* Community at bottom (faded) */}
-                <div style={{ 
-                  background: theme === 'light' ? '#e0e0e0' : '#333', 
-                  padding: '12px', 
-                  textAlign: 'center',
-                  fontSize: '12px',
-                  opacity: 0.6,
-                  border: `1px solid ${theme === 'light' ? '#999' : '#555'}`
-                }}>
-                  Community (passive)
-                </div>
-              </div>
+              <canvas 
+                ref={currentCanvasRef}
+                width={400}
+                height={120}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
               
-              <div style={{ marginTop: '16px', fontSize: '11px', lineHeight: 1.6, color: theme === 'light' ? '#666' : '#999' }}>
-                <div style={{ marginBottom: '4px' }}>⚠️ Sporadic consultation</div>
-                <div style={{ marginBottom: '4px' }}>⚠️ Data extracted</div>
-                <div>⚠️ No transparency</div>
+              <div className="viz-status">
+                <div>{t.vizOwnership1} :: {t.vizRisk1}</div>
+                <div>{t.vizTransparency1}</div>
               </div>
             </div>
 
             {/* Proposed System */}
-            <div style={{ 
-              background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-              border: `1px solid ${theme === 'light' ? '#666' : '#999'}`,
-              padding: '24px',
-              transition: 'background 0.3s ease, border 0.3s ease'
-            }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '20px', letterSpacing: '1px', color: theme === 'light' ? '#666' : '#999' }}>
-                {t.vizProposed}
-              </h3>
+            <div className="viz-box">
+              <div className="viz-label">{t.vizProposed}</div>
+              <div className="viz-label" style={{ fontSize: '9px', marginBottom: '16px' }}>{t.vizProposedStatus}</div>
               
-              <div style={{ position: 'relative', height: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                {/* Stakeholders at top (transparent access) */}
-                <div style={{ 
-                  background: theme === 'light' ? '#f5f5f5' : '#1a1a1a', 
-                  padding: '12px', 
-                  textAlign: 'center',
-                  fontSize: '11px',
-                  border: `1px solid ${theme === 'light' ? '#999' : '#666'}`
-                }}>
-                  Architects · Developers · Authorities
-                </div>
-                
-                {/* Continuous flow */}
-                <div style={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  position: 'relative'
-                }}>
-                  {mounted && (
-                    <div style={{
-                      fontSize: '32px',
-                      animation: 'pulse 2s ease-in-out infinite',
-                      color: '#00cc88'
-                    }}>⇅</div>
-                  )}
-                </div>
-                
-                {/* Community at bottom (empowered) */}
-                <div style={{ 
-                  background: theme === 'light' ? '#00cc88' : '#008855', 
-                  padding: '12px', 
-                  textAlign: 'center',
-                  fontSize: '12px',
-                  color: '#ffffff',
-                  fontWeight: 700,
-                  border: `2px solid ${theme === 'light' ? '#00aa77' : '#00aa77'}`,
-                  animation: mounted ? 'sovereignFlow 3s ease-in-out infinite' : 'none'
-                }}>
-                  Community (sovereign)
-                </div>
-              </div>
+              <canvas 
+                ref={proposedCanvasRef}
+                width={400}
+                height={120}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
               
-              <div style={{ marginTop: '16px', fontSize: '11px', lineHeight: 1.6, color: theme === 'light' ? '#666' : '#999' }}>
-                <div style={{ marginBottom: '4px' }}>✅ Continuous engagement</div>
-                <div style={{ marginBottom: '4px' }}>✅ Community ownership</div>
-                <div>✅ Transparent & auditable</div>
+              <div className="viz-status">
+                <div>{t.vizOwnership2} :: {t.vizRisk2}</div>
+                <div>{t.vizTransparency2}</div>
               </div>
             </div>
           </div>
@@ -579,71 +612,29 @@ export default function Home() {
           </h2>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-            {/* Card 1 */}
-            <article 
-              className="card-expandable" 
-              style={{ 
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
-                padding: '24px',
-                transition: 'background 0.3s ease, border 0.3s ease'
-              }}
-              onClick={() => setExpandedCard(expandedCard === 1 ? null : 1)}
-            >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
-                {t.card1Title}
-              </h3>
-              <p style={{ fontSize: '15px', lineHeight: 1.7 }}>
-                {expandedCard === 1 ? t.card1Full : t.card1Short}
-              </p>
-              <p className="expand-indicator">
-                {expandedCard === 1 ? t.clickToCollapse : t.clickToExpand}
-              </p>
-            </article>
-            
-            {/* Card 2 */}
-            <article 
-              className="card-expandable" 
-              style={{ 
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
-                padding: '24px',
-                transition: 'background 0.3s ease, border 0.3s ease'
-              }}
-              onClick={() => setExpandedCard(expandedCard === 2 ? null : 2)}
-            >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
-                {t.card2Title}
-              </h3>
-              <p style={{ fontSize: '15px', lineHeight: 1.7 }}>
-                {expandedCard === 2 ? t.card2Full : t.card2Short}
-              </p>
-              <p className="expand-indicator">
-                {expandedCard === 2 ? t.clickToCollapse : t.clickToExpand}
-              </p>
-            </article>
-            
-            {/* Card 3 */}
-            <article 
-              className="card-expandable" 
-              style={{ 
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
-                padding: '24px',
-                transition: 'background 0.3s ease, border 0.3s ease'
-              }}
-              onClick={() => setExpandedCard(expandedCard === 3 ? null : 3)}
-            >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
-                {t.card3Title}
-              </h3>
-              <p style={{ fontSize: '15px', lineHeight: 1.7 }}>
-                {expandedCard === 3 ? t.card3Full : t.card3Short}
-              </p>
-              <p className="expand-indicator">
-                {expandedCard === 3 ? t.clickToCollapse : t.clickToExpand}
-              </p>
-            </article>
+            {[1, 2, 3].map(cardNum => (
+              <article 
+                key={cardNum}
+                className="card-expandable" 
+                style={{ 
+                  background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+                  border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                  padding: '24px',
+                  transition: 'background 0.3s ease, border 0.3s ease'
+                }}
+                onClick={() => setExpandedCard(expandedCard === cardNum ? null : cardNum)}
+              >
+                <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '1px' }}>
+                  {t[`card${cardNum}Title`].toUpperCase()}
+                </h3>
+                <p style={{ fontSize: '14px', lineHeight: 1.7 }}>
+                  {expandedCard === cardNum ? t[`card${cardNum}Full`] : t[`card${cardNum}Short`]}
+                </p>
+                <p className="expand-indicator">
+                  {expandedCard === cardNum ? t.clickToCollapse : t.clickToExpand}
+                </p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -655,19 +646,19 @@ export default function Home() {
           
           <Link href="/projects/place-based-data-sovereignty">
             <article className="card-clickable" style={{ 
-              background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-              border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+              background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+              border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
               padding: '32px',
               transition: 'background 0.3s ease, border 0.3s ease'
             }}>
-              <h3 style={{ fontSize: '22px', marginBottom: '16px', fontWeight: 700 }}>
-                {t.projectTitle}
+              <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700, letterSpacing: '1px' }}>
+                {t.projectTitle.toUpperCase()}
               </h3>
-              <p style={{ fontSize: '16px', lineHeight: 1.7, marginBottom: '16px' }}>
+              <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
                 {t.projectDesc}
               </p>
-              <p style={{ fontSize: '14px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic' }}>
-                {t.viewProject} →
+              <p style={{ fontSize: '11px', color: theme === 'light' ? '#666' : '#999', letterSpacing: '1px' }}>
+                {t.viewProject}
               </p>
             </article>
           </Link>
@@ -682,23 +673,23 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
             <Link href="/projects/national-data-infrastructure">
               <article className="card-clickable" style={{ 
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+                border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
                 padding: '28px',
                 transition: 'background 0.3s ease, border 0.3s ease'
               }}>
-                <h3 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: 700 }}>
-                  {t.project2Title}
+                <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700, letterSpacing: '1px' }}>
+                  {t.project2Title.toUpperCase()}
                 </h3>
-                <p style={{ fontSize: '15px', lineHeight: 1.7, marginBottom: '16px' }}>
+                <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
                   {t.project2Text}
                 </p>
                 <div style={{ borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999' }}>
+                  <p style={{ fontSize: '10px', color: theme === 'light' ? '#666' : '#999', letterSpacing: '1px' }}>
                     {t.ongoing}
                   </p>
-                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic' }}>
-                    {t.viewProject} →
+                  <p style={{ fontSize: '10px', color: theme === 'light' ? '#666' : '#999', letterSpacing: '1px' }}>
+                    {t.viewProject}
                   </p>
                 </div>
               </article>
@@ -706,23 +697,23 @@ export default function Home() {
             
             <Link href="/projects/place-based-identity">
               <article className="card-clickable" style={{ 
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+                border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
                 padding: '28px',
                 transition: 'background 0.3s ease, border 0.3s ease'
               }}>
-                <h3 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: 700 }}>
-                  {t.project3Title}
+                <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700, letterSpacing: '1px' }}>
+                  {t.project3Title.toUpperCase()}
                 </h3>
-                <p style={{ fontSize: '15px', lineHeight: 1.7, marginBottom: '16px' }}>
+                <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
                   {t.project3Text}
                 </p>
                 <div style={{ borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999' }}>
+                  <p style={{ fontSize: '10px', color: theme === 'light' ? '#666' : '#999', letterSpacing: '1px' }}>
                     {t.ongoing}
                   </p>
-                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic' }}>
-                    {t.viewProject} →
+                  <p style={{ fontSize: '10px', color: theme === 'light' ? '#666' : '#999', letterSpacing: '1px' }}>
+                    {t.viewProject}
                   </p>
                 </div>
               </article>
@@ -737,32 +728,32 @@ export default function Home() {
           </h2>
           
           <div style={{ 
-            background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
-            border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+            background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
             padding: '32px',
             transition: 'background 0.3s ease, border 0.3s ease'
           }}>
-            <p style={{ fontSize: '16px', marginBottom: '8px' }}>
-              <strong>Lucy Dunhill</strong>, PhD Researcher
+            <p style={{ fontSize: '14px', marginBottom: '8px', letterSpacing: '1px' }}>
+              <strong>LUCY_DUNHILL</strong> :: PHD_RESEARCHER
             </p>
-            <p style={{ fontSize: '15px', color: theme === 'light' ? '#555' : '#bbb', marginBottom: '8px' }}>
+            <p style={{ fontSize: '13px', color: theme === 'light' ? '#555' : '#bbb', marginBottom: '8px' }}>
               Welsh School of Architecture, Cardiff University
             </p>
-            <p style={{ fontSize: '15px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '13px', marginBottom: '16px' }}>
               <a href="mailto:dunhilll@cardiff.ac.uk" style={{ textDecoration: 'underline' }}>
                 dunhilll@cardiff.ac.uk
               </a>
             </p>
-            <p style={{ fontSize: '14px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '16px' }}>
+            <p style={{ fontSize: '11px', color: theme === 'light' ? '#666' : '#999', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '16px', letterSpacing: '1px' }}>
               {t.contactAvailability}
             </p>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '14px', color: theme === 'light' ? '#555' : '#bbb' }}>
+        <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `2px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '11px', color: theme === 'light' ? '#555' : '#bbb', letterSpacing: '2px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-            <div>© 2025 Leol Lab</div>
+            <div>© 2025 LEOL_LAB</div>
             <div>{t.footer}</div>
           </div>
         </footer>
