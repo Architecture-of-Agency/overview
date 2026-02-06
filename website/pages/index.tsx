@@ -1,44 +1,62 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export default function Home() {
   const [lang, setLang] = useState('en')
+  const [theme, setTheme] = useState('light')
   const [expandedCard, setExpandedCard] = useState(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    setTheme(savedTheme)
+  }, [])
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
+  }
   
   const content = {
     en: {
-      lab: 'Research lab',
-      mission: 'Researching Web3-enabled inclusive governance systems for sovereign neighbourhood data, scaling from street to national level',
+      mission: 'Researching Web3-enabled inclusive governance systems for sovereign neighbourhood data - shaping the built environment and place from street to national level',
       researchFocus: 'Research focus',
       currentProject: 'Current project',
       relatedInitiatives: 'Related initiatives',
       contact: 'Contact',
       contactAvailability: 'Available for meetings in Cardiff/Online',
       
+      vizTitle: 'Transforming community data',
+      vizCurrent: 'Current system',
+      vizProposed: 'Proposed system',
+      
       card1Title: 'Data sovereignty',
       card1Short: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Addressing epistemic justice in urban governance systems.',
-      card1Full: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Our work examines epistemic justice in urban governance—challenging who gets to define what counts as legitimate knowledge in planning decisions. We investigate how blockchain and Web3 technologies can redistribute power over data ownership, ensuring communities maintain sovereignty over the knowledge they generate about their own places. This extends beyond technical solutions to question fundamental power structures in how urban data is collected, validated, and used.',
+      card1Full: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Our work examines epistemic justice in urban governance—challenging who gets to define what counts as legitimate knowledge in planning and design decisions. We investigate how blockchain and Web3 technologies can redistribute power over data ownership, ensuring communities maintain sovereignty over the knowledge they generate about their own places. This extends beyond technical solutions to question fundamental power structures in how urban data is collected, validated, and used to shape the built environment.',
       
       card2Title: 'Inclusive design',
-      card2Short: 'Applying design justice principles to build systems that challenge rather than reproduce existing power structures. Centering disabled people and communities in creating accountable technologies.',
-      card2Full: 'Applying design justice principles to build systems that challenge rather than reproduce existing power structures. We center disabled people and marginalized communities throughout our research and design process—not as consultation afterthoughts, but as co-designers and leaders. Our approach recognizes that technology often replicates existing barriers and hierarchies. By foregrounding accessibility, we create governance tools that redistribute rather than concentrate power, ensuring new digital systems enable rather than exclude.',
+      card2Short: 'Applying design justice principles to build systems that challenge rather than reproduce existing power structures. Centring disabled people and communities in creating accountable technologies.',
+      card2Full: 'Applying design justice principles to build systems that challenge rather than reproduce existing power structures. We centre disabled people and marginalised communities throughout our research and design process—not as consultation afterthoughts, but as co-designers and leaders. Our approach recognises that technology often replicates existing barriers and hierarchies. By foregrounding accessibility, we create governance tools that redistribute rather than concentrate power, ensuring new digital systems enable rather than exclude participation in shaping places.',
       
       card3Title: 'Digital governance',
       card3Short: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes.',
-      card3Full: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes. We explore how decentralized technologies can enable genuine community control over planning decisions—moving beyond extractive consultation toward meaningful devolved power. Our research investigates smart contracts for transparent decision-making, DAOs for community governance, and blockchain for creating auditable, community-owned records of planning processes. The goal is accountability: tools that make power visible and challengeable.',
+      card3Full: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes. We explore how decentralised technologies can enable genuine community control over planning and design decisions—moving beyond extractive consultation toward meaningful devolved power. Our research investigates smart contracts for transparent decision-making, DAOs for community governance, and blockchain for creating auditable, community-owned records of planning processes that shape the built environment. The goal is accountability: tools that make power visible and challengeable.',
       
       clickToExpand: 'Click to read more',
       clickToCollapse: 'Click to collapse',
       
       projectTitle: 'Place-based Data Sovereignty',
-      projectDesc: 'Co-designing place-based data systems with communities in Cardiff, Wales. Testing how blockchain can support transparency, accountability and real devolved power to communities in planning.',
+      projectDesc: 'Co-designing place-based data systems with communities in Cardiff, Wales. Testing how blockchain can support transparency, accountability and real devolved power to communities in shaping the built environment and planning processes.',
       
       project2Title: 'National Data Infrastructure',
-      project2Text: 'Exploring how place-based data scales from street to neighbourhood, city, and national levels. Building frameworks for data to inform policy up the chain while maintaining community sovereignty.',
+      project2Text: 'Exploring how place-based data scales from street to neighbourhood, city, and national levels. Building frameworks for community data to shape the built environment—from street designs to national infrastructure—while maintaining community sovereignty.',
       
       project3Title: 'Place-based Digital Identity',
-      project3Text: 'Investigating place and location as identity mechanisms for engaging with governance processes. Avoiding surveillance systems and traditional digital IDs while enabling meaningful participation.',
+      project3Text: 'Investigating place and location as identity mechanisms for engaging with governance processes. Avoiding surveillance systems and traditional digital IDs while enabling meaningful participation in shaping places.',
       
       viewProject: 'View full project',
       ongoing: 'Ongoing',
@@ -46,17 +64,20 @@ export default function Home() {
       footer: 'Web3 · Governance · Inclusion'
     },
     cy: {
-      lab: 'Labordy ymchwil',
-      mission: 'Ymchwilio i systemau llywodraethiant cynhwysol Web3-alluog ar gyfer data cymdogaeth sofran, gan raddio o lefel stryd i lefel genedlaethol',
+      mission: 'Ymchwilio i systemau llywodraethiant cynhwysol Web3-alluog ar gyfer data cymdogaeth sofran - llunio\'r amgylchedd adeiledig a lle o lefel stryd i lefel genedlaethol',
       researchFocus: 'Ffocws ymchwil',
       currentProject: 'Prosiect cyfredol',
       relatedInitiatives: 'Mentrau cysylltiedig',
       contact: 'Cysylltu',
       contactAvailability: 'Ar gael ar gyfer cyfarfodydd yng Nghaerdydd/Ar-lein',
       
+      vizTitle: 'Trawsnewid data cymunedol',
+      vizCurrent: 'System bresennol',
+      vizProposed: 'System arfaethedig',
+      
       card1Title: 'Sofraniaeth data',
       card1Short: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mynd i\'r afael â chyfiawnder epistemolegol mewn systemau llywodraethiant trefol.',
-      card1Full: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mae ein gwaith yn archwilio cyfiawnder epistemolegol mewn llywodraethiant trefol—herio pwy sy\'n cael diffinio beth sy\'n cyfrif fel gwybodaeth ddilys mewn penderfyniadau cynllunio. Rydym yn ymchwilio sut gall technolegau blockchain a Gwe3 ailddosbarthu pŵer dros berchnogaeth data, gan sicrhau bod cymunedau yn cynnal sofraniaeth dros y wybodaeth maent yn ei chynhyrchu am eu lleoedd eu hunain.',
+      card1Full: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mae ein gwaith yn archwilio cyfiawnder epistemolegol mewn llywodraethiant trefol—herio pwy sy\'n cael diffinio beth sy\'n cyfrif fel gwybodaeth ddilys mewn penderfyniadau cynllunio a dylunio. Rydym yn ymchwilio sut gall technolegau blockchain a Gwe3 ailddosbarthu pŵer dros berchnogaeth data, gan sicrhau bod cymunedau yn cynnal sofraniaeth dros y wybodaeth maent yn ei chynhyrchu am eu lleoedd eu hunain.',
       
       card2Title: 'Dylunio cynhwysol',
       card2Short: 'Cymhwyso egwyddorion cyfiawnder dylunio i adeiladu systemau sy\'n herio yn hytrach nag atgynhyrchu strwythurau pŵer presennol. Canoli pobl anabl a chymunedau wrth greu technolegau atebol.',
@@ -64,19 +85,19 @@ export default function Home() {
       
       card3Title: 'Llywodraethiant digidol',
       card3Short: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol.',
-      card3Full: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol. Rydym yn archwilio sut gall technolegau datganoledig alluogi rheolaeth gymunedol wirioneddol dros benderfyniadau cynllunio—symud y tu hwnt i ymgynghori echdynnol tuag at bŵer datganoledig ystyrlon. Mae ein hymchwil yn ymchwilio i gontractau craff ar gyfer gwneud penderfyniadau tryloyw, DAOs ar gyfer llywodraethiant cymunedol, a blockchain ar gyfer creu cofnodion archwiliadwy, sy\'n eiddo i\'r gymuned o brosesau cynllunio.',
+      card3Full: 'Systemau Gwe3 a blockchain ar gyfer cynllunio dan arweiniad cymunedol a phrosesau gwneud penderfyniadau tryloyw ac atebol. Rydym yn archwilio sut gall technolegau datganoledig alluogi rheolaeth gymunedol wirioneddol dros benderfyniadau cynllunio a dylunio—symud y tu hwnt i ymgynghori echdynnol tuag at bŵer datganoledig ystyrlon. Mae ein hymchwil yn ymchwilio i gontractau craff ar gyfer gwneud penderfyniadau tryloyw, DAOs ar gyfer llywodraethiant cymunedol, a blockchain ar gyfer creu cofnodion archwiliadwy, sy\'n eiddo i\'r gymuned.',
       
       clickToExpand: 'Cliciwch i ddarllen mwy',
       clickToCollapse: 'Cliciwch i gau',
       
       projectTitle: 'Sofraniaeth Data Lle-seiliedig',
-      projectDesc: 'Cyd-gynllunio systemau data lle-seiliedig gyda chymunedau yng Nghaerdydd, Cymru. Profi sut gall blockchain gefnogi tryloywder, atebolrwydd a gwir bŵer datganoledig i gymunedau mewn cynllunio.',
+      projectDesc: 'Cyd-gynllunio systemau data lle-seiliedig gyda chymunedau yng Nghaerdydd, Cymru. Profi sut gall blockchain gefnogi tryloywder, atebolrwydd a gwir bŵer datganoledig i gymunedau mewn llunio\'r amgylchedd adeiledig a phrosesau cynllunio.',
       
       project2Title: 'Seilwaith Data Cenedlaethol',
-      project2Text: 'Archwilio sut mae data lle-seiliedig yn graddio o lefel stryd i gymdogaeth, dinas a lefelau cenedlaethol. Adeiladu fframweithiau i ddata lywio polisi i fyny\'r gadwyn tra\'n cynnal sofraniaeth gymunedol.',
+      project2Text: 'Archwilio sut mae data lle-seiliedig yn graddio o lefel stryd i gymdogaeth, dinas a lefelau cenedlaethol. Adeiladu fframweithiau i ddata cymunedol lunio\'r amgylchedd adeiledig—o ddyluniadau stryd i seilwaith cenedlaethol—tra\'n cynnal sofraniaeth gymunedol.',
       
       project3Title: 'Hunaniaeth Ddigidol Lle-seiliedig',
-      project3Text: 'Ymchwilio i le a lleoliad fel mecanweithiau hunaniaeth ar gyfer ymgysylltu â phrosesau llywodraethiant. Osgoi systemau gwyliadwriaeth a hunoliaethau digidol traddodiadol tra\'n galluogi cyfranogiad ystyrlon.',
+      project3Text: 'Ymchwilio i le a lleoliad fel mecanweithiau hunaniaeth ar gyfer ymgysylltu â phrosesau llywodraethiant. Osgoi systemau gwyliadwriaeth a hunoliaethau digidol traddodiadol tra\'n galluogi cyfranogiad ystyrlon mewn llunio lleoedd.',
       
       viewProject: 'Gweld prosiect llawn',
       ongoing: 'Ar y gweill',
@@ -123,6 +144,22 @@ export default function Home() {
           50% { opacity: 0.1; }
           100% { transform: translateY(30px); opacity: 0.2; }
         }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        @keyframes extractFlow {
+          0% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        @keyframes sovereignFlow {
+          0% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 0.8; }
+        }
         
         * { 
           margin: 0; 
@@ -132,11 +169,12 @@ export default function Home() {
         }
         
         body {
-          background: #f5f5f5;
-          color: #1a1a1a;
+          background: ${theme === 'light' ? '#f5f5f5' : '#1a1a1a'};
+          color: ${theme === 'light' ? '#1a1a1a' : '#f5f5f5'};
           line-height: 1.6;
           overflow-x: hidden;
           font-size: 16px;
+          transition: background 0.3s ease, color 0.3s ease;
         }
         
         body::before {
@@ -158,7 +196,7 @@ export default function Home() {
           left: 0; 
           right: 0; 
           bottom: 0;
-          background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, ${theme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)'} 2px, ${theme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.02)'} 4px);
           pointer-events: none;
           z-index: 1000;
         }
@@ -166,7 +204,7 @@ export default function Home() {
         .glitch-bar {
           position: fixed;
           height: 2px;
-          background: #666;
+          background: ${theme === 'light' ? '#666' : '#999'};
           opacity: 0.15;
           pointer-events: none;
           z-index: 999;
@@ -200,7 +238,7 @@ export default function Home() {
           top: 20px;
           right: 60px;
           font-size: 9px;
-          color: #666;
+          color: ${theme === 'light' ? '#666' : '#999'};
           opacity: 0.2;
           z-index: 50;
           line-height: 1.3;
@@ -219,32 +257,32 @@ export default function Home() {
         .corner-tl { 
           top: 20px; 
           left: 20px; 
-          border-left: 2px solid #666; 
-          border-top: 2px solid #666;
+          border-left: 2px solid ${theme === 'light' ? '#666' : '#999'}; 
+          border-top: 2px solid ${theme === 'light' ? '#666' : '#999'};
           animation: cornerFlicker 5s ease-in-out infinite;
         }
         
         .corner-tr { 
           top: 20px; 
           right: 20px; 
-          border-right: 2px solid #666; 
-          border-top: 2px solid #666;
+          border-right: 2px solid ${theme === 'light' ? '#666' : '#999'}; 
+          border-top: 2px solid ${theme === 'light' ? '#666' : '#999'};
           animation: cornerFlicker 5s ease-in-out infinite 0.7s;
         }
         
         .corner-bl { 
           bottom: 20px; 
           left: 20px; 
-          border-left: 2px solid #666; 
-          border-bottom: 2px solid #666;
+          border-left: 2px solid ${theme === 'light' ? '#666' : '#999'}; 
+          border-bottom: 2px solid ${theme === 'light' ? '#666' : '#999'};
           animation: cornerFlicker 5s ease-in-out infinite 1.4s;
         }
         
         .corner-br { 
           bottom: 20px; 
           right: 20px; 
-          border-right: 2px solid #666; 
-          border-bottom: 2px solid #666;
+          border-right: 2px solid ${theme === 'light' ? '#666' : '#999'}; 
+          border-bottom: 2px solid ${theme === 'light' ? '#666' : '#999'};
           animation: cornerFlicker 5s ease-in-out infinite 2.1s;
         }
         
@@ -255,7 +293,7 @@ export default function Home() {
         .section-label {
           font-size: 12px;
           letter-spacing: 1px;
-          color: #666;
+          color: ${theme === 'light' ? '#666' : '#999'};
           margin-bottom: 16px;
           font-weight: 700;
         }
@@ -267,8 +305,8 @@ export default function Home() {
         
         .card-clickable:hover {
           transform: translateY(-4px);
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-          border-color: #444;
+          box-shadow: 0 8px 16px ${theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'};
+          border-color: ${theme === 'light' ? '#444' : '#bbb'};
         }
         
         .card-expandable {
@@ -277,20 +315,22 @@ export default function Home() {
         }
         
         .card-expandable:hover {
-          border-color: #444;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+          transform: translateY(-2px);
+          border-color: ${theme === 'light' ? '#444' : '#bbb'};
+          box-shadow: 0 4px 8px ${theme === 'light' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)'};
         }
         
         .expand-indicator {
           font-size: 11px;
-          color: #888;
+          color: ${theme === 'light' ? '#888' : '#aaa'};
           margin-top: 12px;
           font-style: italic;
         }
         
-        .lang-btn {
-          background: #ffffff;
-          border: 1px solid #666;
+        .theme-btn, .lang-btn {
+          background: ${theme === 'light' ? '#ffffff' : '#2a2a2a'};
+          border: 1px solid ${theme === 'light' ? '#666' : '#999'};
+          color: ${theme === 'light' ? '#1a1a1a' : '#f5f5f5'};
           padding: 8px 16px;
           font-size: 13px;
           cursor: pointer;
@@ -299,14 +339,14 @@ export default function Home() {
           font-weight: 700;
         }
         
-        .lang-btn:hover {
-          background: #f0f0f0;
-          border-color: #444;
+        .theme-btn:hover, .lang-btn:hover {
+          background: ${theme === 'light' ? '#f0f0f0' : '#3a3a3a'};
+          border-color: ${theme === 'light' ? '#444' : '#bbb'};
         }
         
         .lang-btn.active {
-          background: #1a1a1a;
-          color: #ffffff;
+          background: ${theme === 'light' ? '#1a1a1a' : '#f5f5f5'};
+          color: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
         }
         
         a {
@@ -347,8 +387,15 @@ export default function Home() {
         00100000 01001100 01100001 01100010
       </div>
 
-      {/* Language Toggle */}
+      {/* Theme & Language Toggle */}
       <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 2000, display: 'flex', gap: '8px' }}>
+        <button 
+          className="theme-btn"
+          onClick={toggleTheme}
+          aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+        >
+          {theme === 'light' ? '☀️' : '🌙'}
+        </button>
         <button 
           className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
           onClick={() => setLang('en')}
@@ -368,18 +415,160 @@ export default function Home() {
       <main style={{ minHeight: '100vh', padding: '60px 40px 40px' }}>
         {/* Hero */}
         <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
-          <div style={{ background: '#ffffff', border: '1px solid #666', padding: '40px' }}>
-            <p className="section-label">
-              {t.lab}
-            </p>
-            
-            <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2, color: '#1a1a1a' }}>
+          <div style={{ 
+            background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+            border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+            padding: '40px',
+            transition: 'background 0.3s ease, border 0.3s ease'
+          }}>
+            <h1 style={{ fontSize: '48px', fontWeight: 700, marginBottom: '24px', lineHeight: 1.2 }}>
               Leol Lab
             </h1>
             
-            <p style={{ fontSize: '18px', lineHeight: 1.7, maxWidth: '800px', color: '#1a1a1a' }}>
+            <p style={{ fontSize: '18px', lineHeight: 1.7, maxWidth: '800px' }}>
               {t.mission}
             </p>
+          </div>
+        </section>
+
+        {/* Simplified Visualization */}
+        <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
+          <h2 className="section-label">{t.vizTitle}</h2>
+          
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '20px',
+            marginTop: '20px'
+          }}>
+            {/* Current System */}
+            <div style={{ 
+              background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+              border: `1px solid ${theme === 'light' ? '#666' : '#999'}`,
+              padding: '24px',
+              transition: 'background 0.3s ease, border 0.3s ease'
+            }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '20px', letterSpacing: '1px', color: theme === 'light' ? '#666' : '#999' }}>
+                {t.vizCurrent}
+              </h3>
+              
+              <div style={{ position: 'relative', height: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                {/* Authority/Black box at top */}
+                <div style={{ 
+                  background: theme === 'light' ? '#1a1a1a' : '#0a0a0a', 
+                  padding: '12px', 
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  color: '#f5f5f5',
+                  border: `1px solid ${theme === 'light' ? '#666' : '#444'}`
+                }}>
+                  Authority / Developer
+                </div>
+                
+                {/* Extraction arrows */}
+                <div style={{ 
+                  flex: 1, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {mounted && [1, 2, 3].map(i => (
+                    <div key={i} style={{
+                      position: 'absolute',
+                      width: '2px',
+                      height: '30px',
+                      background: '#ff4444',
+                      animation: 'extractFlow 2s ease-in-out infinite',
+                      animationDelay: `${i * 0.7}s`,
+                      left: `${20 + i * 20}%`
+                    }} />
+                  ))}
+                  <div style={{ fontSize: '24px', color: theme === 'light' ? '#666' : '#999' }}>↑</div>
+                </div>
+                
+                {/* Community at bottom (faded) */}
+                <div style={{ 
+                  background: theme === 'light' ? '#e0e0e0' : '#333', 
+                  padding: '12px', 
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  opacity: 0.6,
+                  border: `1px solid ${theme === 'light' ? '#999' : '#555'}`
+                }}>
+                  Community (passive)
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '16px', fontSize: '11px', lineHeight: 1.6, color: theme === 'light' ? '#666' : '#999' }}>
+                <div style={{ marginBottom: '4px' }}>⚠️ Sporadic consultation</div>
+                <div style={{ marginBottom: '4px' }}>⚠️ Data extracted</div>
+                <div>⚠️ No transparency</div>
+              </div>
+            </div>
+
+            {/* Proposed System */}
+            <div style={{ 
+              background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+              border: `1px solid ${theme === 'light' ? '#666' : '#999'}`,
+              padding: '24px',
+              transition: 'background 0.3s ease, border 0.3s ease'
+            }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '20px', letterSpacing: '1px', color: theme === 'light' ? '#666' : '#999' }}>
+                {t.vizProposed}
+              </h3>
+              
+              <div style={{ position: 'relative', height: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                {/* Stakeholders at top (transparent access) */}
+                <div style={{ 
+                  background: theme === 'light' ? '#f5f5f5' : '#1a1a1a', 
+                  padding: '12px', 
+                  textAlign: 'center',
+                  fontSize: '11px',
+                  border: `1px solid ${theme === 'light' ? '#999' : '#666'}`
+                }}>
+                  Architects · Developers · Authorities
+                </div>
+                
+                {/* Continuous flow */}
+                <div style={{ 
+                  flex: 1, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  position: 'relative'
+                }}>
+                  {mounted && (
+                    <div style={{
+                      fontSize: '32px',
+                      animation: 'pulse 2s ease-in-out infinite',
+                      color: '#00cc88'
+                    }}>⇅</div>
+                  )}
+                </div>
+                
+                {/* Community at bottom (empowered) */}
+                <div style={{ 
+                  background: theme === 'light' ? '#00cc88' : '#008855', 
+                  padding: '12px', 
+                  textAlign: 'center',
+                  fontSize: '12px',
+                  color: '#ffffff',
+                  fontWeight: 700,
+                  border: `2px solid ${theme === 'light' ? '#00aa77' : '#00aa77'}`,
+                  animation: mounted ? 'sovereignFlow 3s ease-in-out infinite' : 'none'
+                }}>
+                  Community (sovereign)
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '16px', fontSize: '11px', lineHeight: 1.6, color: theme === 'light' ? '#666' : '#999' }}>
+                <div style={{ marginBottom: '4px' }}>✅ Continuous engagement</div>
+                <div style={{ marginBottom: '4px' }}>✅ Community ownership</div>
+                <div>✅ Transparent & auditable</div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -393,13 +582,18 @@ export default function Home() {
             {/* Card 1 */}
             <article 
               className="card-expandable" 
-              style={{ background: '#ffffff', border: '1px solid #666', padding: '24px' }}
+              style={{ 
+                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                padding: '24px',
+                transition: 'background 0.3s ease, border 0.3s ease'
+              }}
               onClick={() => setExpandedCard(expandedCard === 1 ? null : 1)}
             >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px', color: '#1a1a1a' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
                 {t.card1Title}
               </h3>
-              <p style={{ fontSize: '15px', lineHeight: 1.7, color: '#1a1a1a' }}>
+              <p style={{ fontSize: '15px', lineHeight: 1.7 }}>
                 {expandedCard === 1 ? t.card1Full : t.card1Short}
               </p>
               <p className="expand-indicator">
@@ -410,13 +604,18 @@ export default function Home() {
             {/* Card 2 */}
             <article 
               className="card-expandable" 
-              style={{ background: '#ffffff', border: '1px solid #666', padding: '24px' }}
+              style={{ 
+                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                padding: '24px',
+                transition: 'background 0.3s ease, border 0.3s ease'
+              }}
               onClick={() => setExpandedCard(expandedCard === 2 ? null : 2)}
             >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px', color: '#1a1a1a' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
                 {t.card2Title}
               </h3>
-              <p style={{ fontSize: '15px', lineHeight: 1.7, color: '#1a1a1a' }}>
+              <p style={{ fontSize: '15px', lineHeight: 1.7 }}>
                 {expandedCard === 2 ? t.card2Full : t.card2Short}
               </p>
               <p className="expand-indicator">
@@ -427,13 +626,18 @@ export default function Home() {
             {/* Card 3 */}
             <article 
               className="card-expandable" 
-              style={{ background: '#ffffff', border: '1px solid #666', padding: '24px' }}
+              style={{ 
+                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                padding: '24px',
+                transition: 'background 0.3s ease, border 0.3s ease'
+              }}
               onClick={() => setExpandedCard(expandedCard === 3 ? null : 3)}
             >
-              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px', color: '#1a1a1a' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
                 {t.card3Title}
               </h3>
-              <p style={{ fontSize: '15px', lineHeight: 1.7, color: '#1a1a1a' }}>
+              <p style={{ fontSize: '15px', lineHeight: 1.7 }}>
                 {expandedCard === 3 ? t.card3Full : t.card3Short}
               </p>
               <p className="expand-indicator">
@@ -450,14 +654,19 @@ export default function Home() {
           </h2>
           
           <Link href="/projects/place-based-data-sovereignty">
-            <article className="card-clickable" style={{ background: '#ffffff', border: '1px solid #666', padding: '32px' }}>
-              <h3 style={{ fontSize: '22px', marginBottom: '16px', fontWeight: 700, color: '#1a1a1a' }}>
+            <article className="card-clickable" style={{ 
+              background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+              border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+              padding: '32px',
+              transition: 'background 0.3s ease, border 0.3s ease'
+            }}>
+              <h3 style={{ fontSize: '22px', marginBottom: '16px', fontWeight: 700 }}>
                 {t.projectTitle}
               </h3>
-              <p style={{ fontSize: '16px', lineHeight: 1.7, marginBottom: '16px', color: '#1a1a1a' }}>
+              <p style={{ fontSize: '16px', lineHeight: 1.7, marginBottom: '16px' }}>
                 {t.projectDesc}
               </p>
-              <p style={{ fontSize: '14px', color: '#666', fontStyle: 'italic' }}>
+              <p style={{ fontSize: '14px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic' }}>
                 {t.viewProject} →
               </p>
             </article>
@@ -472,18 +681,23 @@ export default function Home() {
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
             <Link href="/projects/national-data-infrastructure">
-              <article className="card-clickable" style={{ background: '#ffffff', border: '1px solid #666', padding: '28px' }}>
-                <h3 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: 700, color: '#1a1a1a' }}>
+              <article className="card-clickable" style={{ 
+                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                padding: '28px',
+                transition: 'background 0.3s ease, border 0.3s ease'
+              }}>
+                <h3 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: 700 }}>
                   {t.project2Title}
                 </h3>
-                <p style={{ fontSize: '15px', lineHeight: 1.7, color: '#1a1a1a', marginBottom: '16px' }}>
+                <p style={{ fontSize: '15px', lineHeight: 1.7, marginBottom: '16px' }}>
                   {t.project2Text}
                 </p>
-                <div style={{ borderTop: '1px solid #666', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <p style={{ fontSize: '13px', color: '#666' }}>
+                <div style={{ borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999' }}>
                     {t.ongoing}
                   </p>
-                  <p style={{ fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
+                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic' }}>
                     {t.viewProject} →
                   </p>
                 </div>
@@ -491,18 +705,23 @@ export default function Home() {
             </Link>
             
             <Link href="/projects/place-based-identity">
-              <article className="card-clickable" style={{ background: '#ffffff', border: '1px solid #666', padding: '28px' }}>
-                <h3 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: 700, color: '#1a1a1a' }}>
+              <article className="card-clickable" style={{ 
+                background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+                border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+                padding: '28px',
+                transition: 'background 0.3s ease, border 0.3s ease'
+              }}>
+                <h3 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: 700 }}>
                   {t.project3Title}
                 </h3>
-                <p style={{ fontSize: '15px', lineHeight: 1.7, color: '#1a1a1a', marginBottom: '16px' }}>
+                <p style={{ fontSize: '15px', lineHeight: 1.7, marginBottom: '16px' }}>
                   {t.project3Text}
                 </p>
-                <div style={{ borderTop: '1px solid #666', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                  <p style={{ fontSize: '13px', color: '#666' }}>
+                <div style={{ borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999' }}>
                     {t.ongoing}
                   </p>
-                  <p style={{ fontSize: '13px', color: '#666', fontStyle: 'italic' }}>
+                  <p style={{ fontSize: '13px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic' }}>
                     {t.viewProject} →
                   </p>
                 </div>
@@ -517,26 +736,31 @@ export default function Home() {
             {t.contact}
           </h2>
           
-          <div style={{ background: '#ffffff', border: '1px solid #666', padding: '32px' }}>
-            <p style={{ fontSize: '16px', marginBottom: '8px', color: '#1a1a1a' }}>
+          <div style={{ 
+            background: theme === 'light' ? '#ffffff' : '#2a2a2a', 
+            border: `1px solid ${theme === 'light' ? '#666' : '#999'}`, 
+            padding: '32px',
+            transition: 'background 0.3s ease, border 0.3s ease'
+          }}>
+            <p style={{ fontSize: '16px', marginBottom: '8px' }}>
               <strong>Lucy Dunhill</strong>, PhD Researcher
             </p>
-            <p style={{ fontSize: '15px', color: '#555', marginBottom: '8px' }}>
+            <p style={{ fontSize: '15px', color: theme === 'light' ? '#555' : '#bbb', marginBottom: '8px' }}>
               Welsh School of Architecture, Cardiff University
             </p>
             <p style={{ fontSize: '15px', marginBottom: '16px' }}>
-              <a href="mailto:dunhilll@cardiff.ac.uk" style={{ color: '#1a1a1a', textDecoration: 'underline' }}>
+              <a href="mailto:dunhilll@cardiff.ac.uk" style={{ textDecoration: 'underline' }}>
                 dunhilll@cardiff.ac.uk
               </a>
             </p>
-            <p style={{ fontSize: '14px', color: '#666', fontStyle: 'italic', borderTop: '1px solid #666', paddingTop: '16px' }}>
+            <p style={{ fontSize: '14px', color: theme === 'light' ? '#666' : '#999', fontStyle: 'italic', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, paddingTop: '16px' }}>
               {t.contactAvailability}
             </p>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: '1px solid #666', fontSize: '14px', color: '#555' }}>
+        <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '14px', color: theme === 'light' ? '#555' : '#bbb' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
             <div>© 2025 Leol Lab</div>
             <div>{t.footer}</div>
