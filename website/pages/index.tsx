@@ -11,6 +11,17 @@ export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [cursorTrailEnabled, setCursorTrailEnabled] = useState(true)
   const [trailDots, setTrailDots] = useState<Array<{ x: number; y: number; id: number }>>([])
+  const [selectedIcon, setSelectedIcon] = useState<WindowContent>(null)
+  const [iconPositions, setIconPositions] = useState<Record<string, { x: number; y: number }>>({
+    about: { x: 20, y: 20 },
+    'why-web3': { x: 20, y: 140 },
+    governance: { x: 20, y: 260 },
+    privacy: { x: 20, y: 380 },
+    contact: { x: 20, y: 500 },
+  })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [lastClickTime, setLastClickTime] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const dotIdRef = useRef(0)
 
@@ -19,6 +30,7 @@ export default function Home() {
     const savedTheme = localStorage.getItem('theme') || 'light'
     const entered = localStorage.getItem('has_entered')
     const savedTrail = localStorage.getItem('cursor_trail')
+    const savedPositions = localStorage.getItem('icon_positions')
     
     setTheme(savedTheme)
     if (entered === 'true') {
@@ -27,7 +39,73 @@ export default function Home() {
     if (savedTrail !== null) {
       setCursorTrailEnabled(savedTrail === 'true')
     }
+    if (savedPositions) {
+      try {
+        setIconPositions(JSON.parse(savedPositions))
+      } catch (e) {
+        console.error('Failed to parse icon positions')
+      }
+    }
   }, [])
+
+  // Handle icon dragging
+  const handleIconMouseDown = (e: React.MouseEvent, iconId: WindowContent) => {
+    e.preventDefault()
+    setSelectedIcon(iconId)
+    setIsDragging(true)
+    setDragStart({ x: e.clientX, y: e.clientY })
+  }
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (selectedIcon && iconPositions[selectedIcon]) {
+        const deltaX = e.clientX - dragStart.x
+        const deltaY = e.clientY - dragStart.y
+        
+        setIconPositions(prev => ({
+          ...prev,
+          [selectedIcon]: {
+            x: prev[selectedIcon].x + deltaX,
+            y: prev[selectedIcon].y + deltaY,
+          }
+        }))
+        
+        setDragStart({ x: e.clientX, y: e.clientY })
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      // Save positions to localStorage
+      if (selectedIcon) {
+        localStorage.setItem('icon_positions', JSON.stringify(iconPositions))
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, selectedIcon, dragStart, iconPositions])
+
+  // Handle double-click to open
+  const handleIconClick = (iconId: WindowContent) => {
+    const now = Date.now()
+    const timeSinceLastClick = now - lastClickTime
+    
+    if (timeSinceLastClick < 300 && selectedIcon === iconId && !isDragging) {
+      // Double-click detected
+      setOpenWindow(iconId)
+    }
+    
+    setLastClickTime(now)
+    setSelectedIcon(iconId)
+  }
 
   // Cursor trail effect
   useEffect(() => {
@@ -50,10 +128,10 @@ export default function Home() {
       
       setTrailDots(prev => [...prev, newDot])
       
-      // Remove dot after animation completes
+      // Remove dot after animation completes (longer for 90s effect)
       setTimeout(() => {
         setTrailDots(prev => prev.filter(dot => dot.id !== newDot.id))
-      }, 500)
+      }, 600)
     }
 
     window.addEventListener('mousemove', handleMouseMove)
@@ -573,43 +651,138 @@ export default function Home() {
         .desktop {
           height: 100vh;
           padding: 20px;
-          display: grid;
-          grid-template-columns: repeat(auto-fill, 100px);
-          grid-auto-rows: 100px;
-          gap: 20px;
-          align-content: start;
+          position: relative;
+          user-select: none;
         }
         
         .desktop-icon {
+          position: absolute;
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 8px;
           cursor: pointer;
           padding: 8px;
-          border-radius: 4px;
-          transition: background 0.2s;
+          width: 80px;
         }
         
-        .desktop-icon:hover {
-          background: ${theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'};
+        .desktop-icon.selected {
+          background: ${theme === 'light' ? 'rgba(0, 0, 255, 0.2)' : 'rgba(100, 100, 255, 0.3)'};
+          outline: 1px dotted ${theme === 'light' ? '#0000ff' : '#6666ff'};
         }
         
-        .desktop-icon:focus {
-          outline: 2px solid ${theme === 'light' ? '#000000' : '#ffffff'};
-          outline-offset: 2px;
+        .desktop-icon:active {
+          cursor: grabbing;
         }
         
         .icon-image {
           width: 48px;
           height: 48px;
-          background: ${theme === 'light' ? '#ffffff' : '#3a3a3a'};
-          border: 2px solid ${theme === 'light' ? '#000000' : '#666666'};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
+          position: relative;
+          image-rendering: pixelated;
+          image-rendering: -moz-crisp-edges;
+          image-rendering: crisp-edges;
+        }
+        
+        /* 90s folder icon */
+        .folder-icon {
+          width: 48px;
+          height: 48px;
+          position: relative;
+          background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
+          clip-path: polygon(
+            0% 20%, 30% 20%, 35% 0%, 100% 0%, 
+            100% 100%, 0% 100%
+          );
+          box-shadow: 
+            inset -2px -2px 0 ${theme === 'light' ? '#cc9900' : '#997700'},
+            inset 2px 2px 0 ${theme === 'light' ? '#ffee88' : '#ddaa00'},
+            2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 90s document icon */
+        .document-icon {
+          width: 48px;
+          height: 48px;
+          background: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
+          border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
           box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+          position: relative;
+        }
+        
+        .document-icon::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          left: 8px;
+          right: 8px;
+          height: 2px;
+          background: ${theme === 'light' ? '#000000' : '#333333'};
+          box-shadow: 
+            0 6px 0 ${theme === 'light' ? '#000000' : '#333333'},
+            0 12px 0 ${theme === 'light' ? '#000000' : '#333333'},
+            0 18px 0 ${theme === 'light' ? '#000000' : '#333333'};
+        }
+        
+        /* 90s lock icon */
+        .lock-icon {
+          width: 48px;
+          height: 48px;
+          position: relative;
+        }
+        
+        .lock-icon::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          left: 14px;
+          width: 20px;
+          height: 12px;
+          border: 3px solid ${theme === 'light' ? '#666666' : '#999999'};
+          border-bottom: none;
+          border-radius: 10px 10px 0 0;
+        }
+        
+        .lock-icon::after {
+          content: '';
+          position: absolute;
+          bottom: 8px;
+          left: 8px;
+          width: 32px;
+          height: 20px;
+          background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
+          border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
+          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 90s envelope icon */
+        .envelope-icon {
+          width: 48px;
+          height: 48px;
+          position: relative;
+        }
+        
+        .envelope-icon::before {
+          content: '';
+          position: absolute;
+          bottom: 8px;
+          left: 4px;
+          width: 40px;
+          height: 28px;
+          background: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
+          border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
+          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .envelope-icon::after {
+          content: '';
+          position: absolute;
+          bottom: 22px;
+          left: 4px;
+          width: 40px;
+          height: 14px;
+          background: ${theme === 'light' ? '#ff6666' : '#cc4444'};
+          clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
         }
         
         .icon-label {
@@ -724,36 +897,49 @@ export default function Home() {
         
         .cursor-dot {
           position: fixed;
-          width: 6px;
-          height: 6px;
+          width: 10px;
+          height: 10px;
           background: ${theme === 'light' ? '#000000' : '#ffffff'};
-          border-radius: 50%;
           pointer-events: none;
           z-index: 9999;
-          animation: cursorFade 0.5s ease-out forwards;
+          animation: cursorFade90s 0.6s linear forwards;
+          image-rendering: pixelated;
+          image-rendering: -moz-crisp-edges;
+          image-rendering: crisp-edges;
+          box-shadow: 
+            0 0 0 1px ${theme === 'light' ? '#333333' : '#cccccc'},
+            1px 1px 0 ${theme === 'light' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)'};
         }
         
-        @keyframes cursorFade {
+        @keyframes cursorFade90s {
           0% {
+            opacity: 1;
+          }
+          40% {
             opacity: 0.8;
-            transform: scale(1);
+          }
+          70% {
+            opacity: 0.5;
           }
           100% {
             opacity: 0;
-            transform: scale(0.3);
           }
         }
         
         @media (max-width: 768px) {
-          .desktop {
-            grid-template-columns: repeat(auto-fill, 80px);
-            grid-auto-rows: 80px;
-            gap: 12px;
+          .desktop-icon {
+            width: 70px;
           }
-          .icon-image {
+          .icon-image,
+          .folder-icon,
+          .document-icon,
+          .lock-icon,
+          .envelope-icon {
             width: 40px;
             height: 40px;
-            font-size: 20px;
+          }
+          .icon-label {
+            font-size: 10px;
           }
         }
       `}</style>
@@ -761,66 +947,96 @@ export default function Home() {
       <div className="desktop">
         {/* About Icon */}
         <div
-          className="desktop-icon"
-          onClick={() => setOpenWindow('about')}
-          onKeyPress={(e) => e.key === 'Enter' && setOpenWindow('about')}
+          className={`desktop-icon ${selectedIcon === 'about' ? 'selected' : ''}`}
+          style={{
+            left: `${iconPositions.about.x}px`,
+            top: `${iconPositions.about.y}px`,
+          }}
+          onMouseDown={(e) => handleIconMouseDown(e, 'about')}
+          onClick={() => handleIconClick('about')}
           tabIndex={0}
           role="button"
           aria-label={t.desktopAbout}
         >
-          <div className="icon-image">📄</div>
+          <div className="icon-image">
+            <div className="document-icon"></div>
+          </div>
           <div className="icon-label">{t.desktopAbout}</div>
         </div>
 
         {/* Why Web3 Icon */}
         <div
-          className="desktop-icon"
-          onClick={() => setOpenWindow('why-web3')}
-          onKeyPress={(e) => e.key === 'Enter' && setOpenWindow('why-web3')}
+          className={`desktop-icon ${selectedIcon === 'why-web3' ? 'selected' : ''}`}
+          style={{
+            left: `${iconPositions['why-web3'].x}px`,
+            top: `${iconPositions['why-web3'].y}px`,
+          }}
+          onMouseDown={(e) => handleIconMouseDown(e, 'why-web3')}
+          onClick={() => handleIconClick('why-web3')}
           tabIndex={0}
           role="button"
           aria-label={t.desktopWhyWeb3}
         >
-          <div className="icon-image">📁</div>
+          <div className="icon-image">
+            <div className="folder-icon"></div>
+          </div>
           <div className="icon-label">{t.desktopWhyWeb3}</div>
         </div>
 
         {/* Data Governance Icon */}
         <div
-          className="desktop-icon"
-          onClick={() => setOpenWindow('governance')}
-          onKeyPress={(e) => e.key === 'Enter' && setOpenWindow('governance')}
+          className={`desktop-icon ${selectedIcon === 'governance' ? 'selected' : ''}`}
+          style={{
+            left: `${iconPositions.governance.x}px`,
+            top: `${iconPositions.governance.y}px`,
+          }}
+          onMouseDown={(e) => handleIconMouseDown(e, 'governance')}
+          onClick={() => handleIconClick('governance')}
           tabIndex={0}
           role="button"
           aria-label={t.desktopGovernance}
         >
-          <div className="icon-image">📋</div>
+          <div className="icon-image">
+            <div className="folder-icon"></div>
+          </div>
           <div className="icon-label">{t.desktopGovernance}</div>
         </div>
 
         {/* Privacy Icon */}
         <div
-          className="desktop-icon"
-          onClick={() => setOpenWindow('privacy')}
-          onKeyPress={(e) => e.key === 'Enter' && setOpenWindow('privacy')}
+          className={`desktop-icon ${selectedIcon === 'privacy' ? 'selected' : ''}`}
+          style={{
+            left: `${iconPositions.privacy.x}px`,
+            top: `${iconPositions.privacy.y}px`,
+          }}
+          onMouseDown={(e) => handleIconMouseDown(e, 'privacy')}
+          onClick={() => handleIconClick('privacy')}
           tabIndex={0}
           role="button"
           aria-label={t.desktopPrivacy}
         >
-          <div className="icon-image">🔒</div>
+          <div className="icon-image">
+            <div className="lock-icon"></div>
+          </div>
           <div className="icon-label">{t.desktopPrivacy}</div>
         </div>
 
         {/* Contact Icon */}
         <div
-          className="desktop-icon"
-          onClick={() => setOpenWindow('contact')}
-          onKeyPress={(e) => e.key === 'Enter' && setOpenWindow('contact')}
+          className={`desktop-icon ${selectedIcon === 'contact' ? 'selected' : ''}`}
+          style={{
+            left: `${iconPositions.contact.x}px`,
+            top: `${iconPositions.contact.y}px`,
+          }}
+          onMouseDown={(e) => handleIconMouseDown(e, 'contact')}
+          onClick={() => handleIconClick('contact')}
           tabIndex={0}
           role="button"
           aria-label={t.desktopContact}
         >
-          <div className="icon-image">✉️</div>
+          <div className="icon-image">
+            <div className="envelope-icon"></div>
+          </div>
           <div className="icon-label">{t.desktopContact}</div>
         </div>
       </div>
