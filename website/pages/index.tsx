@@ -701,7 +701,7 @@ export default function Home() {
           gap: 8px;
           cursor: pointer;
           padding: 8px;
-          width: 80px;
+          width: 100px;
         }
         
         .desktop-icon.selected {
@@ -772,25 +772,27 @@ export default function Home() {
         .lock-icon::before {
           content: '';
           position: absolute;
-          top: 8px;
-          left: 14px;
-          width: 20px;
-          height: 12px;
-          border: 3px solid ${theme === 'light' ? '#666666' : '#999999'};
+          top: 6px;
+          left: 12px;
+          width: 24px;
+          height: 14px;
+          border: 4px solid ${theme === 'light' ? '#666666' : '#999999'};
           border-bottom: none;
-          border-radius: 10px 10px 0 0;
+          border-radius: 12px 12px 0 0;
+          box-sizing: border-box;
         }
         
         .lock-icon::after {
           content: '';
           position: absolute;
-          bottom: 8px;
-          left: 8px;
-          width: 32px;
-          height: 20px;
+          bottom: 6px;
+          left: 6px;
+          width: 36px;
+          height: 24px;
           background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
           border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
           box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+          box-sizing: border-box;
         }
         
         /* 90s envelope icon */
@@ -824,11 +826,12 @@ export default function Home() {
         }
         
         .icon-label {
-          font-size: 11px;
+          font-size: 10px;
           text-align: center;
-          word-break: break-word;
-          max-width: 90px;
-          line-height: 1.2;
+          max-width: 100px;
+          line-height: 1.3;
+          word-wrap: break-word;
+          hyphens: auto;
         }
         
         .window {
@@ -930,35 +933,28 @@ export default function Home() {
           display: flex;
           align-items: center;
           gap: 6px;
-          padding: 4px 10px;
-          background: transparent;
-          border: 1px solid transparent;
+          padding: 4px 12px;
+          background: ${theme === 'light' ? '#e0e0e0' : '#3a3a3a'};
+          border: 2px solid ${theme === 'light' ? '#999999' : '#555555'};
           font-family: 'Space Mono', monospace;
-          font-size: 12px;
-          font-weight: 400;
+          font-size: 13px;
+          font-weight: 700;
           color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
           cursor: pointer;
-          height: 24px;
-          border-radius: 2px;
+          height: 26px;
+          border-radius: 3px;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
         
-        .apple-menu-button:hover,
+        .apple-menu-button:hover {
+          background: ${theme === 'light' ? '#d0d0d0' : '#4a4a4a'};
+          border-color: ${theme === 'light' ? '#000000' : '#666666'};
+        }
+        
         .apple-menu-button.open {
           background: ${theme === 'light' ? '#000000' : '#0000ff'};
           color: #ffffff;
-          border: 1px solid ${theme === 'light' ? '#000000' : '#0000ff'};
-        }
-        
-        .apple-menu-logo {
-          width: 16px;
-          height: 16px;
-          image-rendering: pixelated;
-          filter: ${theme === 'light' ? 'none' : 'invert(1)'};
-        }
-        
-        .apple-menu-button.open .apple-menu-logo,
-        .apple-menu-button:hover .apple-menu-logo {
-          filter: invert(1);
+          border-color: ${theme === 'light' ? '#000000' : '#0000ff'};
         }
         
         .apple-menu {
@@ -1035,13 +1031,31 @@ export default function Home() {
           .icon-image,
           .folder-icon,
           .document-icon,
-          .lock-icon,
           .envelope-icon {
             width: 40px;
             height: 40px;
           }
+          .lock-icon {
+            width: 40px;
+            height: 40px;
+          }
+          .lock-icon::before {
+            top: 4px;
+            left: 10px;
+            width: 20px;
+            height: 12px;
+            border-width: 3px;
+            border-radius: 10px 10px 0 0;
+          }
+          .lock-icon::after {
+            bottom: 4px;
+            left: 5px;
+            width: 30px;
+            height: 20px;
+          }
           .icon-label {
-            font-size: 10px;
+            font-size: 9px;
+            max-width: 70px;
           }
         }
       `}</style>
@@ -1143,27 +1157,24 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Menubar with Apple-style menu button */}
+      {/* Menubar with menu button */}
       <div className="menubar">
         <button
           className={`apple-menu-button ${startMenuOpen ? 'open' : ''}`}
-          onClick={() => setStartMenuOpen(!startMenuOpen)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setStartMenuOpen(!startMenuOpen)
+          }}
           aria-label="Menu"
           aria-expanded={startMenuOpen}
         >
-          <img 
-            src="/leol-logo.png" 
-            alt="" 
-            className="apple-menu-logo"
-            aria-hidden="true"
-          />
-          <span>{t.startMenu}</span>
+          {t.startMenu}
         </button>
       </div>
 
       {/* Apple menu pop-up */}
       {startMenuOpen && (
-        <div className="apple-menu">
+        <div className="apple-menu" onClick={(e) => e.stopPropagation()}>
           <button
             className="apple-menu-item"
             onClick={() => {
