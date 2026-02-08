@@ -341,8 +341,8 @@ export default function Home() {
         `}</style>
 
         <audio ref={audioRef} preload="auto">
-          <source src="/startup.mp3" type="audio/mpeg" />
-          <source src="/startup.ogg" type="audio/ogg" />
+          <source src="/audio/startup.mp3" type="audio/mpeg" />
+          <source src="/audio/startup.ogg" type="audio/ogg" />
         </audio>
 
         <main style={{
