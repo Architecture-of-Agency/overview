@@ -9,17 +9,56 @@ export default function Home() {
   const [theme, setTheme] = useState('light')
   const [openWindow, setOpenWindow] = useState<WindowContent>(null)
   const [mounted, setMounted] = useState(false)
+  const [cursorTrailEnabled, setCursorTrailEnabled] = useState(true)
+  const [trailDots, setTrailDots] = useState<Array<{ x: number; y: number; id: number }>>([])
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const dotIdRef = useRef(0)
 
   useEffect(() => {
     setMounted(true)
     const savedTheme = localStorage.getItem('theme') || 'light'
     const entered = localStorage.getItem('has_entered')
+    const savedTrail = localStorage.getItem('cursor_trail')
+    
     setTheme(savedTheme)
     if (entered === 'true') {
       setHasEntered(true)
     }
+    if (savedTrail !== null) {
+      setCursorTrailEnabled(savedTrail === 'true')
+    }
   }, [])
+
+  // Cursor trail effect
+  useEffect(() => {
+    if (!hasEntered || !cursorTrailEnabled) return
+    
+    // Check if user prefers reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    // Check if mobile
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    if (isMobile) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newDot = {
+        x: e.clientX,
+        y: e.clientY,
+        id: dotIdRef.current++,
+      }
+      
+      setTrailDots(prev => [...prev, newDot])
+      
+      // Remove dot after animation completes
+      setTimeout(() => {
+        setTrailDots(prev => prev.filter(dot => dot.id !== newDot.id))
+      }, 500)
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [hasEntered, cursorTrailEnabled])
 
   const handleConsent = (accepted: boolean) => {
     localStorage.setItem('analytics_consent', accepted ? 'accepted' : 'declined')
@@ -40,6 +79,12 @@ export default function Home() {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
+  }
+
+  const toggleCursorTrail = () => {
+    const newState = !cursorTrailEnabled
+    setCursorTrailEnabled(newState)
+    localStorage.setItem('cursor_trail', newState.toString())
   }
 
   const content = {
@@ -67,6 +112,7 @@ export default function Home() {
       desktopContact: 'Contact',
       desktopLang: 'Cymraeg',
       desktopTheme: theme === 'light' ? 'Dark mode' : 'Light mode',
+      desktopTrail: cursorTrailEnabled ? 'Trail: on' : 'Trail: off',
       
       // About window
       aboutTitle: 'About Leol Lab',
@@ -199,6 +245,7 @@ export default function Home() {
       desktopContact: 'Cysylltu',
       desktopLang: 'English',
       desktopTheme: theme === 'light' ? 'Modd tywyll' : 'Modd golau',
+      desktopTrail: cursorTrailEnabled ? 'Llwybr: ymlaen' : 'Llwybr: i ffwrdd',
       
       // About window
       aboutTitle: 'Ynghylch Leol Lab',
@@ -675,6 +722,28 @@ export default function Home() {
           font-size: 11px;
         }
         
+        .cursor-dot {
+          position: fixed;
+          width: 6px;
+          height: 6px;
+          background: ${theme === 'light' ? '#000000' : '#ffffff'};
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 9999;
+          animation: cursorFade 0.5s ease-out forwards;
+        }
+        
+        @keyframes cursorFade {
+          0% {
+            opacity: 0.8;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.3);
+          }
+        }
+        
         @media (max-width: 768px) {
           .desktop {
             grid-template-columns: repeat(auto-fill, 80px);
@@ -772,7 +841,26 @@ export default function Home() {
         >
           {t.desktopLang}
         </button>
+        <button
+          className="menubar-button"
+          onClick={toggleCursorTrail}
+          aria-label={t.desktopTrail}
+        >
+          {t.desktopTrail}
+        </button>
       </div>
+
+      {/* Cursor trail dots */}
+      {trailDots.map(dot => (
+        <div
+          key={dot.id}
+          className="cursor-dot"
+          style={{
+            left: `${dot.x}px`,
+            top: `${dot.y}px`,
+          }}
+        />
+      ))}
 
       {/* Windows */}
       {openWindow === 'about' && (
