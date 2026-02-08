@@ -23,6 +23,7 @@ export default function Home() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [lastClickTime, setLastClickTime] = useState(0)
   const [startMenuOpen, setStartMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const dotIdRef = useRef(0)
 
@@ -32,6 +33,10 @@ export default function Home() {
     const entered = localStorage.getItem('has_entered')
     const savedTrail = localStorage.getItem('cursor_trail')
     const savedPositions = localStorage.getItem('icon_positions')
+    
+    // Detect mobile
+    const checkMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768
+    setIsMobile(checkMobile)
     
     setTheme(savedTheme)
     if (entered === 'true') {
@@ -109,8 +114,16 @@ export default function Home() {
     }
   }, [isDragging, selectedIcon, dragStart, iconPositions])
 
-  // Handle double-click to open
+  // Handle double-click to open (desktop) or single-click (mobile)
   const handleIconClick = (iconId: WindowContent) => {
+    // On mobile, open immediately on first click
+    if (isMobile && !isDragging) {
+      setOpenWindow(iconId)
+      setSelectedIcon(iconId)
+      return
+    }
+    
+    // On desktop, require double-click
     const now = Date.now()
     const timeSinceLastClick = now - lastClickTime
     
@@ -125,15 +138,11 @@ export default function Home() {
 
   // Cursor trail effect
   useEffect(() => {
-    if (!hasEntered || !cursorTrailEnabled) return
+    if (!hasEntered || !cursorTrailEnabled || isMobile) return
     
     // Check if user prefers reduced motion
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion) return
-
-    // Check if mobile
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-    if (isMobile) return
 
     const handleMouseMove = (e: MouseEvent) => {
       const newDot = {
@@ -152,7 +161,7 @@ export default function Home() {
 
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [hasEntered, cursorTrailEnabled])
+  }, [hasEntered, cursorTrailEnabled, isMobile])
 
   const handleConsent = (accepted: boolean) => {
     localStorage.setItem('analytics_consent', accepted ? 'accepted' : 'declined')
@@ -679,6 +688,7 @@ export default function Home() {
         .desktop {
           height: 100vh;
           padding: 20px;
+          padding-bottom: 60px;
           position: relative;
           user-select: none;
         }
@@ -905,82 +915,86 @@ export default function Home() {
           left: 0;
           right: 0;
           height: 32px;
-          background: ${theme === 'light' ? '#c0c0c0' : '#1a1a1a'};
-          border-top: 2px solid ${theme === 'light' ? '#ffffff' : '#333333'};
+          background: ${theme === 'light' ? '#dddddd' : '#2a2a2a'};
+          border-top: 1px solid ${theme === 'light' ? '#000000' : '#666666'};
           display: flex;
           align-items: center;
-          padding: 0 4px;
-          gap: 4px;
-          font-size: 11px;
+          padding: 0 8px;
+          gap: 16px;
+          font-size: 12px;
           z-index: 999;
-          box-shadow: inset 0 1px 0 ${theme === 'light' ? '#ffffff' : '#333333'};
+          box-shadow: 0 -1px 0 ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
         }
         
-        .start-button {
+        .apple-menu-button {
           display: flex;
           align-items: center;
           gap: 6px;
-          padding: 2px 6px;
-          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
-          border: 2px outset ${theme === 'light' ? '#ffffff' : '#444444'};
+          padding: 4px 10px;
+          background: transparent;
+          border: 1px solid transparent;
           font-family: 'Space Mono', monospace;
           font-size: 12px;
-          font-weight: 700;
+          font-weight: 400;
+          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
           cursor: pointer;
-          height: 26px;
-          box-shadow: ${theme === 'light' 
-            ? '1px 1px 0 #000000, inset 1px 1px 0 #ffffff' 
-            : '1px 1px 0 #000000, inset 1px 1px 0 #444444'};
+          height: 24px;
+          border-radius: 2px;
         }
         
-        .start-button:active,
-        .start-button.open {
-          border-style: inset;
-          box-shadow: ${theme === 'light'
-            ? 'inset 1px 1px 0 #808080, inset -1px -1px 0 #ffffff'
-            : 'inset 1px 1px 0 #000000, inset -1px -1px 0 #333333'};
+        .apple-menu-button:hover,
+        .apple-menu-button.open {
+          background: ${theme === 'light' ? '#000000' : '#0000ff'};
+          color: #ffffff;
+          border: 1px solid ${theme === 'light' ? '#000000' : '#0000ff'};
         }
         
-        .start-button-logo {
-          width: 18px;
-          height: 18px;
+        .apple-menu-logo {
+          width: 16px;
+          height: 16px;
           image-rendering: pixelated;
+          filter: ${theme === 'light' ? 'none' : 'invert(1)'};
         }
         
-        .start-menu {
+        .apple-menu-button.open .apple-menu-logo,
+        .apple-menu-button:hover .apple-menu-logo {
+          filter: invert(1);
+        }
+        
+        .apple-menu {
           position: fixed;
           bottom: 34px;
-          left: 4px;
-          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
-          border: 2px outset ${theme === 'light' ? '#ffffff' : '#444444'};
-          box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-          min-width: 200px;
+          left: 8px;
+          background: ${theme === 'light' ? '#ffffff' : '#2a2a2a'};
+          border: 1px solid ${theme === 'light' ? '#000000' : '#666666'};
+          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+          min-width: 220px;
           z-index: 1000;
+          border-radius: 0;
         }
         
-        .start-menu-item {
+        .apple-menu-item {
           display: block;
           width: 100%;
-          padding: 8px 12px;
+          padding: 8px 20px;
           background: transparent;
           border: none;
           text-align: left;
           font-family: 'Space Mono', monospace;
-          font-size: 11px;
+          font-size: 12px;
           color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
           cursor: pointer;
         }
         
-        .start-menu-item:hover {
-          background: ${theme === 'light' ? '#000080' : '#000080'};
+        .apple-menu-item:hover {
+          background: ${theme === 'light' ? '#000000' : '#0000ff'};
           color: #ffffff;
         }
         
-        .start-menu-separator {
-          height: 2px;
-          background: ${theme === 'light' ? '#808080' : '#444444'};
-          margin: 2px 0;
-          border-top: 1px solid ${theme === 'light' ? '#ffffff' : '#666666'};
+        .apple-menu-separator {
+          height: 1px;
+          background: ${theme === 'light' ? '#999999' : '#555555'};
+          margin: 6px 0;
         }
         
         .cursor-dot {
@@ -1129,29 +1143,29 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Menubar with Start button */}
+      {/* Menubar with Apple-style menu button */}
       <div className="menubar">
         <button
-          className={`start-button ${startMenuOpen ? 'open' : ''}`}
+          className={`apple-menu-button ${startMenuOpen ? 'open' : ''}`}
           onClick={() => setStartMenuOpen(!startMenuOpen)}
-          aria-label="Start menu"
+          aria-label="Menu"
           aria-expanded={startMenuOpen}
         >
           <img 
             src="/leol-logo.png" 
             alt="" 
-            className="start-button-logo"
+            className="apple-menu-logo"
             aria-hidden="true"
           />
           <span>{t.startMenu}</span>
         </button>
       </div>
 
-      {/* Start menu pop-up */}
+      {/* Apple menu pop-up */}
       {startMenuOpen && (
-        <div className="start-menu">
+        <div className="apple-menu">
           <button
-            className="start-menu-item"
+            className="apple-menu-item"
             onClick={() => {
               toggleTheme()
               setStartMenuOpen(false)
@@ -1162,7 +1176,7 @@ export default function Home() {
           </button>
           
           <button
-            className="start-menu-item"
+            className="apple-menu-item"
             onClick={() => {
               setLang(lang === 'en' ? 'cy' : 'en')
               setStartMenuOpen(false)
@@ -1172,10 +1186,10 @@ export default function Home() {
             {t.startLang}
           </button>
           
-          <div className="start-menu-separator" aria-hidden="true"></div>
+          <div className="apple-menu-separator" aria-hidden="true"></div>
           
           <button
-            className="start-menu-item"
+            className="apple-menu-item"
             onClick={() => {
               toggleCursorTrail()
               setStartMenuOpen(false)
