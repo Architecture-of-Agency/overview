@@ -22,6 +22,7 @@ export default function Home() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [lastClickTime, setLastClickTime] = useState(0)
+  const [startMenuOpen, setStartMenuOpen] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const dotIdRef = useRef(0)
 
@@ -55,6 +56,21 @@ export default function Home() {
     setIsDragging(true)
     setDragStart({ x: e.clientX, y: e.clientY })
   }
+
+  // Close Start menu when clicking outside
+  useEffect(() => {
+    if (!startMenuOpen) return
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.start-menu') && !target.closest('.start-button')) {
+        setStartMenuOpen(false)
+      }
+    }
+    
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [startMenuOpen])
 
   useEffect(() => {
     if (!isDragging) return
@@ -192,6 +208,12 @@ export default function Home() {
       desktopTheme: theme === 'light' ? 'Dark mode' : 'Light mode',
       desktopTrail: cursorTrailEnabled ? 'Trail: on' : 'Trail: off',
       
+      // Start menu
+      startMenu: 'Menu',
+      startTheme: theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode',
+      startLang: 'Newid i Gymraeg',
+      startTrail: cursorTrailEnabled ? 'Cursor trail: on' : 'Cursor trail: off',
+      
       // About window
       aboutTitle: 'About Leol Lab',
       aboutText1: 'Researching Web3-enabled governance systems that centre marginalised voices in shaping the built environment.',
@@ -324,6 +346,12 @@ export default function Home() {
       desktopLang: 'English',
       desktopTheme: theme === 'light' ? 'Modd tywyll' : 'Modd golau',
       desktopTrail: cursorTrailEnabled ? 'Llwybr: ymlaen' : 'Llwybr: i ffwrdd',
+      
+      // Start menu
+      startMenu: 'Dewislen',
+      startTheme: theme === 'light' ? 'Newid i fodd tywyll' : 'Newid i fodd golau',
+      startLang: 'Switch to English',
+      startTrail: cursorTrailEnabled ? 'Llwybr cyrchwr: ymlaen' : 'Llwybr cyrchwr: i ffwrdd',
       
       // About window
       aboutTitle: 'Ynghylch Leol Lab',
@@ -789,7 +817,8 @@ export default function Home() {
           font-size: 11px;
           text-align: center;
           word-break: break-word;
-          max-width: 80px;
+          max-width: 90px;
+          line-height: 1.2;
         }
         
         .window {
@@ -876,23 +905,82 @@ export default function Home() {
           left: 0;
           right: 0;
           height: 32px;
-          background: ${theme === 'light' ? '#e6e6e6' : '#1a1a1a'};
-          border-top: 2px solid ${theme === 'light' ? '#000000' : '#666666'};
+          background: ${theme === 'light' ? '#c0c0c0' : '#1a1a1a'};
+          border-top: 2px solid ${theme === 'light' ? '#ffffff' : '#333333'};
           display: flex;
           align-items: center;
-          padding: 0 12px;
-          gap: 12px;
+          padding: 0 4px;
+          gap: 4px;
           font-size: 11px;
           z-index: 999;
+          box-shadow: inset 0 1px 0 ${theme === 'light' ? '#ffffff' : '#333333'};
         }
         
-        .menubar-button {
-          padding: 4px 8px;
-          background: ${theme === 'light' ? '#ffffff' : '#2a2a2a'};
-          border: 1px solid ${theme === 'light' ? '#000000' : '#666666'};
+        .start-button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 2px 6px;
+          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
+          border: 2px outset ${theme === 'light' ? '#ffffff' : '#444444'};
+          font-family: 'Space Mono', monospace;
+          font-size: 12px;
+          font-weight: 700;
           cursor: pointer;
+          height: 26px;
+          box-shadow: ${theme === 'light' 
+            ? '1px 1px 0 #000000, inset 1px 1px 0 #ffffff' 
+            : '1px 1px 0 #000000, inset 1px 1px 0 #444444'};
+        }
+        
+        .start-button:active,
+        .start-button.open {
+          border-style: inset;
+          box-shadow: ${theme === 'light'
+            ? 'inset 1px 1px 0 #808080, inset -1px -1px 0 #ffffff'
+            : 'inset 1px 1px 0 #000000, inset -1px -1px 0 #333333'};
+        }
+        
+        .start-button-logo {
+          width: 18px;
+          height: 18px;
+          image-rendering: pixelated;
+        }
+        
+        .start-menu {
+          position: fixed;
+          bottom: 34px;
+          left: 4px;
+          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
+          border: 2px outset ${theme === 'light' ? '#ffffff' : '#444444'};
+          box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+          min-width: 200px;
+          z-index: 1000;
+        }
+        
+        .start-menu-item {
+          display: block;
+          width: 100%;
+          padding: 8px 12px;
+          background: transparent;
+          border: none;
+          text-align: left;
           font-family: 'Space Mono', monospace;
           font-size: 11px;
+          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
+          cursor: pointer;
+        }
+        
+        .start-menu-item:hover {
+          background: ${theme === 'light' ? '#000080' : '#000080'};
+          color: #ffffff;
+        }
+        
+        .start-menu-separator {
+          height: 2px;
+          background: ${theme === 'light' ? '#808080' : '#444444'};
+          margin: 2px 0;
+          border-top: 1px solid ${theme === 'light' ? '#ffffff' : '#666666'};
         }
         
         .cursor-dot {
@@ -1041,30 +1129,63 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Menubar */}
+      {/* Menubar with Start button */}
       <div className="menubar">
         <button
-          className="menubar-button"
-          onClick={toggleTheme}
-          aria-label={t.desktopTheme}
+          className={`start-button ${startMenuOpen ? 'open' : ''}`}
+          onClick={() => setStartMenuOpen(!startMenuOpen)}
+          aria-label="Start menu"
+          aria-expanded={startMenuOpen}
         >
-          {t.desktopTheme}
-        </button>
-        <button
-          className="menubar-button"
-          onClick={() => setLang(lang === 'en' ? 'cy' : 'en')}
-          aria-label={t.desktopLang}
-        >
-          {t.desktopLang}
-        </button>
-        <button
-          className="menubar-button"
-          onClick={toggleCursorTrail}
-          aria-label={t.desktopTrail}
-        >
-          {t.desktopTrail}
+          <img 
+            src="/leol-logo.png" 
+            alt="" 
+            className="start-button-logo"
+            aria-hidden="true"
+          />
+          <span>{t.startMenu}</span>
         </button>
       </div>
+
+      {/* Start menu pop-up */}
+      {startMenuOpen && (
+        <div className="start-menu">
+          <button
+            className="start-menu-item"
+            onClick={() => {
+              toggleTheme()
+              setStartMenuOpen(false)
+            }}
+            aria-label={t.startTheme}
+          >
+            {t.startTheme}
+          </button>
+          
+          <button
+            className="start-menu-item"
+            onClick={() => {
+              setLang(lang === 'en' ? 'cy' : 'en')
+              setStartMenuOpen(false)
+            }}
+            aria-label={t.startLang}
+          >
+            {t.startLang}
+          </button>
+          
+          <div className="start-menu-separator" aria-hidden="true"></div>
+          
+          <button
+            className="start-menu-item"
+            onClick={() => {
+              toggleCursorTrail()
+              setStartMenuOpen(false)
+            }}
+            aria-label={t.startTrail}
+          >
+            {t.startTrail}
+          </button>
+        </div>
+      )}
 
       {/* Cursor trail dots */}
       {trailDots.map(dot => (
