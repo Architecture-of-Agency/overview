@@ -7,7 +7,7 @@ export default function Home() {
   const [theme, setTheme] = useState('light')
   const [expandedCard, setExpandedCard] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
-  const mapSvgRef = useRef<HTMLDivElement>(null)
+  const vizRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -18,15 +18,14 @@ export default function Home() {
   useEffect(() => {
     if (!mounted || typeof window === 'undefined') return
 
-    const mapSvg = mapSvgRef.current
-    if (!mapSvg) return
+    const container = vizRef.current
+    if (!container) return
 
     const width = 1000
-    const height = 700
+    const height = 500
     
-    // Clear existing
-    while (mapSvg.firstChild) {
-      mapSvg.removeChild(mapSvg.firstChild)
+    while (container.firstChild) {
+      container.removeChild(container.firstChild)
     }
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -34,221 +33,241 @@ export default function Home() {
     svg.setAttribute('height', '100%')
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`)
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
-    mapSvg.appendChild(svg)
+    svg.setAttribute('role', 'img')
+    svg.setAttribute('aria-label', lang === 'en' ? 'Diagram showing extraction of knowledge from Cardiff communities to Local Authority with no control returned' : 'Diagram yn dangos echdynnu gwybodaeth o gymunedau Caerdydd i Awdurdod Lleol heb ddim rheolaeth yn dychwelyd')
+    container.appendChild(svg)
 
-    // Grid background
-    const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    for (let x = 0; x < width; x += 30) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      line.setAttribute('x1', x.toString())
-      line.setAttribute('y1', '0')
-      line.setAttribute('x2', x.toString())
-      line.setAttribute('y2', height.toString())
-      line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.05)' : 'rgba(153,153,153,0.05)')
-      line.setAttribute('stroke-width', '1')
-      grid.appendChild(line)
-    }
-    for (let y = 0; y < height; y += 30) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      line.setAttribute('x1', '0')
-      line.setAttribute('y1', y.toString())
-      line.setAttribute('x2', width.toString())
-      line.setAttribute('y2', y.toString())
-      line.setAttribute('stroke', theme === 'light' ? 'rgba(102,102,102,0.05)' : 'rgba(153,153,153,0.05)')
-      line.setAttribute('stroke-width', '1')
-      grid.appendChild(line)
-    }
-    svg.appendChild(grid)
+    // Title
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    title.setAttribute('x', '50')
+    title.setAttribute('y', '40')
+    title.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    title.setAttribute('font-size', '14')
+    title.setAttribute('font-family', 'Space Mono, monospace')
+    title.setAttribute('font-weight', '700')
+    title.setAttribute('letter-spacing', '1')
+    title.textContent = lang === 'en' ? 'Current state: Extraction without return' : 'Cyflwr cyfredol: Echdynnu heb ddychwelyd'
+    svg.appendChild(title)
 
-    // Cardiff outline
-    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-    outline.setAttribute('x', '50')
-    outline.setAttribute('y', '80')
-    outline.setAttribute('width', '900')
-    outline.setAttribute('height', '550')
-    outline.setAttribute('fill', 'none')
-    outline.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
-    outline.setAttribute('stroke-width', '2')
-    outline.setAttribute('stroke-dasharray', '5,5')
-    svg.appendChild(outline)
+    // LEFT SIDE: Community circles (6 + 22)
+    const leftX = 200
+    const topY = 150
+    const bottomY = 350
 
-    // Wards with community councils (North/Northwest - well spaced)
-    const withCouncils = [
-      { name: 'Lisvane', x: 780, y: 160 },
-      { name: 'Old St Mellons', x: 860, y: 260 },
-      { name: 'Pentyrch', x: 120, y: 180 },
-      { name: 'Radyr', x: 240, y: 200 },
-      { name: 'St Fagans', x: 180, y: 340 },
-      { name: 'Tongwynlais', x: 340, y: 130 },
-    ]
+    // 6 wards with councils (top, green)
+    const withCouncil = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    withCouncil.setAttribute('cx', leftX.toString())
+    withCouncil.setAttribute('cy', topY.toString())
+    withCouncil.setAttribute('r', '60')
+    withCouncil.setAttribute('fill', 'none')
+    withCouncil.setAttribute('stroke', '#00cc88')
+    withCouncil.setAttribute('stroke-width', '3')
+    withCouncil.setAttribute('opacity', '0.8')
+    svg.appendChild(withCouncil)
 
-    // Wards without community councils (Heath moved further from Council)
-    const withoutCouncils = [
-      // South (bottom row)
-      { name: 'Grangetown', x: 340, y: 560 },
-      { name: 'Butetown', x: 480, y: 580 },
-      { name: 'Splott', x: 630, y: 560 },
-      { name: 'Riverside', x: 280, y: 520 },
-      
-      // South-Central
-      { name: 'Canton', x: 260, y: 440 },
-      { name: 'Adamsdown', x: 580, y: 490 },
-      { name: 'Roath', x: 700, y: 460 },
-      
-      // Central
-      { name: 'Cathays', x: 460, y: 430 },
-      { name: 'Plasnewydd', x: 600, y: 390 },
-      { name: 'Gabalfa', x: 380, y: 350 },
-      { name: 'Penylan', x: 740, y: 400 },
-      
-      // North-Central (Heath moved further from Council)
-      { name: 'Heath', x: 620, y: 250 },
-      { name: 'Cyncoed', x: 710, y: 330 },
-      { name: 'Llanishen', x: 650, y: 200 },
-      { name: 'Rhiwbina', x: 480, y: 230 },
-      { name: 'Whitchurch', x: 420, y: 180 },
-    ]
+    const withLabel1 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    withLabel1.setAttribute('x', leftX.toString())
+    withLabel1.setAttribute('y', (topY - 5).toString())
+    withLabel1.setAttribute('text-anchor', 'middle')
+    withLabel1.setAttribute('fill', '#00cc88')
+    withLabel1.setAttribute('font-size', '32')
+    withLabel1.setAttribute('font-family', 'Space Mono, monospace')
+    withLabel1.setAttribute('font-weight', '700')
+    withLabel1.textContent = '6'
+    svg.appendChild(withLabel1)
 
-    const allWards = [...withCouncils.map(w => ({...w, type: 'with'})), ...withoutCouncils.map(w => ({...w, type: 'without'}))]
+    const withLabel2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    withLabel2.setAttribute('x', leftX.toString())
+    withLabel2.setAttribute('y', (topY + 20).toString())
+    withLabel2.setAttribute('text-anchor', 'middle')
+    withLabel2.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    withLabel2.setAttribute('font-size', '10')
+    withLabel2.setAttribute('font-family', 'Space Mono, monospace')
+    withLabel2.textContent = lang === 'en' ? 'wards with' : 'wardiau gyda'
+    svg.appendChild(withLabel2)
 
-    // Local Authority headquarters (center)
-    const councilNode = { x: width/2, y: height/2 - 20 }
-    const councilCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-    councilCircle.setAttribute('cx', councilNode.x.toString())
-    councilCircle.setAttribute('cy', councilNode.y.toString())
-    councilCircle.setAttribute('r', '70')
-    councilCircle.setAttribute('fill', theme === 'light' ? '#1a1a1a' : '#0a0a0a')
-    councilCircle.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
-    councilCircle.setAttribute('stroke-width', '3')
-    svg.appendChild(councilCircle)
+    const withLabel3 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    withLabel3.setAttribute('x', leftX.toString())
+    withLabel3.setAttribute('y', (topY + 35).toString())
+    withLabel3.setAttribute('text-anchor', 'middle')
+    withLabel3.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    withLabel3.setAttribute('font-size', '10')
+    withLabel3.setAttribute('font-family', 'Space Mono, monospace')
+    withLabel3.textContent = lang === 'en' ? 'community councils' : 'cynghorau cymuned'
+    svg.appendChild(withLabel3)
 
-    const councilText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    councilText1.setAttribute('x', councilNode.x.toString())
-    councilText1.setAttribute('y', (councilNode.y - 5).toString())
-    councilText1.setAttribute('text-anchor', 'middle')
-    councilText1.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
-    councilText1.setAttribute('font-size', '13')
-    councilText1.setAttribute('font-family', 'Space Mono, monospace')
-    councilText1.setAttribute('font-weight', '700')
-    councilText1.textContent = 'Local'
-    svg.appendChild(councilText1)
+    // 22 wards without councils (bottom, red)
+    const withoutCouncil = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    withoutCouncil.setAttribute('cx', leftX.toString())
+    withoutCouncil.setAttribute('cy', bottomY.toString())
+    withoutCouncil.setAttribute('r', '80')
+    withoutCouncil.setAttribute('fill', 'none')
+    withoutCouncil.setAttribute('stroke', '#ff4444')
+    withoutCouncil.setAttribute('stroke-width', '3')
+    withoutCouncil.setAttribute('stroke-dasharray', '8,4')
+    withoutCouncil.setAttribute('opacity', '0.8')
+    svg.appendChild(withoutCouncil)
 
-    const councilText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    councilText2.setAttribute('x', councilNode.x.toString())
-    councilText2.setAttribute('y', (councilNode.y + 12).toString())
-    councilText2.setAttribute('text-anchor', 'middle')
-    councilText2.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
-    councilText2.setAttribute('font-size', '13')
-    councilText2.setAttribute('font-family', 'Space Mono, monospace')
-    councilText2.setAttribute('font-weight', '700')
-    councilText2.textContent = 'Authority'
-    svg.appendChild(councilText2)
+    const withoutLabel1 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    withoutLabel1.setAttribute('x', leftX.toString())
+    withoutLabel1.setAttribute('y', (bottomY - 5).toString())
+    withoutLabel1.setAttribute('text-anchor', 'middle')
+    withoutLabel1.setAttribute('fill', '#ff4444')
+    withoutLabel1.setAttribute('font-size', '32')
+    withoutLabel1.setAttribute('font-family', 'Space Mono, monospace')
+    withoutLabel1.setAttribute('font-weight', '700')
+    withoutLabel1.textContent = '22'
+    svg.appendChild(withoutLabel1)
 
-    // Draw wards and knowledge extraction arrows
-    allWards.forEach((ward, i) => {
-      const hasCouncil = ward.type === 'with'
-      
-      // Ward area representation
-      const wardCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-      wardCircle.setAttribute('cx', ward.x.toString())
-      wardCircle.setAttribute('cy', ward.y.toString())
-      wardCircle.setAttribute('r', '28')
-      wardCircle.setAttribute('fill', 'none')
-      wardCircle.setAttribute('stroke', hasCouncil ? '#00cc88' : '#ff4444')
-      wardCircle.setAttribute('stroke-width', '2')
-      wardCircle.setAttribute('stroke-dasharray', hasCouncil ? '0' : '4,2')
-      wardCircle.setAttribute('opacity', '0.7')
-      svg.appendChild(wardCircle)
+    const withoutLabel2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    withoutLabel2.setAttribute('x', leftX.toString())
+    withoutLabel2.setAttribute('y', (bottomY + 20).toString())
+    withoutLabel2.setAttribute('text-anchor', 'middle')
+    withoutLabel2.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    withoutLabel2.setAttribute('font-size', '10')
+    withoutLabel2.setAttribute('font-family', 'Space Mono, monospace')
+    withoutLabel2.textContent = lang === 'en' ? 'wards with' : 'wardiau heb'
+    svg.appendChild(withoutLabel2)
 
-      // Ward label - handle multi-line text for long names
-      const splitNames: { [key: string]: string[] } = {
-        'Old St Mellons': ['Old St', 'Mellons'],
-        'Tongwynlais': ['Tongwyn', 'lais'],
-        'Whitchurch': ['White', 'church'],
-        'Plasnewydd': ['Plasne', 'wydd'],
-        'Grangetown': ['Grange', 'town']
-      }
+    const withoutLabel3 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    withoutLabel3.setAttribute('x', leftX.toString())
+    withoutLabel3.setAttribute('y', (bottomY + 35).toString())
+    withoutLabel3.setAttribute('text-anchor', 'middle')
+    withoutLabel3.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    withoutLabel3.setAttribute('font-size', '10')
+    withoutLabel3.setAttribute('font-family', 'Space Mono, monospace')
+    withoutLabel3.textContent = lang === 'en' ? 'no formal structure' : 'dim strwythur ffurfiol'
+    svg.appendChild(withoutLabel3)
 
-      if (splitNames[ward.name]) {
-        // Multi-line text
-        const lines = splitNames[ward.name]
-        lines.forEach((line, lineIndex) => {
-          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-          label.setAttribute('x', ward.x.toString())
-          const yOffset = (lineIndex - (lines.length - 1) / 2) * 9
-          label.setAttribute('y', (ward.y + yOffset + 3).toString())
-          label.setAttribute('text-anchor', 'middle')
-          label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-          label.setAttribute('font-size', '8')
-          label.setAttribute('font-family', 'Space Mono, monospace')
-          label.setAttribute('font-weight', '600')
-          label.textContent = line
-          svg.appendChild(label)
-        })
-      } else {
-        // Single-line text
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-        label.setAttribute('x', ward.x.toString())
-        label.setAttribute('y', (ward.y + 3).toString())
-        label.setAttribute('text-anchor', 'middle')
-        label.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-        label.setAttribute('font-size', '8')
-        label.setAttribute('font-family', 'Space Mono, monospace')
-        label.setAttribute('font-weight', '600')
-        label.textContent = ward.name
-        svg.appendChild(label)
-      }
+    // RIGHT SIDE: Local Authority
+    const rightX = 800
+    const centerY = 250
 
-      // Knowledge extraction arrow to Council (more visible)
-      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-      arrow.setAttribute('x1', ward.x.toString())
-      arrow.setAttribute('y1', ward.y.toString())
-      arrow.setAttribute('x2', councilNode.x.toString())
-      arrow.setAttribute('y2', councilNode.y.toString())
-      arrow.setAttribute('stroke', hasCouncil ? '#00cc88' : '#ff4444')
-      arrow.setAttribute('stroke-width', '1.5')
-      arrow.setAttribute('opacity', hasCouncil ? '0.35' : '0.25')
-      arrow.setAttribute('stroke-dasharray', '3,3')
-      svg.appendChild(arrow)
+    const laCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+    laCircle.setAttribute('cx', rightX.toString())
+    laCircle.setAttribute('cy', centerY.toString())
+    laCircle.setAttribute('r', '90')
+    laCircle.setAttribute('fill', theme === 'light' ? '#1a1a1a' : '#0a0a0a')
+    laCircle.setAttribute('stroke', theme === 'light' ? '#666' : '#999')
+    laCircle.setAttribute('stroke-width', '3')
+    svg.appendChild(laCircle)
 
-      // Animated knowledge particles (clearer)
-      if (i % 5 === 0) {
-        const particle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-        particle.setAttribute('r', '3')
-        particle.setAttribute('fill', hasCouncil ? '#00cc88' : '#ff4444')
-        particle.setAttribute('opacity', '0.7')
-        
-        const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion')
-        animate.setAttribute('dur', '6s')
-        animate.setAttribute('repeatCount', 'indefinite')
-        animate.setAttribute('begin', `${i * 0.5}s`)
-        
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'mpath')
-        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-        pathEl.setAttribute('d', `M ${ward.x},${ward.y} L ${councilNode.x},${councilNode.y}`)
-        pathEl.setAttribute('id', `extraction-ward-${i}`)
-        svg.appendChild(pathEl)
-        path.setAttributeNS('http://www.w3.org/1999/xlink', 'href', `#extraction-ward-${i}`)
-        
-        animate.appendChild(path)
-        particle.appendChild(animate)
-        svg.appendChild(particle)
-      }
-    })
+    const laText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    laText1.setAttribute('x', rightX.toString())
+    laText1.setAttribute('y', (centerY - 8).toString())
+    laText1.setAttribute('text-anchor', 'middle')
+    laText1.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
+    laText1.setAttribute('font-size', '16')
+    laText1.setAttribute('font-family', 'Space Mono, monospace')
+    laText1.setAttribute('font-weight', '700')
+    laText1.textContent = lang === 'en' ? 'Local' : 'Awdurdod'
+    svg.appendChild(laText1)
 
-    // Title annotation (no caps)
-    const titleText = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    titleText.setAttribute('x', '70')
-    titleText.setAttribute('y', '35')
-    titleText.setAttribute('fill', theme === 'light' ? '#666' : '#999')
-    titleText.setAttribute('font-size', '11')
-    titleText.setAttribute('font-family', 'Space Mono, monospace')
-    titleText.setAttribute('font-weight', '700')
-    titleText.setAttribute('letter-spacing', '1')
-    titleText.textContent = 'Cardiff: Current knowledge flows and structure'
-    svg.appendChild(titleText)
+    const laText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    laText2.setAttribute('x', rightX.toString())
+    laText2.setAttribute('y', (centerY + 12).toString())
+    laText2.setAttribute('text-anchor', 'middle')
+    laText2.setAttribute('fill', theme === 'light' ? '#ffffff' : '#e0e0e0')
+    laText2.setAttribute('font-size', '16')
+    laText2.setAttribute('font-family', 'Space Mono, monospace')
+    laText2.setAttribute('font-weight', '700')
+    laText2.textContent = lang === 'en' ? 'Authority' : 'Lleol'
+    svg.appendChild(laText2)
 
-  }, [mounted, theme])
+    // ARROWS: Knowledge extraction (one-way)
+    // Arrow definitions
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+    
+    const markerGreen = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
+    markerGreen.setAttribute('id', 'arrowhead-green')
+    markerGreen.setAttribute('markerWidth', '10')
+    markerGreen.setAttribute('markerHeight', '10')
+    markerGreen.setAttribute('refX', '9')
+    markerGreen.setAttribute('refY', '3')
+    markerGreen.setAttribute('orient', 'auto')
+    const polygonGreen = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+    polygonGreen.setAttribute('points', '0 0, 10 3, 0 6')
+    polygonGreen.setAttribute('fill', '#00cc88')
+    polygonGreen.setAttribute('opacity', '0.6')
+    markerGreen.appendChild(polygonGreen)
+    defs.appendChild(markerGreen)
+
+    const markerRed = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
+    markerRed.setAttribute('id', 'arrowhead-red')
+    markerRed.setAttribute('markerWidth', '10')
+    markerRed.setAttribute('markerHeight', '10')
+    markerRed.setAttribute('refX', '9')
+    markerRed.setAttribute('refY', '3')
+    markerRed.setAttribute('orient', 'auto')
+    const polygonRed = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+    polygonRed.setAttribute('points', '0 0, 10 3, 0 6')
+    polygonRed.setAttribute('fill', '#ff4444')
+    polygonRed.setAttribute('opacity', '0.6')
+    markerRed.appendChild(polygonRed)
+    defs.appendChild(markerRed)
+
+    svg.insertBefore(defs, svg.firstChild)
+
+    // From 6 wards
+    const arrow1 = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+    arrow1.setAttribute('x1', (leftX + 60).toString())
+    arrow1.setAttribute('y1', topY.toString())
+    arrow1.setAttribute('x2', (rightX - 90).toString())
+    arrow1.setAttribute('y2', (centerY - 40).toString())
+    arrow1.setAttribute('stroke', '#00cc88')
+    arrow1.setAttribute('stroke-width', '3')
+    arrow1.setAttribute('opacity', '0.6')
+    arrow1.setAttribute('marker-end', 'url(#arrowhead-green)')
+    svg.appendChild(arrow1)
+
+    // From 22 wards
+    const arrow2 = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+    arrow2.setAttribute('x1', (leftX + 80).toString())
+    arrow2.setAttribute('y1', bottomY.toString())
+    arrow2.setAttribute('x2', (rightX - 90).toString())
+    arrow2.setAttribute('y2', (centerY + 40).toString())
+    arrow2.setAttribute('stroke', '#ff4444')
+    arrow2.setAttribute('stroke-width', '3')
+    arrow2.setAttribute('opacity', '0.6')
+    arrow2.setAttribute('marker-end', 'url(#arrowhead-red)')
+    svg.appendChild(arrow2)
+
+    // Labels for arrows
+    const flowLabel1 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    flowLabel1.setAttribute('x', '480')
+    flowLabel1.setAttribute('y', '180')
+    flowLabel1.setAttribute('text-anchor', 'middle')
+    flowLabel1.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    flowLabel1.setAttribute('font-size', '11')
+    flowLabel1.setAttribute('font-family', 'Space Mono, monospace')
+    flowLabel1.setAttribute('font-style', 'italic')
+    flowLabel1.textContent = lang === 'en' ? 'knowledge flows →' : 'llifau gwybodaeth →'
+    svg.appendChild(flowLabel1)
+
+    const flowLabel2 = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    flowLabel2.setAttribute('x', '480')
+    flowLabel2.setAttribute('y', '330')
+    flowLabel2.setAttribute('text-anchor', 'middle')
+    flowLabel2.setAttribute('fill', theme === 'light' ? '#666' : '#999')
+    flowLabel2.setAttribute('font-size', '11')
+    flowLabel2.setAttribute('font-family', 'Space Mono, monospace')
+    flowLabel2.setAttribute('font-style', 'italic')
+    flowLabel2.textContent = lang === 'en' ? 'knowledge flows →' : 'llifau gwybodaeth →'
+    svg.appendChild(flowLabel2)
+
+    // NO RETURN annotation
+    const noReturn = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+    noReturn.setAttribute('x', '500')
+    noReturn.setAttribute('y', '460')
+    noReturn.setAttribute('text-anchor', 'middle')
+    noReturn.setAttribute('fill', '#ff4444')
+    noReturn.setAttribute('font-size', '12')
+    noReturn.setAttribute('font-family', 'Space Mono, monospace')
+    noReturn.setAttribute('font-weight', '700')
+    noReturn.textContent = lang === 'en' ? '← NO CONTROL RETURNS' : '← DIM RHEOLAETH YN DYCHWELYD'
+    svg.appendChild(noReturn)
+
+  }, [mounted, theme, lang])
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
@@ -259,6 +278,13 @@ export default function Home() {
   const content = {
     en: {
       mission: 'Researching Web3-enabled inclusive governance systems for sovereign neighbourhood data - shaping the built environment and place from street to national level',
+      
+      metaTitle: 'Practising what we research',
+      metaText1: 'The visualisation below shows how Cardiff communities have no control over their data — knowledge flows to the Local Authority with nothing returned.',
+      metaText2: 'This website could reproduce that same extractive pattern. To avoid this contradiction, we are modelling a transition from institutional data stewardship to community sovereignty.',
+      metaText3: 'Cardiff University temporarily holds this website\'s data as custodian — not owner — with planned transfer to community-determined governance structures.',
+      metaLink: 'Read our data governance model',
+      
       researchFocus: 'Research focus',
       currentProject: 'Current project',
       relatedInitiatives: 'Related initiatives',
@@ -266,14 +292,13 @@ export default function Home() {
       contactAvailability: 'Available for meetings in Cardiff/Online',
       
       vizTitle: 'Structural exclusion in Cardiff',
-      vizDesc: 'Only 6 wards have community councils. 22 wards have no formal structure. Both groups have zero decision power - knowledge flows to Local Authority, no control returns.',
-      vizLabels: [
-        'Green = Formal channel exists (but tokenistic - can propose, cannot decide)',
-        'Red = No formal channel (sporadic ad-hoc consultation only)',
-        'All arrows point to Local Authority = Knowledge extracted, zero community control',
-        'Financial barrier: £50k+ to establish community council = democracy paywall'
+      vizDesc: 'Both groups have zero decision-making power. Knowledge is extracted upward with no control returned to communities. Even where formal channels exist (6 wards with community councils), they are tokenistic — communities can propose but cannot decide.',
+      vizKey: [
+        'Green = Formal channel exists (tokenistic only)',
+        'Red = No formal channel',
+        'Both groups → zero power, zero control',
+        '£50k+ barrier to establish community council'
       ],
-      vizSwipeHint: 'Swipe to explore the map',
       
       card1Title: 'Data sovereignty',
       card1Short: 'Whose knowledge counts? Who owns and can manipulate data and knowledge? Addressing epistemic injustice in urban governance systems.',
@@ -285,7 +310,7 @@ export default function Home() {
       
       card3Title: 'Digital governance',
       card3Short: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes.',
-      card3Full: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes. We explore how decentralised technologies can enable genuine community control over planning and design decisions—moving beyond extractive consultation toward meaningful devolved power. Our research investigates smart contracts for transparent decision-making, DAOs for community governance, and blockchain for creating auditable, community-owned records of planning processes that shape the built environment. The goal is accountability: tools that make power visible and challengeable.',
+      card3Full: 'Web3 and blockchain systems for community-led planning and transparent, accountable decision-making processes. We explore how decentralised technologies can enable genuine community control over planning and design decisions—moving beyond extractive consultation towards meaningful devolved power. Our research investigates smart contracts for transparent decision-making, DAOs for community governance, and blockchain for creating auditable, community-owned records of planning processes that shape the built environment. The goal is accountability: tools that make power visible and challengeable.',
       
       clickToExpand: '[+] expand',
       clickToCollapse: '[-] collapse',
@@ -294,18 +319,27 @@ export default function Home() {
       projectDesc: 'Co-designing place-based data systems with communities in Cardiff, Wales. Testing how blockchain can support transparency, accountability and real devolved power to communities in shaping the built environment and planning processes.',
       
       project2Title: 'National Data Infrastructure',
-      project2Text: 'Exploring how place-based data scales from street to neighbourhood, city, and national levels. Building frameworks for community data to shape the built environment—from street designs to national infrastructure—while maintaining community sovereignty.',
+      project2Text: 'Exploring how place-based data scales from street to neighbourhood, city, and national levels. Building frameworks for community data to shape the built environment—from street designs to national infrastructure—whilst maintaining community sovereignty.',
       
       project3Title: 'Place-based Digital Identity',
-      project3Text: 'Investigating place and location as identity mechanisms for engaging with governance processes. Avoiding surveillance systems and traditional digital IDs while enabling meaningful participation in shaping places.',
+      project3Text: 'Investigating place and location as identity mechanisms for engaging with governance processes. Avoiding surveillance systems and traditional digital IDs whilst enabling meaningful participation in shaping places.',
       
       viewProject: '[→] view project',
       ongoing: 'Ongoing',
       funding: 'Open to partnerships and funding',
+      dataGovernance: 'Data Governance',
+      privacyPolicy: 'Privacy',
       footer: 'Web3 :: Governance :: Inclusion'
     },
     cy: {
       mission: 'Ymchwilio i systemau llywodraethiant cynhwysol Web3-alluog ar gyfer data cymdogaeth sofran - llunio\'r amgylchedd adeiledig a lle o lefel stryd i lefel genedlaethol',
+      
+      metaTitle: 'Ymarfer yr hyn rydym yn ymchwilio',
+      metaText1: 'Mae\'r delweddiad isod yn dangos sut nad oes gan gymunedau Caerdydd unrhyw reolaeth dros eu data — mae gwybodaeth yn llifo i\'r Awdurdod Lleol heb ddim yn dychwelyd.',
+      metaText2: 'Gallai\'r wefan hon atgynhyrchu\'r un patrwm echdynnol. I osgoi\'r gwrthddywediad hwn, rydym yn modelu trosglwyddiad o stiwardiaeth ddata sefydliadol i sofraniaeth gymunedol.',
+      metaText3: 'Mae Prifysgol Caerdydd yn dal data\'r wefan hon dros dro fel ceidwad — nid perchennog — gyda throsglwyddiad arfaethedig i strwythurau llywodraethu a bennir gan y gymuned.',
+      metaLink: 'Darllenwch ein model llywodraethu data',
+      
       researchFocus: 'Ffocws ymchwil',
       currentProject: 'Prosiect cyfredol',
       relatedInitiatives: 'Mentrau cysylltiedig',
@@ -313,14 +347,13 @@ export default function Home() {
       contactAvailability: 'Ar gael ar gyfer cyfarfodydd yng Nghaerdydd/Ar-lein',
       
       vizTitle: 'Gwaharddiad strwythurol yng Nghaerdydd',
-      vizDesc: 'Dim ond 6 ward sydd â chynghorau cymuned. Mae gan 22 ward ddim strwythur ffurfiol. Mae gan y ddau grŵp sero pŵer penderfynu - mae gwybodaeth yn llifo i\'r Awdurdod Lleol, dim rheolaeth yn dychwelyd.',
-      vizLabels: [
-        'Gwyrdd = Sianel ffurfiol yn bodoli (ond tocenistig - gall gynnig, ni all benderfynu)',
-        'Coch = Dim sianel ffurfiol (ymgynghoriad achlysurol yn unig)',
-        'Mae pob saeth yn pwyntio at Awdurdod Lleol = Gwybodaeth wedi\'i echdynnu, dim rheolaeth gymunedol',
-        'Rhwystr ariannol: £50k+ i sefydlu cyngor cymuned = wal dalu democratiaeth'
+      vizDesc: 'Mae gan y ddau grŵp sero pŵer gwneud penderfyniadau. Mae gwybodaeth yn cael ei echdynnu i fyny heb ddim rheolaeth yn dychwelyd i gymunedau. Hyd yn oed lle mae sianeli ffurfiol yn bodoli (6 ward â chynghorau cymuned), maent yn docenistig — gall cymunedau gynnig ond ni allant benderfynu.',
+      vizKey: [
+        'Gwyrdd = Sianel ffurfiol yn bodoli (tocenistig yn unig)',
+        'Coch = Dim sianel ffurfiol',
+        'Y ddau grŵp → sero pŵer, sero rheolaeth',
+        'Rhwystr £50k+ i sefydlu cyngor cymuned'
       ],
-      vizSwipeHint: 'Swipiwch i archwilio\'r map',
       
       card1Title: 'Sofraniaeth data',
       card1Short: 'Pa wybodaeth sy\'n cyfrif? Pwy sy\'n berchen ar ddata a gwybodaeth ac yn gallu eu trin? Mynd i\'r afael â chyfiawnder epistemolegol mewn systemau llywodraethiant trefol.',
@@ -349,6 +382,8 @@ export default function Home() {
       viewProject: '[→] gweld prosiect',
       ongoing: 'Ar y gweill',
       funding: 'Agored i bartneriaethau a chyllid',
+      dataGovernance: 'Llywodraethu Data',
+      privacyPolicy: 'Preifatrwydd',
       footer: 'Gwe3 :: Llywodraethiant :: Cynhwysiant'
     }
   }
@@ -530,50 +565,6 @@ export default function Home() {
         a:hover {
           text-decoration: underline;
         }
-
-        .viz-scroll-container {
-          overflow-x: auto;
-          overflow-y: hidden;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: thin;
-          scrollbar-color: ${theme === 'light' ? '#999 #f5f5f5' : '#666 #1a1a1a'};
-        }
-
-        .viz-scroll-container::-webkit-scrollbar {
-          height: 8px;
-        }
-
-        .viz-scroll-container::-webkit-scrollbar-track {
-          background: ${theme === 'light' ? '#f5f5f5' : '#1a1a1a'};
-        }
-
-        .viz-scroll-container::-webkit-scrollbar-thumb {
-          background: ${theme === 'light' ? '#999' : '#666'};
-          border-radius: 4px;
-        }
-
-        .swipe-hint {
-          display: none;
-          text-align: center;
-          font-size: 10px;
-          color: ${theme === 'light' ? '#999' : '#666'};
-          padding: 8px 0;
-          letter-spacing: 1px;
-        }
-
-        @media (max-width: 768px) {
-          .viz-scroll-container {
-            cursor: grab;
-          }
-
-          .viz-scroll-container:active {
-            cursor: grabbing;
-          }
-
-          .swipe-hint {
-            display: block;
-          }
-        }
         
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
@@ -639,11 +630,38 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Geographic Visualization */}
+        {/* Meta-Research Notice */}
+        <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
+          <div style={{ 
+            background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
+            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`, 
+            padding: '32px',
+            transition: 'background 0.3s ease, border 0.3s ease'
+          }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px', letterSpacing: '0.5px' }}>
+              {t.metaTitle}
+            </h2>
+            <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
+              {t.metaText1}
+            </p>
+            <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
+              {t.metaText2}
+            </p>
+            <p style={{ fontSize: '14px', lineHeight: 1.7, marginBottom: '16px' }}>
+              {t.metaText3}
+            </p>
+            <p style={{ fontSize: '11px', color: theme === 'light' ? '#666' : '#999', letterSpacing: '1px' }}>
+              <Link href="/governance" style={{ textDecoration: 'underline' }}>
+                {t.metaLink} →
+              </Link>
+            </p>
+          </div>
+        </section>
+
+        {/* Visualisation */}
         <section className="fade-in" style={{ maxWidth: '1200px', margin: '0 auto 80px' }}>
           <h2 className="section-label">{t.vizTitle}</h2>
           
-          {/* Info box BEFORE map */}
           <div style={{ 
             background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
             border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
@@ -655,31 +673,19 @@ export default function Home() {
               {t.vizDesc}
             </p>
             <ul style={{ listStyle: 'none', fontSize: '11px', lineHeight: 1.9, color: theme === 'light' ? '#666' : '#999' }}>
-              {t.vizLabels.map((label: string, i: number) => (
+              {t.vizKey.map((label: string, i: number) => (
                 <li key={i}>[·] {label}</li>
               ))}
             </ul>
           </div>
 
-          {/* Swipe hint BEFORE map */}
-          <div className="swipe-hint" style={{ 
-            background: theme === 'light' ? '#ffffff' : '#1a1a1a',
-            border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
-            marginBottom: '20px'
-          }}>
-            ← {t.vizSwipeHint} →
-          </div>
-          
-          {/* Map visualization */}
           <div style={{ 
             background: theme === 'light' ? '#ffffff' : '#1a1a1a', 
             border: `2px solid ${theme === 'light' ? '#666' : '#999'}`,
             padding: '20px',
             transition: 'background 0.3s ease, border 0.3s ease'
           }}>
-            <div className="viz-scroll-container">
-              <div ref={mapSvgRef} style={{ width: '100%', minWidth: '800px', height: '700px' }} />
-            </div>
+            <div ref={vizRef} style={{ width: '100%', minHeight: '500px' }} />
           </div>
         </section>
 
@@ -701,12 +707,20 @@ export default function Home() {
                   transition: 'background 0.3s ease, border 0.3s ease'
                 }}
                 onClick={() => setExpandedCard(expandedCard === cardNum ? null : cardNum)}
+                role="button"
+                tabIndex={0}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setExpandedCard(expandedCard === cardNum ? null : cardNum)
+                  }
+                }}
+                aria-expanded={expandedCard === cardNum}
               >
                 <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '12px', letterSpacing: '0.5px' }}>
-                  {t[`card${cardNum}Title`]}
+                  {t[`card${cardNum}Title` as keyof typeof t]}
                 </h3>
                 <p style={{ fontSize: '14px', lineHeight: 1.7 }}>
-                  {expandedCard === cardNum ? t[`card${cardNum}Full`] : t[`card${cardNum}Short`]}
+                  {expandedCard === cardNum ? t[`card${cardNum}Full` as keyof typeof t] : t[`card${cardNum}Short` as keyof typeof t]}
                 </p>
                 <p className="expand-indicator">
                   {expandedCard === cardNum ? t.clickToCollapse : t.clickToExpand}
@@ -830,9 +844,17 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="fade-in" style={{ maxWidth: '1200px', margin: '40px auto 0', paddingTop: '32px', borderTop: `2px solid ${theme === 'light' ? '#666' : '#999'}`, fontSize: '11px', color: theme === 'light' ? '#555' : '#bbb', letterSpacing: '1px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
             <div>© 2025 Leol Lab</div>
             <div>{t.footer}</div>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', paddingTop: '16px', borderTop: `1px solid ${theme === 'light' ? '#666' : '#999'}` }}>
+            <Link href="/governance" style={{ textDecoration: 'underline' }}>
+              {t.dataGovernance}
+            </Link>
+            <Link href="/privacy" style={{ textDecoration: 'underline' }}>
+              {t.privacyPolicy}
+            </Link>
           </div>
         </footer>
       </main>
