@@ -5,6 +5,7 @@ type WindowContent = 'about' | 'why-web3' | 'governance' | 'privacy' | 'contact'
 
 export default function Home() {
   const [hasEntered, setHasEntered] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [lang, setLang] = useState('en')
   const [theme, setTheme] = useState('light')
   const [openWindow, setOpenWindow] = useState<WindowContent>(null)
@@ -24,6 +25,7 @@ export default function Home() {
   const [lastClickTime, setLastClickTime] = useState(0)
   const [startMenuOpen, setStartMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium')
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const dotIdRef = useRef(0)
 
@@ -33,6 +35,7 @@ export default function Home() {
     const entered = localStorage.getItem('has_entered')
     const savedTrail = localStorage.getItem('cursor_trail')
     const savedPositions = localStorage.getItem('icon_positions')
+    const savedIconSize = localStorage.getItem('icon_size') as 'small' | 'medium' | 'large' | null
     
     // Detect mobile
     const checkMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768
@@ -44,6 +47,9 @@ export default function Home() {
     }
     if (savedTrail !== null) {
       setCursorTrailEnabled(savedTrail === 'true')
+    }
+    if (savedIconSize) {
+      setIconSize(savedIconSize)
     }
     if (savedPositions) {
       try {
@@ -167,15 +173,19 @@ export default function Home() {
     localStorage.setItem('analytics_consent', accepted ? 'accepted' : 'declined')
     localStorage.setItem('has_entered', 'true')
     
+    // Show loading screen
+    setIsLoading(true)
+    
     // Play Mac startup sound
     if (audioRef.current) {
       audioRef.current.play().catch(e => console.log('Audio play failed:', e))
     }
     
-    // Short delay for sound, then show desktop
+    // Wait for sound to finish (Mac chime is ~2 seconds), then show desktop
     setTimeout(() => {
       setHasEntered(true)
-    }, 500)
+      setIsLoading(false)
+    }, 2200) // 2.2 seconds to ensure sound completes
   }
 
   const toggleTheme = () => {
@@ -189,6 +199,19 @@ export default function Home() {
     setCursorTrailEnabled(newState)
     localStorage.setItem('cursor_trail', newState.toString())
   }
+
+  const changeIconSize = (size: 'small' | 'medium' | 'large') => {
+    setIconSize(size)
+    localStorage.setItem('icon_size', size)
+  }
+
+  // Calculate icon sizes
+  const iconSizes = {
+    small: { icon: 40, width: 85, font: 9 },
+    medium: { icon: 48, width: 100, font: 10 },
+    large: { icon: 56, width: 115, font: 11 }
+  }
+  const currentSize = iconSizes[iconSize]
 
   const content = {
     en: {
@@ -222,6 +245,12 @@ export default function Home() {
       startTheme: theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode',
       startLang: 'Newid i Gymraeg',
       startTrail: cursorTrailEnabled ? 'Cursor trail: on' : 'Cursor trail: off',
+      
+      // Accessibility
+      iconSizeLabel: 'Icons:',
+      iconSmall: 'S',
+      iconMedium: 'M',
+      iconLarge: 'L',
       
       // About window
       aboutTitle: 'About Leol Lab',
@@ -362,6 +391,12 @@ export default function Home() {
       startLang: 'Switch to English',
       startTrail: cursorTrailEnabled ? 'Llwybr cyrchwr: ymlaen' : 'Llwybr cyrchwr: i ffwrdd',
       
+      // Accessibility
+      iconSizeLabel: 'Eiconau:',
+      iconSmall: 'B',
+      iconMedium: 'C',
+      iconLarge: 'M',
+      
       // About window
       aboutTitle: 'Ynghylch Leol Lab',
       aboutText1: 'Ymchwilio i systemau llywodraethiant Gwe3-alluog sy\'n canoli lleisiau ymylol wrth lunio\'r amgylchedd adeiledig.',
@@ -474,6 +509,85 @@ export default function Home() {
   const t = content[lang]
 
   if (!mounted) return null
+
+  // Loading screen while sound plays
+  if (isLoading) {
+    return (
+      <>
+        <Head>
+          <title>Leol Lab | Loading...</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+        </Head>
+
+        <style jsx global>{`
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Space Mono', 'Courier New', monospace;
+            background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
+            overflow: hidden;
+          }
+          
+          .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-in;
+          }
+          
+          .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+            opacity: 0.8;
+            image-rendering: pixelated;
+            filter: ${theme === 'light' ? 'none' : 'invert(1)'};
+          }
+          
+          .loading-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
+            opacity: 0.6;
+            animation: pulse 1.5s ease-in-out infinite;
+          }
+          
+          @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
+          
+          @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+          }
+        `}</style>
+
+        <audio ref={audioRef} preload="auto">
+          <source src="/audio/startup.mp3" type="audio/mpeg" />
+          <source src="/audio/startup.ogg" type="audio/ogg" />
+        </audio>
+
+        <div className="loading-screen">
+          <img 
+            src="/leol-logo.png" 
+            alt="Leol Lab" 
+            className="loading-logo"
+          />
+          <div className="loading-text">Starting up...</div>
+        </div>
+      </>
+    )
+  }
 
   // Landing / Consent Page
   if (!hasEntered) {
@@ -693,6 +807,19 @@ export default function Home() {
           user-select: none;
         }
         
+        .desktop-fade-in {
+          animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+          0% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+        
         .desktop-icon {
           position: absolute;
           display: flex;
@@ -701,7 +828,7 @@ export default function Home() {
           gap: 8px;
           cursor: pointer;
           padding: 8px;
-          width: 100px;
+          width: ${currentSize.width}px;
         }
         
         .desktop-icon.selected {
@@ -714,8 +841,8 @@ export default function Home() {
         }
         
         .icon-image {
-          width: 48px;
-          height: 48px;
+          width: ${currentSize.icon}px;
+          height: ${currentSize.icon}px;
           position: relative;
           image-rendering: pixelated;
           image-rendering: -moz-crisp-edges;
@@ -724,8 +851,8 @@ export default function Home() {
         
         /* 90s folder icon */
         .folder-icon {
-          width: 48px;
-          height: 48px;
+          width: ${currentSize.icon}px;
+          height: ${currentSize.icon}px;
           position: relative;
           background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
           clip-path: polygon(
@@ -740,8 +867,8 @@ export default function Home() {
         
         /* 90s document icon */
         .document-icon {
-          width: 48px;
-          height: 48px;
+          width: ${currentSize.icon}px;
+          height: ${currentSize.icon}px;
           background: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
           border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
           box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
@@ -751,44 +878,44 @@ export default function Home() {
         .document-icon::before {
           content: '';
           position: absolute;
-          top: 8px;
-          left: 8px;
-          right: 8px;
+          top: ${currentSize.icon * 0.17}px;
+          left: ${currentSize.icon * 0.17}px;
+          right: ${currentSize.icon * 0.17}px;
           height: 2px;
           background: ${theme === 'light' ? '#000000' : '#333333'};
           box-shadow: 
-            0 6px 0 ${theme === 'light' ? '#000000' : '#333333'},
-            0 12px 0 ${theme === 'light' ? '#000000' : '#333333'},
-            0 18px 0 ${theme === 'light' ? '#000000' : '#333333'};
+            0 ${currentSize.icon * 0.125}px 0 ${theme === 'light' ? '#000000' : '#333333'},
+            0 ${currentSize.icon * 0.25}px 0 ${theme === 'light' ? '#000000' : '#333333'},
+            0 ${currentSize.icon * 0.375}px 0 ${theme === 'light' ? '#000000' : '#333333'};
         }
         
         /* 90s lock icon */
         .lock-icon {
-          width: 48px;
-          height: 48px;
+          width: ${currentSize.icon}px;
+          height: ${currentSize.icon}px;
           position: relative;
         }
         
         .lock-icon::before {
           content: '';
           position: absolute;
-          top: 6px;
-          left: 12px;
-          width: 24px;
-          height: 14px;
-          border: 4px solid ${theme === 'light' ? '#666666' : '#999999'};
+          top: ${currentSize.icon * 0.125}px;
+          left: ${currentSize.icon * 0.25}px;
+          width: ${currentSize.icon * 0.5}px;
+          height: ${currentSize.icon * 0.29}px;
+          border: ${Math.max(3, currentSize.icon * 0.083)}px solid ${theme === 'light' ? '#666666' : '#999999'};
           border-bottom: none;
-          border-radius: 12px 12px 0 0;
+          border-radius: ${currentSize.icon * 0.25}px ${currentSize.icon * 0.25}px 0 0;
           box-sizing: border-box;
         }
         
         .lock-icon::after {
           content: '';
           position: absolute;
-          bottom: 6px;
-          left: 6px;
-          width: 36px;
-          height: 24px;
+          bottom: ${currentSize.icon * 0.125}px;
+          left: ${currentSize.icon * 0.125}px;
+          width: ${currentSize.icon * 0.75}px;
+          height: ${currentSize.icon * 0.5}px;
           background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
           border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
           box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
@@ -797,18 +924,18 @@ export default function Home() {
         
         /* 90s envelope icon */
         .envelope-icon {
-          width: 48px;
-          height: 48px;
+          width: ${currentSize.icon}px;
+          height: ${currentSize.icon}px;
           position: relative;
         }
         
         .envelope-icon::before {
           content: '';
           position: absolute;
-          bottom: 8px;
-          left: 4px;
-          width: 40px;
-          height: 28px;
+          bottom: ${currentSize.icon * 0.17}px;
+          left: ${currentSize.icon * 0.083}px;
+          width: ${currentSize.icon * 0.833}px;
+          height: ${currentSize.icon * 0.583}px;
           background: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
           border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
           box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
@@ -817,18 +944,18 @@ export default function Home() {
         .envelope-icon::after {
           content: '';
           position: absolute;
-          bottom: 22px;
-          left: 4px;
-          width: 40px;
-          height: 14px;
+          bottom: ${currentSize.icon * 0.458}px;
+          left: ${currentSize.icon * 0.083}px;
+          width: ${currentSize.icon * 0.833}px;
+          height: ${currentSize.icon * 0.292}px;
           background: ${theme === 'light' ? '#ff6666' : '#cc4444'};
           clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
         }
         
         .icon-label {
-          font-size: 10px;
+          font-size: ${currentSize.font}px;
           text-align: center;
-          max-width: 100px;
+          max-width: ${currentSize.width}px;
           line-height: 1.3;
           word-wrap: break-word;
           hyphens: auto;
@@ -922,11 +1049,52 @@ export default function Home() {
           border-top: 1px solid ${theme === 'light' ? '#000000' : '#666666'};
           display: flex;
           align-items: center;
+          justify-content: space-between;
           padding: 0 8px;
           gap: 16px;
           font-size: 12px;
           z-index: 999;
           box-shadow: 0 -1px 0 ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
+        }
+        
+        .menubar-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .menubar-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .icon-size-label {
+          font-size: 11px;
+          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
+          margin-right: 4px;
+        }
+        
+        .icon-size-button {
+          padding: 3px 8px;
+          background: ${theme === 'light' ? '#e0e0e0' : '#3a3a3a'};
+          border: 1px solid ${theme === 'light' ? '#999999' : '#555555'};
+          font-family: 'Space Mono', monospace;
+          font-size: 11px;
+          font-weight: 700;
+          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
+          cursor: pointer;
+          min-width: 28px;
+        }
+        
+        .icon-size-button:hover {
+          background: ${theme === 'light' ? '#d0d0d0' : '#4a4a4a'};
+        }
+        
+        .icon-size-button.active {
+          background: ${theme === 'light' ? '#000000' : '#0000ff'};
+          color: #ffffff;
+          border-color: ${theme === 'light' ? '#000000' : '#0000ff'};
         }
         
         .apple-menu-button {
@@ -1024,43 +1192,75 @@ export default function Home() {
           }
         }
         
+        .loading-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 10000;
+          animation: fadeIn 0.3s ease-in;
+        }
+        
+        .loading-logo {
+          width: 80px;
+          height: 80px;
+          margin-bottom: 24px;
+          opacity: 0.8;
+          image-rendering: pixelated;
+        }
+        
+        .loading-text {
+          font-family: 'Space Mono', monospace;
+          font-size: 14px;
+          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
+          opacity: 0.6;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 0.4;
+          }
+          50% {
+            opacity: 0.8;
+          }
+        }
+        
         @media (max-width: 768px) {
           .desktop-icon {
-            width: 70px;
-          }
-          .icon-image,
-          .folder-icon,
-          .document-icon,
-          .envelope-icon {
-            width: 40px;
-            height: 40px;
-          }
-          .lock-icon {
-            width: 40px;
-            height: 40px;
-          }
-          .lock-icon::before {
-            top: 4px;
-            left: 10px;
-            width: 20px;
-            height: 12px;
-            border-width: 3px;
-            border-radius: 10px 10px 0 0;
-          }
-          .lock-icon::after {
-            bottom: 4px;
-            left: 5px;
-            width: 30px;
-            height: 20px;
+            width: ${Math.max(70, currentSize.width * 0.8)}px;
           }
           .icon-label {
-            font-size: 9px;
-            max-width: 70px;
+            font-size: ${Math.max(9, currentSize.font - 1)}px;
+            max-width: ${Math.max(70, currentSize.width * 0.8)}px;
+          }
+          .menubar {
+            font-size: 11px;
+            padding: 0 4px;
+            gap: 8px;
+          }
+          .icon-size-label {
+            display: none;
+          }
+          .icon-size-button {
+            font-size: 10px;
+            padding: 2px 6px;
+            min-width: 24px;
+          }
+          .apple-menu-button {
+            font-size: 11px;
+            padding: 3px 8px;
           }
         }
       `}</style>
 
-      <div className="desktop">
+      <div className="desktop desktop-fade-in">
         {/* About Icon */}
         <div
           className={`desktop-icon ${selectedIcon === 'about' ? 'selected' : ''}`}
@@ -1157,19 +1357,46 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Menubar with menu button */}
+      {/* Menubar with menu button and icon size controls */}
       <div className="menubar">
-        <button
-          className={`apple-menu-button ${startMenuOpen ? 'open' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation()
-            setStartMenuOpen(!startMenuOpen)
-          }}
-          aria-label="Menu"
-          aria-expanded={startMenuOpen}
-        >
-          {t.startMenu}
-        </button>
+        <div className="menubar-left">
+          <button
+            className={`apple-menu-button ${startMenuOpen ? 'open' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setStartMenuOpen(!startMenuOpen)
+            }}
+            aria-label="Menu"
+            aria-expanded={startMenuOpen}
+          >
+            {t.startMenu}
+          </button>
+        </div>
+        
+        <div className="menubar-right">
+          <span className="icon-size-label">{t.iconSizeLabel}</span>
+          <button
+            className={`icon-size-button ${iconSize === 'small' ? 'active' : ''}`}
+            onClick={() => changeIconSize('small')}
+            aria-label="Small icons"
+          >
+            {t.iconSmall}
+          </button>
+          <button
+            className={`icon-size-button ${iconSize === 'medium' ? 'active' : ''}`}
+            onClick={() => changeIconSize('medium')}
+            aria-label="Medium icons"
+          >
+            {t.iconMedium}
+          </button>
+          <button
+            className={`icon-size-button ${iconSize === 'large' ? 'active' : ''}`}
+            onClick={() => changeIconSize('large')}
+            aria-label="Large icons"
+          >
+            {t.iconLarge}
+          </button>
+        </div>
       </div>
 
       {/* Apple menu pop-up */}
