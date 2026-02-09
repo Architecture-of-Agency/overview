@@ -585,12 +585,15 @@ export default function Home() {
           }
           
           .loading-logo {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 24px;
-            opacity: 0.8;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 32px;
+            opacity: 0.9;
             image-rendering: pixelated;
-            filter: ${theme === 'light' ? 'none' : 'invert(1)'};
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            filter: ${theme === 'light' ? 'none' : 'invert(0.9)'};
+            display: block;
           }
           
           .loading-text {
@@ -598,7 +601,32 @@ export default function Home() {
             font-size: 14px;
             color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
             opacity: 0.6;
-            animation: pulse 1.5s ease-in-out infinite;
+            margin-bottom: 20px;
+          }
+          
+          .loading-bar-container {
+            width: 240px;
+            height: 20px;
+            background: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
+            border: 2px solid ${theme === 'light' ? '#000000' : '#666666'};
+            box-shadow: 
+              inset 2px 2px 0 ${theme === 'light' ? '#999999' : '#000000'},
+              2px 2px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+          }
+          
+          .loading-bar-fill {
+            height: 100%;
+            background: ${theme === 'light' ? '#0000aa' : '#0066ff'};
+            width: 0%;
+            animation: loadingBarFill 3.5s linear forwards;
+            box-shadow: inset -2px -2px 0 ${theme === 'light' ? '#000066' : '#0044cc'};
+          }
+          
+          @keyframes loadingBarFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
           }
           
           @keyframes fadeIn {
