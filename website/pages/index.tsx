@@ -37,8 +37,10 @@ export default function Home() {
     const savedPositions = localStorage.getItem('icon_positions')
     const savedIconSize = localStorage.getItem('icon_size') as 'small' | 'medium' | 'large' | null
     
-    // Detect mobile
-    const checkMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768
+    // Detect mobile and tablets (tablets should use single-tap like mobile)
+    const isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent)
+    const isPhone = /iPhone|iPod|Android.*Mobile/i.test(navigator.userAgent)
+    const checkMobile = isTablet || isPhone || window.innerWidth < 768
     setIsMobile(checkMobile)
     
     setTheme(savedTheme)
@@ -66,6 +68,14 @@ export default function Home() {
     setSelectedIcon(iconId)
     setIsDragging(true)
     setDragStart({ x: e.clientX, y: e.clientY })
+  }
+
+  // Handle touch start for tablets/Apple Pencil
+  const handleIconTouchStart = (e: React.TouchEvent, iconId: WindowContent) => {
+    const touch = e.touches[0]
+    setSelectedIcon(iconId)
+    setIsDragging(true)
+    setDragStart({ x: touch.clientX, y: touch.clientY })
   }
 
   // Close Start menu when clicking outside
@@ -103,7 +113,33 @@ export default function Home() {
       }
     }
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (selectedIcon && iconPositions[selectedIcon]) {
+        const touch = e.touches[0]
+        const deltaX = touch.clientX - dragStart.x
+        const deltaY = touch.clientY - dragStart.y
+        
+        setIconPositions(prev => ({
+          ...prev,
+          [selectedIcon]: {
+            x: prev[selectedIcon].x + deltaX,
+            y: prev[selectedIcon].y + deltaY,
+          }
+        }))
+        
+        setDragStart({ x: touch.clientX, y: touch.clientY })
+      }
+    }
+
     const handleMouseUp = () => {
+      setIsDragging(false)
+      // Save positions to localStorage
+      if (selectedIcon) {
+        localStorage.setItem('icon_positions', JSON.stringify(iconPositions))
+      }
+    }
+
+    const handleTouchEnd = () => {
       setIsDragging(false)
       // Save positions to localStorage
       if (selectedIcon) {
@@ -113,10 +149,14 @@ export default function Home() {
 
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('touchmove', handleTouchMove)
+    window.addEventListener('touchend', handleTouchEnd)
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
     }
   }, [isDragging, selectedIcon, dragStart, iconPositions])
 
@@ -181,11 +221,11 @@ export default function Home() {
       audioRef.current.play().catch(e => console.log('Audio play failed:', e))
     }
     
-    // Wait for sound to finish (Mac chime is ~2 seconds), then show desktop
+    // Wait for sound to finish completely, then show desktop
     setTimeout(() => {
       setHasEntered(true)
       setIsLoading(false)
-    }, 2200) // 2.2 seconds to ensure sound completes
+    }, 3500) // 3.5 seconds to ensure sound fully completes with buffer
   }
 
   const toggleTheme = () => {
@@ -205,11 +245,11 @@ export default function Home() {
     localStorage.setItem('icon_size', size)
   }
 
-  // Calculate icon sizes
+  // Calculate icon sizes (WCAG 2.1 Level AA: minimum 44x44px touch target)
   const iconSizes = {
-    small: { icon: 40, width: 85, font: 9 },
-    medium: { icon: 48, width: 100, font: 10 },
-    large: { icon: 56, width: 115, font: 11 }
+    small: { icon: 48, width: 95, font: 10 },
+    medium: { icon: 64, width: 120, font: 11 },
+    large: { icon: 80, width: 140, font: 13 }
   }
   const currentSize = iconSizes[iconSize]
 
@@ -957,8 +997,9 @@ export default function Home() {
           text-align: center;
           max-width: ${currentSize.width}px;
           line-height: 1.3;
-          word-wrap: break-word;
-          hyphens: auto;
+          overflow-wrap: break-word;
+          word-break: keep-all;
+          hyphens: none;
         }
         
         .window {
@@ -1269,6 +1310,7 @@ export default function Home() {
             top: `${iconPositions.about.y}px`,
           }}
           onMouseDown={(e) => handleIconMouseDown(e, 'about')}
+          onTouchStart={(e) => handleIconTouchStart(e, 'about')}
           onClick={() => handleIconClick('about')}
           tabIndex={0}
           role="button"
@@ -1288,6 +1330,7 @@ export default function Home() {
             top: `${iconPositions['why-web3'].y}px`,
           }}
           onMouseDown={(e) => handleIconMouseDown(e, 'why-web3')}
+          onTouchStart={(e) => handleIconTouchStart(e, 'why-web3')}
           onClick={() => handleIconClick('why-web3')}
           tabIndex={0}
           role="button"
@@ -1307,6 +1350,7 @@ export default function Home() {
             top: `${iconPositions.governance.y}px`,
           }}
           onMouseDown={(e) => handleIconMouseDown(e, 'governance')}
+          onTouchStart={(e) => handleIconTouchStart(e, 'governance')}
           onClick={() => handleIconClick('governance')}
           tabIndex={0}
           role="button"
@@ -1326,6 +1370,7 @@ export default function Home() {
             top: `${iconPositions.privacy.y}px`,
           }}
           onMouseDown={(e) => handleIconMouseDown(e, 'privacy')}
+          onTouchStart={(e) => handleIconTouchStart(e, 'privacy')}
           onClick={() => handleIconClick('privacy')}
           tabIndex={0}
           role="button"
@@ -1345,6 +1390,7 @@ export default function Home() {
             top: `${iconPositions.contact.y}px`,
           }}
           onMouseDown={(e) => handleIconMouseDown(e, 'contact')}
+          onTouchStart={(e) => handleIconTouchStart(e, 'contact')}
           onClick={() => handleIconClick('contact')}
           tabIndex={0}
           role="button"
