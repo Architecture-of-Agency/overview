@@ -536,44 +536,54 @@ export default function Home() {
       // ── Envelope ──────────────────────────────────────────────────────────────
       case 'envelope': {
         const EH=K?'#eeeeee':'#ffffff', EM=K?'#cccccc':'#eeeeee', ES=K?'#888888':'#cccccc'
-        const FH=K?'#ff8888':'#ff6666', FM=K?'#cc3333':'#dd3333', FS=K?'#881111':'#aa1111'
+        const FM=K?'#cc3333':'#dd3333', FS=K?'#881111':'#aa1111'
         const BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            <rect x="1"  y="8"  width="30" height="20" fill={EM}/>
-            <rect x="1"  y="8"  width="2"  height="20" fill={EH}/>
-            <rect x="29" y="8"  width="2"  height="20" fill={ES}/>
-            <rect x="1"  y="26" width="30" height="2"  fill={ES}/>
-            <rect x="1"  y="8"  width="30" height="1"  fill={BK}/>
-            <rect x="1"  y="27" width="30" height="1"  fill={BK}/>
-            <rect x="1"  y="8"  width="1"  height="20" fill={BK}/>
-            <rect x="30" y="8"  width="1"  height="20" fill={BK}/>
-            {/* V flap row by row */}
-            {[[1,2],[3,2],[5,2],[7,2],[9,2],[11,2],[13,2],[15,2]].map(([x,w],i)=>(
-              <g key={i}>
-                <rect x={x}    y={8+i} width={w}   height="1" fill={i===0?FH:FM}/>
-                <rect x={30-x-w+2} y={8+i} width={w} height="1" fill={i===0?FM:i>5?FS:FM}/>
-              </g>
-            ))}
-            <rect x="15" y="16" width="2"  height="1"  fill={FS}/>
-            <rect x="2"  y="24" width="10" height="1"  fill={ES}/>
-            <rect x="20" y="24" width="10" height="1"  fill={ES}/>
-            <rect x="2"  y="28" width="30" height="1"  fill={ES}/>
-            <rect x="31" y="9"  width="1"  height="19" fill={ES}/>
+            {/* Body */}
+            <rect x="1"  y="9"  width="30" height="20" fill={EM}/>
+            <rect x="1"  y="9"  width="2"  height="20" fill={EH}/>
+            <rect x="29" y="9"  width="2"  height="20" fill={ES}/>
+            <rect x="1"  y="27" width="30" height="2"  fill={ES}/>
+            {/* Outline */}
+            <rect x="1"  y="9"  width="30" height="1"  fill={BK}/>
+            <rect x="1"  y="28" width="30" height="1"  fill={BK}/>
+            <rect x="1"  y="9"  width="1"  height="20" fill={BK}/>
+            <rect x="30" y="9"  width="1"  height="20" fill={BK}/>
+            {/* V-flap — clean diagonal steps from corners to centre */}
+            <rect x="1"  y="9"  width="4"  height="1"  fill={FM}/>
+            <rect x="27" y="9"  width="4"  height="1"  fill={FM}/>
+            <rect x="1"  y="10" width="2"  height="1"  fill={FM}/>
+            <rect x="29" y="10" width="2"  height="1"  fill={FM}/>
+            <rect x="3"  y="10" width="4"  height="1"  fill={FM}/>
+            <rect x="25" y="10" width="4"  height="1"  fill={FM}/>
+            <rect x="5"  y="11" width="4"  height="1"  fill={FM}/>
+            <rect x="23" y="11" width="4"  height="1"  fill={FM}/>
+            <rect x="7"  y="12" width="4"  height="1"  fill={FM}/>
+            <rect x="21" y="12" width="4"  height="1"  fill={FM}/>
+            <rect x="9"  y="13" width="4"  height="1"  fill={FM}/>
+            <rect x="19" y="13" width="4"  height="1"  fill={FM}/>
+            <rect x="11" y="14" width="4"  height="1"  fill={FM}/>
+            <rect x="17" y="14" width="4"  height="1"  fill={FM}/>
+            <rect x="13" y="15" width="6"  height="1"  fill={FS}/>
+            {/* Bottom fold */}
+            <rect x="2"  y="25" width="12" height="1"  fill={ES}/>
+            <rect x="18" y="25" width="12" height="1"  fill={ES}/>
+            {/* Shadow */}
+            <rect x="2"  y="29" width="30" height="1"  fill={ES}/>
+            <rect x="31" y="10" width="1"  height="19" fill={ES}/>
           </svg>
         )
       }
-
-      // ── Pencil ────────────────────────────────────────────────────────────────
       case 'pencil': {
-        const EH=K?'#ffaaaa':'#ffcccc', EM=K?'#dd6666':'#ff9999', ES=K?'#aa3333':'#cc6666'
-        const BN=K?'#bbbbbb':'#cccccc', BS=K?'#777777':'#999999'
-        const YH=K?'#ffee44':'#ffff88', YM=K?'#ddaa00':'#ffdd00', YS=K?'#996600':'#cc9900'
-        const WH=K?'#ddaa88':'#eebb99', WS=K?'#885522':'#aa7733'
+        const EH=K?'#ffbbbb':'#ffcccc', EM=K?'#ee6666':'#ff9999', ES=K?'#bb3333':'#cc6666'
+        const BN=K?'#cccccc':'#dddddd', BS=K?'#888888':'#aaaaaa'
+        const YH=K?'#ffff66':'#ffff99', YM=K?'#ddaa00':'#ffdd00', YS=K?'#996600':'#cc9900'
+        const WH=K?'#ddaa77':'#eebb99', WS=K?'#885522':'#aa7733'
         const NK=K?'#555555':'#222222', BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Eraser */}
+            {/* Eraser — top, 10px wide centred */}
             <rect x="11" y="1"  width="10" height="5"  fill={EM}/>
             <rect x="11" y="1"  width="10" height="1"  fill={EH}/>
             <rect x="11" y="4"  width="10" height="2"  fill={ES}/>
@@ -583,11 +593,10 @@ export default function Home() {
             <rect x="11" y="5"  width="10" height="1"  fill={BK}/>
             <rect x="11" y="1"  width="1"  height="5"  fill={BK}/>
             <rect x="20" y="1"  width="1"  height="5"  fill={BK}/>
-            {/* Band */}
+            {/* Metal band */}
             <rect x="11" y="6"  width="10" height="3"  fill={BS}/>
             <rect x="11" y="6"  width="10" height="1"  fill={BN}/>
             <rect x="11" y="6"  width="1"  height="3"  fill={BN}/>
-            <rect x="11" y="5"  width="10" height="1"  fill={BK}/>
             <rect x="11" y="8"  width="10" height="1"  fill={BK}/>
             {/* Body */}
             <rect x="11" y="9"  width="10" height="16" fill={YM}/>
@@ -595,28 +604,24 @@ export default function Home() {
             <rect x="19" y="9"  width="2"  height="16" fill={YS}/>
             <rect x="11" y="9"  width="1"  height="16" fill={BK}/>
             <rect x="20" y="9"  width="1"  height="16" fill={BK}/>
-            {/* Wood taper */}
+            {/* Wood taper — symmetric steps */}
             <rect x="11" y="25" width="10" height="1"  fill={BK}/>
-            <rect x="12" y="26" width="8"  height="1"  fill={WH}/>
-            <rect x="13" y="27" width="6"  height="1"  fill={WH}/>
+            <rect x="12" y="26" width="8"  height="2"  fill={WH}/>
             <rect x="14" y="28" width="4"  height="1"  fill={WS}/>
             <rect x="12" y="26" width="1"  height="3"  fill={BK}/>
             <rect x="19" y="26" width="1"  height="3"  fill={BK}/>
-            <rect x="13" y="27" width="1"  height="2"  fill={BK}/>
-            <rect x="18" y="27" width="1"  height="2"  fill={BK}/>
-            {/* Nib */}
-            <rect x="14" y="28" width="4"  height="1"  fill={BK}/>
-            <rect x="15" y="29" width="2"  height="2"  fill={NK}/>
-            <rect x="15" y="29" width="1"  height="2"  fill={BK}/>
-            <rect x="16" y="29" width="1"  height="2"  fill={BK}/>
-            <rect x="15" y="31" width="2"  height="1"  fill={BK}/>
+            <rect x="13" y="28" width="1"  height="1"  fill={BK}/>
+            <rect x="18" y="28" width="1"  height="1"  fill={BK}/>
+            {/* Nib — 2px wide, centred at x=15 */}
+            <rect x="15" y="29" width="2"  height="3"  fill={NK}/>
+            <rect x="15" y="29" width="1"  height="3"  fill={BK}/>
+            <rect x="16" y="31" width="1"  height="1"  fill={BK}/>
             {/* Shadow */}
-            <rect x="12" y="32" width="10" height="1"  fill={YS}/>
-            <rect x="21" y="2"  width="1"  height="30" fill={YS}/>
+            <rect x="12" y="32" width="9"  height="1"  fill={YS}/>
+            <rect x="21" y="2"  width="1"  height="29" fill={YS}/>
           </svg>
         )
       }
-
       // ── Books ─────────────────────────────────────────────────────────────────
       // Three books standing upright, side by side, different heights
       case 'books': {
@@ -1551,12 +1556,12 @@ export default function Home() {
 
       {/* Splott streetscape — animated pixel art banner */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes walkR { from { transform: translateX(-80px) } to { transform: translateX(1280px) } }
-        @keyframes walkL { from { transform: translateX(1280px) } to { transform: translateX(-80px) } }
-        @keyframes busR  { from { transform: translateX(-200px) } to { transform: translateX(1400px) } }
-        @keyframes busL  { from { transform: translateX(1400px) } to { transform: translateX(-200px) } }
-        @keyframes carR   { from { transform: translateX(-100px) } to { transform: translateX(1300px) } }
-        @keyframes carL   { from { transform: translateX(1300px) } to { transform: translateX(-100px) } }
+        @keyframes walkR { from { transform: translateX(-100px) } to { transform: translateX(100vw) } }
+        @keyframes walkL { from { transform: translateX(100vw) } to { transform: translateX(-100px) } }
+        @keyframes busR  { from { transform: translateX(-220px) } to { transform: translateX(100vw) } }
+        @keyframes busL  { from { transform: translateX(100vw) } to { transform: translateX(-220px) } }
+        @keyframes carR   { from { transform: translateX(-100px) } to { transform: translateX(100vw) } }
+        @keyframes carL   { from { transform: translateX(100vw) } to { transform: translateX(-100px) } }
         .car-r { animation: carR linear infinite; }
         .car-l { animation: carL linear infinite; }
         .walk-r { animation: walkR linear infinite; }
@@ -1566,8 +1571,8 @@ export default function Home() {
       `}} />
       <div className="skyline" aria-hidden="true" style={{ overflow: 'hidden' }}>
         <svg width="100%" height="180" viewBox="0 0 1200 180"
-          preserveAspectRatio="none" shapeRendering="crispEdges"
-          style={{ display: 'block', width: '100%' }}>
+          preserveAspectRatio="xMidYMax slice" shapeRendering="crispEdges"
+          style={{ display: 'block', width: '100%', height: '180px' }}>
           <defs>
             <filter id="glow-lamp" x="-200%" y="-200%" width="500%" height="500%">
               <feGaussianBlur stdDeviation="8" result="blur"/>
@@ -1631,17 +1636,22 @@ export default function Home() {
           <rect x="90"  y="72"  width="120" height="58" fill={isDark?'#3a2a1a':'#bb9977'}/>
           <rect x="90"  y="72"  width="120" height="4"  fill={isDark?'#2a1a0a':'#997755'}/>
           {/* Bay windows */}
-          {[95,109,123,137,151,165,179,193].map(x=>(
+          {[95,109,123,137,151,165,179,193].map((x,i)=>{
+            const litUp = [true,false,true,false,false,true,false,true][i]
+            const litLo = [false,true,false,true,true,false,true,false][i]
+            return (
             <g key={x}>
-              <rect x={x} y="82" width="9" height="11" fill={isDark?'#ddcc88':'#88aacc'}/>
-              <rect x={x} y="99" width="9" height="11" fill={isDark?'#ccaa55':'#88aacc'}/>
-              <rect x={x+4} y="82" width="1" height="11" fill={isDark?'#aa8833':'#5577aa'}/>
-              <rect x={x+4} y="99" width="1" height="11" fill={isDark?'#aa8833':'#5577aa'}/>
-              <rect x={x}   y="92" width="9" height="1"  fill={isDark?'#aa8833':'#5577aa'}/>
-              <rect x={x}   y="109" width="9" height="1" fill={isDark?'#aa8833':'#5577aa'}/>
-              {isDark && <><rect x={x-3} y="79" width="15" height="16" fill="#ffcc44" opacity="0.18" filter="url(#glow-win)"/><rect x={x-3} y="96" width="15" height="16" fill="#ffaa33" opacity="0.18" filter="url(#glow-win)"/></>}
+              <rect x={x} y="82" width="9" height="11" fill={isDark?(litUp?'#ddcc88':'#1a1a22'):'#88aacc'}/>
+              <rect x={x} y="99" width="9" height="11" fill={isDark?(litLo?'#ccaa55':'#1a1a22'):'#88aacc'}/>
+              <rect x={x+4} y="82" width="1" height="11" fill={isDark?(litUp?'#aa8833':'#111'):'#5577aa'}/>
+              <rect x={x+4} y="99" width="1" height="11" fill={isDark?(litLo?'#aa8833':'#111'):'#5577aa'}/>
+              <rect x={x}   y="92" width="9" height="1"  fill={isDark?(litUp?'#aa8833':'#111'):'#5577aa'}/>
+              <rect x={x}   y="109" width="9" height="1" fill={isDark?(litLo?'#aa8833':'#111'):'#5577aa'}/>
+              {isDark && litUp && <rect x={x-3} y="79" width="15" height="16" fill="#ffcc44" opacity="0.18" filter="url(#glow-win)"/>}
+              {isDark && litLo && <rect x={x-3} y="96" width="15" height="16" fill="#ffaa33" opacity="0.18" filter="url(#glow-win)"/>}
             </g>
-          ))}
+            )
+          })}
           {/* Chimneys */}
           {[95,130,165,198].map(x=>(
             <rect key={x} x={x} y="60" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
@@ -1761,14 +1771,18 @@ export default function Home() {
           {/* ── TERRACE ROW 2 — right of roundabout ── */}
           <rect x="690" y="76"  width="100" height="54" fill={isDark?'#3a2a1a':'#bb9977'}/>
           <rect x="690" y="76"  width="100" height="4"  fill={isDark?'#2a1a0a':'#997755'}/>
-          {[695,709,723,737,751,765,779].map(x=>(
-            <g key={x}>
-              <rect x={x} y="86" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="103" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="86" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
-              <rect x={x+4} y="103" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
-            </g>
-          ))}
+          {[695,709,723,737,751,765,779].map((x,i)=>{
+            const litU=[true,false,false,true,false,false,true][i]
+            const litL=[false,true,true,false,true,false,false][i]
+            return (<g key={x}>
+              <rect x={x} y="86" width="9" height="11" fill={isDark?(litU?'#ddcc88':'#111118'):'#88aacc'}/>
+              <rect x={x} y="103" width="9" height="11" fill={isDark?(litL?'#ccaa55':'#111118'):'#88aacc'}/>
+              <rect x={x+4} y="86" width="1" height="11" fill={isDark?(litU?'#aa8833':'#111'):'#5577aa'}/>
+              <rect x={x+4} y="103" width="1" height="11" fill={isDark?(litL?'#aa8833':'#111'):'#5577aa'}/>
+              {isDark&&litU&&<rect x={x-3} y="83" width="15" height="16" fill="#ffcc44" opacity="0.16" filter="url(#glow-win)"/>}
+              {isDark&&litL&&<rect x={x-3} y="100" width="15" height="16" fill="#ffaa33" opacity="0.16" filter="url(#glow-win)"/>}
+            </g>)}
+          })}
           {[695,725,755,780].map(x=>(
             <rect key={x} x={x} y="64" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
           ))}
@@ -1845,14 +1859,18 @@ export default function Home() {
           {/* ── RIGHT TERRACES ── */}
           <rect x="1115" y="74"  width="85"  height="56" fill={isDark?'#3a2a1a':'#aa8866'}/>
           <rect x="1115" y="74"  width="85"  height="4"  fill={isDark?'#2a1a0a':'#886644'}/>
-          {[1120,1134,1148,1162,1176].map(x=>(
-            <g key={x}>
-              <rect x={x} y="84" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="101" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="84" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
-              <rect x={x+4} y="101" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
-            </g>
-          ))}
+          {[1120,1134,1148,1162,1176].map((x,i)=>{
+            const litU=[false,true,false,false,true][i]
+            const litL=[true,false,true,true,false][i]
+            return (<g key={x}>
+              <rect x={x} y="84" width="9" height="11" fill={isDark?(litU?'#ddcc88':'#111118'):'#88aacc'}/>
+              <rect x={x} y="101" width="9" height="11" fill={isDark?(litL?'#ccaa55':'#111118'):'#88aacc'}/>
+              <rect x={x+4} y="84" width="1" height="11" fill={isDark?(litU?'#aa8833':'#111'):'#5577aa'}/>
+              <rect x={x+4} y="101" width="1" height="11" fill={isDark?(litL?'#aa8833':'#111'):'#5577aa'}/>
+              {isDark&&litU&&<rect x={x-3} y="81" width="15" height="16" fill="#ffcc44" opacity="0.16" filter="url(#glow-win)"/>}
+              {isDark&&litL&&<rect x={x-3} y="98" width="15" height="16" fill="#ffaa33" opacity="0.16" filter="url(#glow-win)"/>}
+            </g>)}
+          })}
           {[1120,1150,1178].map(x=>(
             <rect key={x} x={x} y="62" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
           ))}
@@ -1879,7 +1897,7 @@ export default function Home() {
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
 
           {/* Cardiff Bus going RIGHT — red double decker */}
-          <div className="bus-r" style={{ position: 'absolute', bottom: '10px', animationDuration: '22s', animationDelay: '0s' }}>
+          <div className="bus-r" style={{ position: 'absolute', bottom: '14px', animationDuration: '22s', animationDelay: '0s' }}>
             <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
               {/* Body */}
               <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
@@ -1912,7 +1930,7 @@ export default function Home() {
           </div>
 
           {/* Cardiff Bus going LEFT */}
-          <div className="bus-l" style={{ position: 'absolute', bottom: '10px', animationDuration: '28s', animationDelay: '-14s' }}>
+          <div className="bus-l" style={{ position: 'absolute', bottom: '14px', animationDuration: '28s', animationDelay: '-14s' }}>
             <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
               <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
               <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
@@ -1938,12 +1956,12 @@ export default function Home() {
           </div>
 
           {/* Person 1 walking right — dog walker */}
-          <div className="walk-r" style={{ position: 'absolute', bottom: '52px', animationDuration: '35s', animationDelay: '-5s' }}>
+          <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '35s', animationDelay: '-5s' }}>
             <svg width="40" height="28" viewBox="0 0 40 28" shapeRendering="crispEdges">
-              <rect x="14" y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
-              <rect x="13" y="7"  width="7" height="10" fill={isDark?'#4466aa':'#5577bb'}/>
-              <rect x="13" y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
-              <rect x="17" y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
+              <rect x="14" y="2"  width="5" height="5" fill="#ddbb88"/>
+              <rect x="13" y="7"  width="7" height="10" fill="#5577bb"/>
+              <rect x="13" y="17" width="3" height="7"  fill="#3377aa"/>
+              <rect x="17" y="17" width="3" height="7"  fill="#3377aa"/>
               <rect x="9"  y="18" width="7" height="4"  fill={isDark?'#884422':'#aa6633'}/>
               <rect x="7"  y="16" width="5" height="3"  fill={isDark?'#884422':'#aa6633'}/>
               <rect x="15" y="11" width="1" height="7"  fill={isDark?'#555':'#888'}/>
@@ -1952,30 +1970,30 @@ export default function Home() {
           </div>
 
           {/* Person 2 walking right */}
-          <div className="walk-r" style={{ position: 'absolute', bottom: '52px', animationDuration: '40s', animationDelay: '-20s' }}>
+          <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '40s', animationDelay: '-20s' }}>
             <svg width="20" height="28" viewBox="0 0 20 28" shapeRendering="crispEdges">
-              <rect x="7"  y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
-              <rect x="6"  y="7"  width="7" height="10" fill={isDark?'#cc4422':'#dd5533'}/>
-              <rect x="6"  y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
-              <rect x="10" y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
+              <rect x="7"  y="2"  width="5" height="5" fill="#eeccaa"/>
+              <rect x="6"  y="7"  width="7" height="10" fill="#dd5533"/>
+              <rect x="6"  y="17" width="3" height="7"  fill="#3377aa"/>
+              <rect x="10" y="17" width="3" height="7"  fill="#3377aa"/>
             </svg>
           </div>
 
           {/* Person 3 walking left */}
-          <div className="walk-l" style={{ position: 'absolute', bottom: '52px', animationDuration: '38s', animationDelay: '-10s' }}>
+          <div className="walk-l" style={{ position: 'absolute', bottom: '50px', animationDuration: '38s', animationDelay: '-10s' }}>
             <svg width="20" height="28" viewBox="0 0 20 28" shapeRendering="crispEdges">
-              <rect x="7"  y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
-              <rect x="6"  y="7"  width="7" height="10" fill={isDark?'#448844':'#559955'}/>
-              <rect x="6"  y="17" width="3" height="7"  fill={isDark?'#334':'#445'}/>
-              <rect x="10" y="17" width="3" height="7"  fill={isDark?'#334':'#445'}/>
+              <rect x="7"  y="2"  width="5" height="5" fill="#eeccaa"/>
+              <rect x="6"  y="7"  width="7" height="10" fill="#559955"/>
+              <rect x="6"  y="17" width="3" height="7"  fill="#334455"/>
+              <rect x="10" y="17" width="3" height="7"  fill="#334455"/>
             </svg>
           </div>
 
           {/* Wheelchair user going right */}
-          <div className="walk-r" style={{ position: 'absolute', bottom: '52px', animationDuration: '45s', animationDelay: '-30s' }}>
+          <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '45s', animationDelay: '-30s' }}>
             <svg width="36" height="28" viewBox="0 0 36 28" shapeRendering="crispEdges">
               {/* Person */}
-              <rect x="6"  y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="6"  y="2"  width="5" height="5" fill="#eeccaa"/>
               <rect x="5"  y="7"  width="7" height="8"  fill={isDark?'#4466cc':'#5577dd'}/>
               {/* Wheelchair frame */}
               <rect x="4"  y="15" width="18" height="2"  fill={isDark?'#888':'#aaa'}/>
@@ -1993,9 +2011,9 @@ export default function Home() {
           </div>
 
           {/* Cyclist going left */}
-          <div className="walk-l" style={{ position: 'absolute', bottom: '52px', animationDuration: '18s', animationDelay: '-8s' }}>
+          <div className="walk-l" style={{ position: 'absolute', bottom: '50px', animationDuration: '18s', animationDelay: '-8s' }}>
             <svg width="36" height="32" viewBox="0 0 36 32" shapeRendering="crispEdges">
-              <rect x="12" y="2"  width="5" height="5"  fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="12" y="2"  width="5" height="5"  fill="#eeccaa"/>
               <rect x="11" y="7"  width="7" height="8"  fill={isDark?'#cc4444':'#dd5555'}/>
               <rect x="6"  y="16" width="18" height="2"  fill={isDark?'#888':'#666'}/>
               <rect x="6"  y="12" width="2"  height="6"  fill={isDark?'#888':'#666'}/>
@@ -2118,7 +2136,16 @@ export default function Home() {
               ))}
             </div>
             <div className="window-titlebar" onMouseDown={(e) => handleWindowTitlebarMouseDown(e, id)}>
-              <div className="window-title">{windowTitles[lang][id]}</div>
+              <div className="window-title">{({
+                'about': lang==='cy'?'Ymchwil PhD · Caerdydd':'PhD Research · Cardiff',
+                'why-web3': lang==='cy'?'Pam technoleg ddosbarthedig?':'Why distributed technology?',
+                'governance': lang==='cy'?'Pwy sy'n berchen ar y data?':'Who owns the data?',
+                'privacy': lang==='cy'?'Beth rydym yn ei gasglu':'What we collect',
+                'contact': lang==='cy'?'Cysylltu â'r ymchwilydd':'Get in touch',
+                'phd-development': lang==='cy'?'Cofnod byw o'r ymchwil':'A living research record',
+                'literature': lang==='cy'?'Ffynonellau allweddol':'Key sources',
+                'splott': lang==='cy'?'Y safle peilot':'The pilot site',
+              } as Record<string,string>)[id]}</div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button className="window-minimise" onClick={(e) => { e.stopPropagation(); minimiseWindow(id) }} aria-label="Minimise">−</button>
                 <button className="window-close" onClick={(e) => { e.stopPropagation(); closeWindow(id) }} aria-label={t.close}>×</button>
