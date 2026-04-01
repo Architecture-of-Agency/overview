@@ -1567,18 +1567,28 @@ export default function Home() {
 
       {/* Splott streetscape — animated pixel art banner */}
       <style dangerouslySetInnerHTML={{__html: `
-        @keyframes walkR { from { transform: translateX(-100px) } to { transform: translateX(100vw) } }
-        @keyframes walkL { from { transform: translateX(100vw) } to { transform: translateX(-100px) } }
-        @keyframes busR  { from { transform: translateX(-220px) } to { transform: translateX(100vw) } }
-        @keyframes busL  { from { transform: translateX(100vw) } to { transform: translateX(-220px) } }
-        @keyframes carR   { from { transform: translateX(-100px) } to { transform: translateX(100vw) } }
-        @keyframes carL   { from { transform: translateX(100vw) } to { transform: translateX(-100px) } }
-        .car-r { animation: carR linear infinite; }
-        .car-l { animation: carL linear infinite; }
-        .walk-r { animation: walkR linear infinite; }
-        .walk-l { animation: walkL linear infinite; }
-        .bus-r   { animation: busR linear infinite; }
-        .bus-l   { animation: busL linear infinite; }
+        @keyframes walkR { 0% { transform: translateX(-60px) } 100% { transform: translateX(calc(100vw + 60px)) } }
+        @keyframes walkL { 0% { transform: translateX(calc(100vw + 60px)) } 100% { transform: translateX(-60px) } }
+        @keyframes busR {
+          0%   { transform: translateX(-160px) }
+          60%  { transform: translateX(calc(60vw)) }
+          74%  { transform: translateX(calc(60vw)) }
+          100% { transform: translateX(calc(100vw + 160px)) }
+        }
+        @keyframes busL {
+          0%   { transform: translateX(calc(100vw + 160px)) }
+          55%  { transform: translateX(calc(35vw)) }
+          70%  { transform: translateX(calc(35vw)) }
+          100% { transform: translateX(-160px) }
+        }
+        @keyframes carR  { 0% { transform: translateX(-80px) } 100% { transform: translateX(calc(100vw + 80px)) } }
+        @keyframes carL  { 0% { transform: translateX(calc(100vw + 80px)) } 100% { transform: translateX(-80px) } }
+        .car-r { animation: carR linear infinite; will-change: transform; }
+        .car-l { animation: carL linear infinite; will-change: transform; }
+        .walk-r { animation: walkR linear infinite; will-change: transform; }
+        .walk-l { animation: walkL linear infinite; will-change: transform; }
+        .bus-r  { animation: busR linear infinite; will-change: transform; }
+        .bus-l  { animation: busL linear infinite; will-change: transform; }
       `}} />
       <div className="skyline" aria-hidden="true" style={{ overflow: 'hidden' }}>
         <svg width="100%" height="180" viewBox="0 0 1200 180"
@@ -1896,7 +1906,32 @@ export default function Home() {
             </g>
           ))}
 
-          {/* ── STREET LAMP 3 ── */}
+          {/* ── BUS STOP ── */}
+          {/* Pole */}
+          <rect x="1055" y="90"  width="3"   height="40" fill={isDark?'#999':'#555'}/>
+          {/* Flag sign — yellow with bus icon */}
+          <rect x="1040" y="90"  width="28"  height="18" fill={isDark?'#ffcc00':'#ffcc00'}/>
+          <rect x="1040" y="90"  width="28"  height="18" fill="none"/>
+          <rect x="1040" y="90"  width="28"  height="2"  fill="#cc9900"/>
+          <rect x="1040" y="106" width="28"  height="2"  fill="#cc9900"/>
+          {/* Bus icon on sign */}
+          <rect x="1043" y="93"  width="14"  height="10" fill="#cc2222"/>
+          <rect x="1043" y="93"  width="14"  height="3"  fill="#dd3333"/>
+          <rect x="1044" y="95"  width="3"   height="3"  fill={isDark?'#334455':'#aaccee'}/>
+          <rect x="1049" y="95"  width="3"   height="3"  fill={isDark?'#334455':'#aaccee'}/>
+          <rect x="1054" y="95"  width="3"   height="3"  fill={isDark?'#334455':'#aaccee'}/>
+          <rect x="1043" y="100" width="3"   height="3"  fill="#111"/>
+          <rect x="1054" y="100" width="3"   height="3"  fill="#111"/>
+          {/* "BUS STOP" text */}
+          <text x="1059" y="101" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#000000">BUS</text>
+          <text x="1059" y="107" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#000000">STOP</text>
+          {/* Shelter — simple 3-sided box */}
+          <rect x="1030" y="110" width="32"  height="20" fill={isDark?'rgba(100,120,140,0.3)':'rgba(180,200,220,0.4)'}/>
+          <rect x="1030" y="110" width="32"  height="2"  fill={isDark?'#445566':'#7799aa'}/>
+          <rect x="1030" y="110" width="2"   height="20" fill={isDark?'#445566':'#7799aa'}/>
+          <rect x="1060" y="110" width="2"   height="20" fill={isDark?'#445566':'#7799aa'}/>
+
+          {/* ── STREET LAMP 3 ── */}}
           <rect x="1105" y="72"  width="4"   height="58" fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="72"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="68"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
@@ -1906,200 +1941,211 @@ export default function Home() {
 
         {/* ── ANIMATED ELEMENTS — positioned over SVG ── */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          {/* Vehicles — rendered first so pedestrians appear on top */}
+
+          {/* PEDESTRIAN LAYER — z-index 1, behind vehicles */}
           <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          {/* Cardiff Bus going RIGHT — red double decker */}
-          <div className="bus-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '26s', animationDelay: '0s' }}>
-            <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
-              {/* Body */}
-              <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
-              <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
-              <rect x="2"  y="38" width="112" height="4"  fill="#aa1111"/>
-              <rect x="2"  y="4"  width="4"   height="38" fill="#dd3333"/>
-              <rect x="110" y="4" width="4"   height="38" fill="#aa1111"/>
-              {/* Destination board */}
-              <rect x="8"  y="6"  width="80"  height="8"  fill="#ffffff"/>
-              <text x="12" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">SPLOTT  Cardiff Bus</text>
-              {/* Upper deck windows */}
-              {[8,28,48,68,88].map(x=>(
-                <rect key={x} x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>
-              ))}
-              {/* Lower deck windows */}
-              {[8,28,48,68,88].map(x=>(
-                <rect key={x+1} x={x} y="28" width="16" height="8" fill={isDark?'#334455':'#aaccee'}/>
-              ))}
-              {/* Headlights — glow in dark mode */}
-              <rect x="106" y="30" width="8" height="6" fill={isDark?'#ffff88':'#ffff44'}/>
-              {isDark && <rect x="108" y="29" width="6" height="8" fill="#ffff88" opacity="0.5"/>}
-              {/* Rear light */}
-              <rect x="2"  y="30" width="6"  height="6"  fill="#ff4444"/>
-              {/* Wheels */}
-              <rect x="12"  y="42" width="20" height="10" fill="#222"/>
-              <rect x="16"  y="44" width="12" height="6"  fill="#444"/>
-              <rect x="85"  y="42" width="20" height="10" fill="#222"/>
-              <rect x="89"  y="44" width="12" height="6"  fill="#444"/>
-            </svg>
-          </div>
 
-          {/* Cardiff Bus going LEFT */}
-          <div className="bus-l" style={{ position: 'absolute', bottom: '42px', animationDuration: '32s', animationDelay: '-14s' }}>
-            <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
-              <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
-              <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
-              <rect x="2"  y="38" width="112" height="4"  fill="#aa1111"/>
-              <rect x="2"  y="4"  width="4"   height="38" fill="#dd3333"/>
-              <rect x="110" y="4" width="4"   height="38" fill="#aa1111"/>
-              <rect x="8"  y="6"  width="80"  height="8"  fill="#ffffff"/>
-              <text x="12" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">CARDIFF BAY  Bus</text>
-              {[8,28,48,68,88].map(x=>(
-                <rect key={x} x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>
-              ))}
-              {[8,28,48,68,88].map(x=>(
-                <rect key={x+1} x={x} y="28" width="16" height="8" fill={isDark?'#334455':'#aaccee'}/>
-              ))}
-              <rect x="106" y="30" width="8" height="6" fill={isDark?'#ffff88':'#ffff44'}/>
-              {isDark && <rect x="108" y="29" width="6" height="8" fill="#ffff88" opacity="0.5"/>}
-              <rect x="2"  y="30" width="6"  height="6"  fill="#ff4444"/>
-              <rect x="12"  y="42" width="20" height="10" fill="#222"/>
-              <rect x="16"  y="44" width="12" height="6"  fill="#444"/>
-              <rect x="85"  y="42" width="20" height="10" fill="#222"/>
-              <rect x="89"  y="44" width="12" height="6"  fill="#444"/>
-            </svg>
-          </div>
+            {/* Dog walker going right */}
+            <div className="walk-r" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '35s', animationDelay: '-5s' }}>
+              <svg width="40" height="28" viewBox="0 0 40 28" shapeRendering="crispEdges">
+                <rect x="14" y="2"  width="5" height="5" fill="#eeccaa"/>
+                <rect x="13" y="7"  width="7" height="10" fill="#5577bb"/>
+                <rect x="13" y="17" width="3" height="7"  fill="#3377aa"/>
+                <rect x="17" y="17" width="3" height="7"  fill="#3377aa"/>
+                <rect x="9"  y="18" width="7" height="4"  fill="#aa6633"/>
+                <rect x="7"  y="16" width="5" height="3"  fill="#aa6633"/>
+                <rect x="15" y="11" width="1" height="7"  fill="#888"/>
+                <rect x="9"  y="11" width="7" height="1"  fill="#888"/>
+              </svg>
+            </div>
 
-          {/* Person 1 walking right — dog walker */}
-          </div>
+            {/* Person walking right — red top */}
+            <div className="walk-r" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '40s', animationDelay: '-20s' }}>
+              <svg width="14" height="28" viewBox="0 0 14 28" shapeRendering="crispEdges">
+                <rect x="4"  y="2"  width="5" height="5" fill="#eeccaa"/>
+                <rect x="3"  y="7"  width="7" height="10" fill="#dd5533"/>
+                <rect x="3"  y="17" width="3" height="7"  fill="#334455"/>
+                <rect x="7"  y="17" width="3" height="7"  fill="#334455"/>
+              </svg>
+            </div>
+
+            {/* Person walking left — green top */}
+            <div className="walk-l" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '38s', animationDelay: '-10s' }}>
+              <svg width="14" height="28" viewBox="0 0 14 28" shapeRendering="crispEdges">
+                <rect x="4"  y="2"  width="5" height="5" fill="#eeccaa"/>
+                <rect x="3"  y="7"  width="7" height="10" fill="#559955"/>
+                <rect x="3"  y="17" width="3" height="7"  fill="#334455"/>
+                <rect x="7"  y="17" width="3" height="7"  fill="#334455"/>
+              </svg>
+            </div>
+
+            {/* Wheelchair user going right */}
+            <div className="walk-r" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '45s', animationDelay: '-30s' }}>
+              <svg width="36" height="28" viewBox="0 0 36 28" shapeRendering="crispEdges">
+                <rect x="6"  y="2"  width="5" height="5" fill="#eeccaa"/>
+                <rect x="5"  y="7"  width="7" height="8"  fill="#5577dd"/>
+                <rect x="4"  y="15" width="18" height="2"  fill="#aaa"/>
+                <rect x="4"  y="12" width="2"  height="5"  fill="#aaa"/>
+                <rect x="20" y="12" width="2"  height="5"  fill="#aaa"/>
+                <rect x="3"  y="18" width="8"  height="8"  fill="#666"/>
+                <rect x="4"  y="19" width="6"  height="6"  fill="#aaa"/>
+                <rect x="18" y="18" width="8"  height="8"  fill="#666"/>
+                <rect x="19" y="19" width="6"  height="6"  fill="#aaa"/>
+                <rect x="22" y="22" width="4"  height="4"  fill="#666"/>
+              </svg>
+            </div>
+
+            {/* Cyclist going left */}
+            <div className="walk-l" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '18s', animationDelay: '-8s' }}>
+              <svg width="36" height="32" viewBox="0 0 36 32" shapeRendering="crispEdges">
+                <rect x="12" y="2"  width="5" height="5"  fill="#eeccaa"/>
+                <rect x="11" y="7"  width="7" height="8"  fill="#dd5555"/>
+                <rect x="6"  y="16" width="18" height="2"  fill="#666"/>
+                <rect x="6"  y="12" width="2"  height="6"  fill="#666"/>
+                <rect x="22" y="12" width="2"  height="6"  fill="#666"/>
+                <rect x="14" y="14" width="2"  height="4"  fill="#666"/>
+                <rect x="3"  y="19" width="8"  height="8"  fill="#777"/>
+                <rect x="4"  y="20" width="6"  height="6"  fill="#aaa"/>
+                <rect x="23" y="19" width="8"  height="8"  fill="#777"/>
+                <rect x="24" y="20" width="6"  height="6"  fill="#aaa"/>
+              </svg>
+            </div>
+
+          </div>{/* end pedestrian layer */}
+
+          {/* VEHICLE LAYER — z-index 2, in front of pedestrians */}
           <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
-          </div>
-          {/* Pedestrians — rendered on top of vehicles */}
-          <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
-          <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '35s', animationDelay: '-5s' }}>
-            <svg width="40" height="28" viewBox="0 0 40 28" shapeRendering="crispEdges">
-              <rect x="14" y="2"  width="5" height="5" fill="#ddbb88"/>
-              <rect x="13" y="7"  width="7" height="10" fill="#5577bb"/>
-              <rect x="13" y="17" width="3" height="7"  fill="#3377aa"/>
-              <rect x="17" y="17" width="3" height="7"  fill="#3377aa"/>
-              <rect x="9"  y="18" width="7" height="4"  fill={isDark?'#884422':'#aa6633'}/>
-              <rect x="7"  y="16" width="5" height="3"  fill={isDark?'#884422':'#aa6633'}/>
-              <rect x="15" y="11" width="1" height="7"  fill={isDark?'#555':'#888'}/>
-              <rect x="9"  y="11" width="7" height="1"  fill={isDark?'#555':'#888'}/>
-            </svg>
-          </div>
 
-          {/* Person 2 walking right */}
-          <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '40s', animationDelay: '-20s' }}>
-            <svg width="20" height="28" viewBox="0 0 20 28" shapeRendering="crispEdges">
-              <rect x="7"  y="2"  width="5" height="5" fill="#eeccaa"/>
-              <rect x="6"  y="7"  width="7" height="10" fill="#dd5533"/>
-              <rect x="6"  y="17" width="3" height="7"  fill="#3377aa"/>
-              <rect x="10" y="17" width="3" height="7"  fill="#3377aa"/>
-            </svg>
-          </div>
+            {/* Cardiff Bus going RIGHT */}
+            <div className="bus-r" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '28s', animationDelay: '0s' }}>
+              <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
+                <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
+                <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
+                <rect x="2"  y="38" width="112" height="4"  fill="#aa1111"/>
+                <rect x="2"  y="4"  width="4"   height="38" fill="#dd3333"/>
+                <rect x="110" y="4" width="4"   height="38" fill="#aa1111"/>
+                <rect x="8"  y="6"  width="80"  height="8"  fill="#ffffff"/>
+                <text x="12" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">SPLOTT  Cardiff Bus</text>
+                {[8,28,48,68,88].map(x=>(<rect key={x}   x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>))}
+                {[8,28,48,68,88].map(x=>(<rect key={x+1} x={x} y="28" width="16" height="8"  fill={isDark?'#334455':'#aaccee'}/>))}
+                {/* Headlights at front (right side = direction of travel) */}
+                <rect x="108" y="28" width="8" height="8" fill={isDark?'#ffff88':'#ffff44'}/>
+                {isDark && <rect x="106" y="26" width="12" height="12" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
+                {/* Rear lights at back (left side) */}
+                <rect x="2"  y="30" width="6"  height="6"  fill="#ff4444"/>
+                <rect x="12" y="42" width="20" height="10" fill="#222"/>
+                <rect x="16" y="44" width="12" height="6"  fill="#444"/>
+                <rect x="85" y="42" width="20" height="10" fill="#222"/>
+                <rect x="89" y="44" width="12" height="6"  fill="#444"/>
+              </svg>
+            </div>
 
-          {/* Person 3 walking left */}
-          <div className="walk-l" style={{ position: 'absolute', bottom: '50px', animationDuration: '38s', animationDelay: '-10s' }}>
-            <svg width="20" height="28" viewBox="0 0 20 28" shapeRendering="crispEdges">
-              <rect x="7"  y="2"  width="5" height="5" fill="#eeccaa"/>
-              <rect x="6"  y="7"  width="7" height="10" fill="#559955"/>
-              <rect x="6"  y="17" width="3" height="7"  fill="#334455"/>
-              <rect x="10" y="17" width="3" height="7"  fill="#334455"/>
-            </svg>
-          </div>
+            {/* Cardiff Bus going LEFT */}
+            <div className="bus-l" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '24s', animationDelay: '0s' }}>
+              <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
+                <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
+                <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
+                <rect x="2"  y="38" width="112" height="4"  fill="#aa1111"/>
+                <rect x="2"  y="4"  width="4"   height="38" fill="#aa1111"/>
+                <rect x="110" y="4" width="4"   height="38" fill="#dd3333"/>
+                <rect x="32" y="6"  width="80"  height="8"  fill="#ffffff"/>
+                <text x="36" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">CARDIFF BAY  Bus</text>
+                {[8,28,48,68,88].map(x=>(<rect key={x}   x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>))}
+                {[8,28,48,68,88].map(x=>(<rect key={x+1} x={x} y="28" width="16" height="8"  fill={isDark?'#334455':'#aaccee'}/>))}
+                {/* Headlights at front (left side = direction of travel) */}
+                <rect x="2"  y="28" width="8"  height="8"  fill={isDark?'#ffff88':'#ffff44'}/>
+                {isDark && <rect x="0" y="26" width="12" height="12" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
+                {/* Rear lights at back (right side) */}
+                <rect x="112" y="30" width="6"  height="6"  fill="#ff4444"/>
+                <rect x="12" y="42" width="20" height="10" fill="#222"/>
+                <rect x="16" y="44" width="12" height="6"  fill="#444"/>
+                <rect x="85" y="42" width="20" height="10" fill="#222"/>
+                <rect x="89" y="44" width="12" height="6"  fill="#444"/>
+              </svg>
+            </div>
 
-          {/* Wheelchair user going right */}
-          <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '45s', animationDelay: '-30s' }}>
-            <svg width="36" height="28" viewBox="0 0 36 28" shapeRendering="crispEdges">
-              {/* Person */}
-              <rect x="6"  y="2"  width="5" height="5" fill="#eeccaa"/>
-              <rect x="5"  y="7"  width="7" height="8"  fill={isDark?'#4466cc':'#5577dd'}/>
-              {/* Wheelchair frame */}
-              <rect x="4"  y="15" width="18" height="2"  fill={isDark?'#888':'#aaa'}/>
-              <rect x="4"  y="12" width="2"  height="5"  fill={isDark?'#888':'#aaa'}/>
-              <rect x="20" y="12" width="2"  height="5"  fill={isDark?'#888':'#aaa'}/>
-              {/* Wheels */}
-              <rect x="2"  y="17" width="10" height="10" fill="none"/>
-              <rect x="3"  y="18" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
-              <rect x="4"  y="19" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
-              <rect x="18" y="18" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
-              <rect x="19" y="19" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
-              {/* Small front wheel */}
-              <rect x="22" y="22" width="4"  height="4"  fill={isDark?'#555':'#777'}/>
-            </svg>
-          </div>
+            {/* Blue hatchback going RIGHT — wedge profile, front=right */}
+            <div className="car-r" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '20s', animationDelay: '-4s' }}>
+              <svg width="58" height="24" viewBox="0 0 58 24" shapeRendering="crispEdges">
+                {/* Body base */}
+                <rect x="2"  y="13" width="54" height="7"  fill={isDark?'#2244aa':'#3355cc'}/>
+                {/* Boot/rear hump — left side, tallish */}
+                <rect x="4"  y="8"  width="14" height="5"  fill={isDark?'#2244aa':'#3355cc'}/>
+                <rect x="4"  y="8"  width="14" height="2"  fill={isDark?'#3355bb':'#4477dd'}/>
+                {/* Roof — slopes down to bonnet on right */}
+                <rect x="18" y="5"  width="20" height="8"  fill={isDark?'#3355bb':'#4466dd'}/>
+                <rect x="38" y="7"  width="8"  height="6"  fill={isDark?'#3355bb':'#4466dd'}/>
+                <rect x="46" y="9"  width="6"  height="4"  fill={isDark?'#2244aa':'#3355cc'}/>
+                {/* Windows */}
+                <rect x="20" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
+                <rect x="30" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
+                {/* Headlights — front right (direction of travel) */}
+                <rect x="52" y="14" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
+                {isDark && <rect x="51" y="13" width="7" height="6" fill="#ffff88" opacity="0.45" filter="url(#glow-head)"/>}
+                {/* Rear lights — back left */}
+                <rect x="2"  y="14" width="4"  height="4"  fill="#dd2222"/>
+                {/* Wheels */}
+                <rect x="8"  y="18" width="12" height="6"  fill="#111"/>
+                <rect x="9"  y="19" width="10" height="4"  fill="#333"/>
+                <rect x="38" y="18" width="12" height="6"  fill="#111"/>
+                <rect x="39" y="19" width="10" height="4"  fill="#333"/>
+                {/* Bumper */}
+                <rect x="52" y="18" width="4"  height="2"  fill={isDark?'#888':'#ccc'}/>
+              </svg>
+            </div>
 
-          {/* Cyclist going left */}
-          <div className="walk-l" style={{ position: 'absolute', bottom: '50px', animationDuration: '18s', animationDelay: '-8s' }}>
-            <svg width="36" height="32" viewBox="0 0 36 32" shapeRendering="crispEdges">
-              <rect x="12" y="2"  width="5" height="5"  fill="#eeccaa"/>
-              <rect x="11" y="7"  width="7" height="8"  fill={isDark?'#cc4444':'#dd5555'}/>
-              <rect x="6"  y="16" width="18" height="2"  fill={isDark?'#888':'#666'}/>
-              <rect x="6"  y="12" width="2"  height="6"  fill={isDark?'#888':'#666'}/>
-              <rect x="22" y="12" width="2"  height="6"  fill={isDark?'#888':'#666'}/>
-              <rect x="14" y="14" width="2"  height="4"  fill={isDark?'#888':'#666'}/>
-              <rect x="2"  y="18" width="10" height="10" fill="none"/>
-              <rect x="3"  y="19" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
-              <rect x="4"  y="20" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
-              <rect x="22" y="18" width="10" height="10" fill="none"/>
-              <rect x="23" y="19" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
-              <rect x="24" y="20" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
-            </svg>
-          {/* Car going right — small pixel hatchback */}
-          <div className="car-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '18s', animationDelay: '-6s' }}>
-            <svg width="52" height="22" viewBox="0 0 52 22" shapeRendering="crispEdges">
-              <rect x="4"  y="8"  width="44" height="10" fill={isDark?'#2244aa':'#3355cc'}/>
-              <rect x="8"  y="4"  width="26" height="6"  fill={isDark?'#3355bb':'#4466dd'}/>
-              <rect x="9"  y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
-              <rect x="21" y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
-              <rect x="4"  y="8"  width="2"  height="10" fill={isDark?'#3355bb':'#4466dd'}/>
-              <rect x="46" y="8"  width="2"  height="10" fill={isDark?'#1133aa':'#2244bb'}/>
-              <rect x="46" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
-              {isDark && <rect x="46" y="11" width="5" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
-              <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
-              <rect x="8"  y="16" width="10" height="6"  fill="#111"/>
-              <rect x="10" y="17" width="6"  height="4"  fill="#333"/>
-              <rect x="34" y="16" width="10" height="6"  fill="#111"/>
-              <rect x="36" y="17" width="6"  height="4"  fill="#333"/>
-            </svg>
-          </div>
+            {/* Red hatchback going LEFT — wedge profile, front=left */}
+            <div className="car-l" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '18s', animationDelay: '-6s' }}>
+              <svg width="58" height="24" viewBox="0 0 58 24" shapeRendering="crispEdges">
+                {/* Body base */}
+                <rect x="2"  y="13" width="54" height="7"  fill={isDark?'#aa3322':'#cc4433'}/>
+                {/* Boot/rear hump — right side */}
+                <rect x="40" y="8"  width="14" height="5"  fill={isDark?'#aa3322':'#cc4433'}/>
+                <rect x="40" y="8"  width="14" height="2"  fill={isDark?'#bb4433':'#dd5544'}/>
+                {/* Roof — slopes down to bonnet on left */}
+                <rect x="20" y="5"  width="20" height="8"  fill={isDark?'#bb4433':'#cc4433'}/>
+                <rect x="12" y="7"  width="8"  height="6"  fill={isDark?'#bb4433':'#cc4433'}/>
+                <rect x="6"  y="9"  width="6"  height="4"  fill={isDark?'#aa3322':'#cc4433'}/>
+                {/* Windows */}
+                <rect x="22" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
+                <rect x="32" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
+                {/* Headlights — front left (direction of travel) */}
+                <rect x="2"  y="14" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
+                {isDark && <rect x="1" y="13" width="7" height="6" fill="#ffff88" opacity="0.45" filter="url(#glow-head)"/>}
+                {/* Rear lights — back right */}
+                <rect x="52" y="14" width="4"  height="4"  fill="#dd2222"/>
+                {/* Wheels */}
+                <rect x="8"  y="18" width="12" height="6"  fill="#111"/>
+                <rect x="9"  y="19" width="10" height="4"  fill="#333"/>
+                <rect x="38" y="18" width="12" height="6"  fill="#111"/>
+                <rect x="39" y="19" width="10" height="4"  fill="#333"/>
+                {/* Bumper */}
+                <rect x="2"  y="18" width="4"  height="2"  fill={isDark?'#888':'#ccc'}/>
+              </svg>
+            </div>
 
-          {/* Car going left */}
-          <div className="car-l" style={{ position: 'absolute', bottom: '42px', animationDuration: '24s', animationDelay: '-12s' }}>
-            <svg width="52" height="22" viewBox="0 0 52 22" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
-              <rect x="4"  y="8"  width="44" height="10" fill={isDark?'#aa4422':'#cc5533'}/>
-              <rect x="18" y="4"  width="26" height="6"  fill={isDark?'#bb5533':'#dd6644'}/>
-              <rect x="19" y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
-              <rect x="31" y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
-              <rect x="4"  y="8"  width="2"  height="10" fill={isDark?'#bb5533':'#dd6644'}/>
-              <rect x="46" y="8"  width="2"  height="10" fill={isDark?'#882211':'#aa3322'}/>
-              <rect x="46" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
-              {isDark && <rect x="46" y="11" width="5" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
-              <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
-              <rect x="8"  y="16" width="10" height="6"  fill="#111"/>
-              <rect x="10" y="17" width="6"  height="4"  fill="#333"/>
-              <rect x="34" y="16" width="10" height="6"  fill="#111"/>
-              <rect x="36" y="17" width="6"  height="4"  fill="#333"/>
-            </svg>
-          </div>
-
-          {/* Second car right — van */}
-          <div className="car-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '21s', animationDelay: '-9s' }}>
-            <svg width="60" height="24" viewBox="0 0 60 24" shapeRendering="crispEdges">
-              <rect x="2"  y="6"  width="56" height="14" fill={isDark?'#336622':'#448833'}/>
-              <rect x="2"  y="6"  width="56" height="3"  fill={isDark?'#447733':'#559944'}/>
-              <rect x="8"  y="4"  width="16" height="4"  fill={isDark?'#223344':'#aaccee'}/>
-              <rect x="26" y="4"  width="16" height="4"  fill={isDark?'#223344':'#aaccee'}/>
-              <rect x="54" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
-              {isDark && <rect x="54" y="11" width="5" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
-              <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
-              <rect x="10" y="18" width="12" height="6"  fill="#111"/>
-              <rect x="12" y="19" width="8"  height="4"  fill="#333"/>
-              <rect x="38" y="18" width="12" height="6"  fill="#111"/>
-              <rect x="40" y="19" width="8"  height="4"  fill="#333"/>
-            </svg>
-          </div>
+            {/* Green van going RIGHT — flat front, cabin full width */}
+            <div className="car-r" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '25s', animationDelay: '-10s' }}>
+              <svg width="60" height="24" viewBox="0 0 60 24" shapeRendering="crispEdges">
+                <rect x="2"  y="6"  width="56" height="14" fill={isDark?'#336622':'#448833'}/>
+                <rect x="2"  y="6"  width="56" height="3"  fill={isDark?'#447733':'#559944'}/>
+                {/* Windows — van has full-width cabin, windows along top */}
+                <rect x="4"  y="7"  width="14" height="5"  fill={isDark?'#223344':'#aaccee'}/>
+                <rect x="20" y="7"  width="14" height="5"  fill={isDark?'#223344':'#aaccee'}/>
+                {/* Headlights — front (right) */}
+                <rect x="54" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
+                {isDark && <rect x="53" y="11" width="6" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
+                {/* Rear lights — back (left) */}
+                <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
+                <rect x="10" y="18" width="12" height="6"  fill="#111"/>
+                <rect x="12" y="19" width="8"  height="4"  fill="#333"/>
+                <rect x="38" y="18" width="12" height="6"  fill="#111"/>
+                <rect x="40" y="19" width="8"  height="4"  fill="#333"/>
+              </svg>
+            </div>
 
           </div>{/* end vehicle layer */}
-          </div>
+
         </div>
       </div>
 
