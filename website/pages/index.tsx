@@ -1906,9 +1906,14 @@ export default function Home() {
 
         {/* ── ANIMATED ELEMENTS — positioned over SVG ── */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          {/* Pedestrian layer — behind vehicles */}
+          <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
 
+          </div>{/* end pedestrian layer */}
+          {/* Vehicle layer — in front of pedestrians */}
+          <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
           {/* Cardiff Bus going RIGHT — red double decker */}
-          <div className="bus-r" style={{ position: 'absolute', bottom: '14px', animationDuration: '22s', animationDelay: '0s' }}>
+          <div className="bus-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '26s', animationDelay: '0s' }}>
             <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
               {/* Body */}
               <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
@@ -1941,7 +1946,7 @@ export default function Home() {
           </div>
 
           {/* Cardiff Bus going LEFT */}
-          <div className="bus-l" style={{ position: 'absolute', bottom: '14px', animationDuration: '28s', animationDelay: '-14s' }}>
+          <div className="bus-l" style={{ position: 'absolute', bottom: '42px', animationDuration: '32s', animationDelay: '-14s' }}>
             <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
               <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
               <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
@@ -2038,7 +2043,7 @@ export default function Home() {
               <rect x="24" y="20" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
             </svg>
           {/* Car going right — small pixel hatchback */}
-          <div className="car-r" style={{ position: 'absolute', bottom: '14px', animationDuration: '12s', animationDelay: '-3s' }}>
+          <div className="car-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '18s', animationDelay: '-6s' }}>
             <svg width="52" height="22" viewBox="0 0 52 22" shapeRendering="crispEdges">
               <rect x="4"  y="8"  width="44" height="10" fill={isDark?'#2244aa':'#3355cc'}/>
               <rect x="8"  y="4"  width="26" height="6"  fill={isDark?'#3355bb':'#4466dd'}/>
@@ -2057,7 +2062,7 @@ export default function Home() {
           </div>
 
           {/* Car going left */}
-          <div className="car-l" style={{ position: 'absolute', bottom: '14px', animationDuration: '10s', animationDelay: '-6s' }}>
+          <div className="car-l" style={{ position: 'absolute', bottom: '42px', animationDuration: '24s', animationDelay: '-12s' }}>
             <svg width="52" height="22" viewBox="0 0 52 22" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
               <rect x="4"  y="8"  width="44" height="10" fill={isDark?'#aa4422':'#cc5533'}/>
               <rect x="18" y="4"  width="26" height="6"  fill={isDark?'#bb5533':'#dd6644'}/>
@@ -2076,7 +2081,7 @@ export default function Home() {
           </div>
 
           {/* Second car right — van */}
-          <div className="car-r" style={{ position: 'absolute', bottom: '14px', animationDuration: '15s', animationDelay: '-8s' }}>
+          <div className="car-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '21s', animationDelay: '-9s' }}>
             <svg width="60" height="24" viewBox="0 0 60 24" shapeRendering="crispEdges">
               <rect x="2"  y="6"  width="56" height="14" fill={isDark?'#336622':'#448833'}/>
               <rect x="2"  y="6"  width="56" height="3"  fill={isDark?'#447733':'#559944'}/>
@@ -2092,7 +2097,7 @@ export default function Home() {
             </svg>
           </div>
 
-          </div>
+          </div>{/* end vehicle layer */}
 
         </div>
       </div>
