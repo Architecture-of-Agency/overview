@@ -1555,6 +1555,10 @@ export default function Home() {
         @keyframes walkL { from { transform: translateX(1280px) } to { transform: translateX(-80px) } }
         @keyframes busR  { from { transform: translateX(-200px) } to { transform: translateX(1400px) } }
         @keyframes busL  { from { transform: translateX(1400px) } to { transform: translateX(-200px) } }
+        @keyframes carR   { from { transform: translateX(-100px) } to { transform: translateX(1300px) } }
+        @keyframes carL   { from { transform: translateX(1300px) } to { transform: translateX(-100px) } }
+        .car-r { animation: carR linear infinite; }
+        .car-l { animation: carL linear infinite; }
         .walk-r { animation: walkR linear infinite; }
         .walk-l { animation: walkL linear infinite; }
         .bus-r   { animation: busR linear infinite; }
@@ -1562,13 +1566,28 @@ export default function Home() {
       `}} />
       <div className="skyline" aria-hidden="true" style={{ overflow: 'hidden' }}>
         <svg width="100%" height="180" viewBox="0 0 1200 180"
-          preserveAspectRatio="xMidYMax meet" shapeRendering="crispEdges"
-          style={{ display: 'block', overflow: 'visible' }}>
-
-          {/* ── Sky ── */}
-          <rect x="0" y="0"   width="1200" height="180" fill={isDark?'#0a0a1a':'#c8dde8'}/>
-          <rect x="0" y="0"   width="1200" height="60"  fill={isDark?'#080812':'#aec6d4'}/>
-          <rect x="0" y="60"  width="1200" height="40"  fill={isDark?'#0a0a1a':'#bcd5e2'}/>
+          preserveAspectRatio="none" shapeRendering="crispEdges"
+          style={{ display: 'block', width: '100%' }}>
+          <defs>
+            <filter id="glow-lamp" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="8" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glow-win" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glow-board" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="6" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="glow-head" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          {/* Sky — transparent so desktop background shows through exactly */}
+          <rect x="0" y="0" width="1200" height="130" fill="transparent"/>
 
           {/* ── Ground plane — everything sits on y=130 ── */}
           {/* Pavement */}
@@ -1614,12 +1633,13 @@ export default function Home() {
           {/* Bay windows */}
           {[95,109,123,137,151,165,179,193].map(x=>(
             <g key={x}>
-              <rect x={x} y="82" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="99" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="82" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
-              <rect x={x+4} y="99" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
-              <rect x={x}   y="92" width="9" height="1"  fill={isDark?'#111':'#5577aa'}/>
-              <rect x={x}   y="109" width="9" height="1" fill={isDark?'#111':'#5577aa'}/>
+              <rect x={x} y="82" width="9" height="11" fill={isDark?'#ddcc88':'#88aacc'}/>
+              <rect x={x} y="99" width="9" height="11" fill={isDark?'#ccaa55':'#88aacc'}/>
+              <rect x={x+4} y="82" width="1" height="11" fill={isDark?'#aa8833':'#5577aa'}/>
+              <rect x={x+4} y="99" width="1" height="11" fill={isDark?'#aa8833':'#5577aa'}/>
+              <rect x={x}   y="92" width="9" height="1"  fill={isDark?'#aa8833':'#5577aa'}/>
+              <rect x={x}   y="109" width="9" height="1" fill={isDark?'#aa8833':'#5577aa'}/>
+              {isDark && <><rect x={x-3} y="79" width="15" height="16" fill="#ffcc44" opacity="0.18" filter="url(#glow-win)"/><rect x={x-3} y="96" width="15" height="16" fill="#ffaa33" opacity="0.18" filter="url(#glow-win)"/></>}
             </g>
           ))}
           {/* Chimneys */}
@@ -1683,6 +1703,7 @@ export default function Home() {
           <rect x="375" y="70"  width="4"   height="60" fill={isDark?'#555':'#888'}/>
           <rect x="369" y="70"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="369" y="66"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
+          {isDark && <ellipse cx="377" cy="68" rx="30" ry="22" fill="#ffeeaa" opacity="0.22" filter="url(#glow-lamp)"/>}
           <rect x="373" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
 
           {/* ── SPLOTT MAGIC ROUNDABOUT — centrepiece ── */}
@@ -1771,17 +1792,19 @@ export default function Home() {
           <rect x="802" y="66"  width="66"  height="3"  fill={isDark?'#2a2a0a':'#aa9966'}/>
           <rect x="802" y="66"  width="3"   height="36" fill={isDark?'#2a2a0a':'#aa9966'}/>
           <rect x="865" y="66"  width="3"   height="36" fill={isDark?'#111':'#998855'}/>
-          {/* Billboard face */}
-          <rect x="805" y="69"  width="60"  height="30" fill={isDark?'#111122':'#f5f0e8'}/>
+          {/* Billboard — always backlit white, glowing in dark mode */}
+          <rect x="805" y="69"  width="60"  height="30" fill="#fffdf5"/>
+          {isDark && <rect x="800" y="64" width="70" height="40" fill="#fffacc" opacity="0.3" filter="url(#glow-board)"/>}
           <text x="810" y="82" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700"
-            fill={isDark?'#ffffff':'#000000'}>Architecture</text>
+            fill="#111111">Architecture</text>
           <text x="816" y="93" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700"
-            fill={isDark?'#ffffff':'#000000'}>of Agency</text>
+            fill="#111111">of Agency</text>
 
           {/* ── STREET LAMP 2 — base on y=130 ── */}
           <rect x="880" y="70"  width="4"   height="60" fill={isDark?'#555':'#888'}/>
           <rect x="874" y="70"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="874" y="66"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
+          {isDark && <ellipse cx="882" cy="68" rx="30" ry="22" fill="#ffeeaa" opacity="0.22" filter="url(#glow-lamp)"/>}
           <rect x="878" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
 
           {/* ── STAR CENTRE ── */}
@@ -1848,6 +1871,7 @@ export default function Home() {
           <rect x="1105" y="72"  width="4"   height="58" fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="72"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="68"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
+          {isDark && <ellipse cx="1107" cy="70" rx="30" ry="22" fill="#ffeeaa" opacity="0.22" filter="url(#glow-lamp)"/>}
           <rect x="1103" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
         </svg>
 
@@ -1984,6 +2008,61 @@ export default function Home() {
               <rect x="23" y="19" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
               <rect x="24" y="20" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
             </svg>
+          {/* Car going right — small pixel hatchback */}
+          <div className="car-r" style={{ position: 'absolute', bottom: '14px', animationDuration: '12s', animationDelay: '-3s' }}>
+            <svg width="52" height="22" viewBox="0 0 52 22" shapeRendering="crispEdges">
+              <rect x="4"  y="8"  width="44" height="10" fill={isDark?'#2244aa':'#3355cc'}/>
+              <rect x="8"  y="4"  width="26" height="6"  fill={isDark?'#3355bb':'#4466dd'}/>
+              <rect x="9"  y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
+              <rect x="21" y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
+              <rect x="4"  y="8"  width="2"  height="10" fill={isDark?'#3355bb':'#4466dd'}/>
+              <rect x="46" y="8"  width="2"  height="10" fill={isDark?'#1133aa':'#2244bb'}/>
+              <rect x="46" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
+              {isDark && <rect x="46" y="11" width="5" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
+              <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
+              <rect x="8"  y="16" width="10" height="6"  fill="#111"/>
+              <rect x="10" y="17" width="6"  height="4"  fill="#333"/>
+              <rect x="34" y="16" width="10" height="6"  fill="#111"/>
+              <rect x="36" y="17" width="6"  height="4"  fill="#333"/>
+            </svg>
+          </div>
+
+          {/* Car going left */}
+          <div className="car-l" style={{ position: 'absolute', bottom: '14px', animationDuration: '10s', animationDelay: '-6s' }}>
+            <svg width="52" height="22" viewBox="0 0 52 22" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
+              <rect x="4"  y="8"  width="44" height="10" fill={isDark?'#aa4422':'#cc5533'}/>
+              <rect x="18" y="4"  width="26" height="6"  fill={isDark?'#bb5533':'#dd6644'}/>
+              <rect x="19" y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
+              <rect x="31" y="5"  width="10" height="4"  fill={isDark?'#334455':'#aaccee'}/>
+              <rect x="4"  y="8"  width="2"  height="10" fill={isDark?'#bb5533':'#dd6644'}/>
+              <rect x="46" y="8"  width="2"  height="10" fill={isDark?'#882211':'#aa3322'}/>
+              <rect x="46" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
+              {isDark && <rect x="46" y="11" width="5" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
+              <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
+              <rect x="8"  y="16" width="10" height="6"  fill="#111"/>
+              <rect x="10" y="17" width="6"  height="4"  fill="#333"/>
+              <rect x="34" y="16" width="10" height="6"  fill="#111"/>
+              <rect x="36" y="17" width="6"  height="4"  fill="#333"/>
+            </svg>
+          </div>
+
+          {/* Second car right — van */}
+          <div className="car-r" style={{ position: 'absolute', bottom: '14px', animationDuration: '15s', animationDelay: '-8s' }}>
+            <svg width="60" height="24" viewBox="0 0 60 24" shapeRendering="crispEdges">
+              <rect x="2"  y="6"  width="56" height="14" fill={isDark?'#336622':'#448833'}/>
+              <rect x="2"  y="6"  width="56" height="3"  fill={isDark?'#447733':'#559944'}/>
+              <rect x="8"  y="4"  width="16" height="4"  fill={isDark?'#223344':'#aaccee'}/>
+              <rect x="26" y="4"  width="16" height="4"  fill={isDark?'#223344':'#aaccee'}/>
+              <rect x="54" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
+              {isDark && <rect x="54" y="11" width="5" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
+              <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
+              <rect x="10" y="18" width="12" height="6"  fill="#111"/>
+              <rect x="12" y="19" width="8"  height="4"  fill="#333"/>
+              <rect x="38" y="18" width="12" height="6"  fill="#111"/>
+              <rect x="40" y="19" width="8"  height="4"  fill="#333"/>
+            </svg>
+          </div>
+
           </div>
 
         </div>
