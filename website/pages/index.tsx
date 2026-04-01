@@ -1,33 +1,87 @@
 import Head from 'next/head'
 import { useState, useEffect, useRef } from 'react'
 
-type WindowContent = 'about' | 'why-web3' | 'governance' | 'privacy' | 'contact' | null
+type WindowId = 'about' | 'why-web3' | 'governance' | 'privacy' | 'contact' | 'phd-development' | 'literature' | 'splott'
+
+interface WindowState {
+  id: WindowId
+  zIndex: number
+  position: { x: number; y: number }
+  isOpen: boolean
+}
+
+interface IconPosition {
+  x: number
+  y: number
+}
+
+const GRID_SIZE = 32
+
+function snapToGrid(value: number): number {
+  return Math.round(value / GRID_SIZE) * GRID_SIZE
+}
 
 export default function Home() {
   const [hasEntered, setHasEntered] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [lang, setLang] = useState('en')
   const [theme, setTheme] = useState('light')
-  const [openWindow, setOpenWindow] = useState<WindowContent>(null)
   const [mounted, setMounted] = useState(false)
   const [cursorTrailEnabled, setCursorTrailEnabled] = useState(true)
   const [trailDots, setTrailDots] = useState<Array<{ x: number; y: number; id: number }>>([])
-  const [selectedIcon, setSelectedIcon] = useState<WindowContent>(null)
-  const [iconPositions, setIconPositions] = useState<Record<string, { x: number; y: number }>>({
-    about: { x: 20, y: 20 },
-    'why-web3': { x: 20, y: 140 },
-    governance: { x: 20, y: 260 },
-    privacy: { x: 20, y: 380 },
-    contact: { x: 20, y: 500 },
-  })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [lastClickTime, setLastClickTime] = useState(0)
-  const [startMenuOpen, setStartMenuOpen] = useState(false)
+  const [selectedIcon, setSelectedIcon] = useState<WindowId | null>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [iconSize, setIconSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [startMenuOpen, setStartMenuOpen] = useState(false)
+  const [clock, setClock] = useState('')
+  const [cursorStyle, setCursorStyle] = useState<'default' | 'pointer' | 'grab' | 'grabbing'>('default')
+  const [lastClickTime, setLastClickTime] = useState(0)
+
+  const [windows, setWindows] = useState<Record<WindowId, WindowState>>({
+    'about':          { id: 'about',          zIndex: 10, position: { x: 80,  y: 60  }, isOpen: false },
+    'why-web3':       { id: 'why-web3',       zIndex: 10, position: { x: 110, y: 80  }, isOpen: false },
+    'governance':     { id: 'governance',     zIndex: 10, position: { x: 140, y: 100 }, isOpen: false },
+    'privacy':        { id: 'privacy',        zIndex: 10, position: { x: 170, y: 120 }, isOpen: false },
+    'contact':        { id: 'contact',        zIndex: 10, position: { x: 200, y: 140 }, isOpen: false },
+    'phd-development':{ id: 'phd-development',zIndex: 10, position: { x: 120, y: 70  }, isOpen: false },
+    'literature':     { id: 'literature',     zIndex: 10, position: { x: 150, y: 90  }, isOpen: false },
+    'splott':         { id: 'splott',         zIndex: 10, position: { x: 180, y: 110 }, isOpen: false },
+  })
+  const [topZIndex, setTopZIndex] = useState(10)
+
+  const [draggingWindow, setDraggingWindow] = useState<WindowId | null>(null)
+  const [windowDragOffset, setWindowDragOffset] = useState({ x: 0, y: 0 })
+
+  const [iconPositions, setIconPositions] = useState<Record<string, IconPosition>>({
+    'about':           { x: 20,  y: 20  },
+    'why-web3':        { x: 20,  y: 140 },
+    'governance':      { x: 20,  y: 260 },
+    'privacy':         { x: 20,  y: 380 },
+    'contact':         { x: 20,  y: 500 },
+    'phd-development': { x: 160, y: 20  },
+    'literature':      { x: 160, y: 140 },
+    'splott':          { x: 160, y: 260 },
+  })
+  const [draggingIcon, setDraggingIcon] = useState<WindowId | null>(null)
+  const [iconDragStart, setIconDragStart] = useState({ x: 0, y: 0 })
+  const [iconDragHasMoved, setIconDragHasMoved] = useState(false)
+  const [iconDragShadow, setIconDragShadow] = useState<{ x: number; y: number } | null>(null)
+
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const dotIdRef = useRef(0)
+
+  // Clock
+  useEffect(() => {
+    const update = () => {
+      const now = new Date()
+      const h = now.getHours().toString().padStart(2, '0')
+      const m = now.getMinutes().toString().padStart(2, '0')
+      setClock(`${h}:${m}`)
+    }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     setMounted(true)
@@ -36,818 +90,996 @@ export default function Home() {
     const savedTrail = localStorage.getItem('cursor_trail')
     const savedPositions = localStorage.getItem('icon_positions')
     const savedIconSize = localStorage.getItem('icon_size') as 'small' | 'medium' | 'large' | null
-    
-    // Detect mobile and tablets (tablets should use single-tap like mobile)
+
     const isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent)
     const isPhone = /iPhone|iPod|Android.*Mobile/i.test(navigator.userAgent)
-    const checkMobile = isTablet || isPhone || window.innerWidth < 768
-    setIsMobile(checkMobile)
-    
+    setIsMobile(isTablet || isPhone || window.innerWidth < 768)
+
     setTheme(savedTheme)
-    if (entered === 'true') {
-      setHasEntered(true)
-    }
-    if (savedTrail !== null) {
-      setCursorTrailEnabled(savedTrail === 'true')
-    }
-    if (savedIconSize) {
-      setIconSize(savedIconSize)
-    }
+    if (entered === 'true') setHasEntered(true)
+    if (savedTrail !== null) setCursorTrailEnabled(savedTrail === 'true')
+    if (savedIconSize) setIconSize(savedIconSize)
     if (savedPositions) {
       try {
-        setIconPositions(JSON.parse(savedPositions))
-      } catch (e) {
-        console.error('Failed to parse icon positions')
-      }
+        setIconPositions(prev => ({ ...prev, ...JSON.parse(savedPositions) }))
+      } catch (e) {}
     }
   }, [])
 
-  // Handle icon dragging
-  const handleIconMouseDown = (e: React.MouseEvent, iconId: WindowContent) => {
-    e.preventDefault()
-    setSelectedIcon(iconId)
-    setIsDragging(true)
-    setDragStart({ x: e.clientX, y: e.clientY })
-  }
-
-  // Handle touch start for tablets/Apple Pencil
-  const handleIconTouchStart = (e: React.TouchEvent, iconId: WindowContent) => {
-    const touch = e.touches[0]
-    setSelectedIcon(iconId)
-    setIsDragging(true)
-    setDragStart({ x: touch.clientX, y: touch.clientY })
-  }
-
-  // Close Start menu when clicking outside
   useEffect(() => {
     if (!startMenuOpen) return
-    
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (!target.closest('.start-menu') && !target.closest('.start-button')) {
-        setStartMenuOpen(false)
-      }
+    const handler = (e: MouseEvent) => {
+      const t = e.target as HTMLElement
+      if (!t.closest('.start-menu') && !t.closest('.start-button')) setStartMenuOpen(false)
     }
-    
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
   }, [startMenuOpen])
 
+  // Window dragging
   useEffect(() => {
-    if (!isDragging) return
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (selectedIcon && iconPositions[selectedIcon]) {
-        const deltaX = e.clientX - dragStart.x
-        const deltaY = e.clientY - dragStart.y
-        
-        setIconPositions(prev => ({
-          ...prev,
-          [selectedIcon]: {
-            x: prev[selectedIcon].x + deltaX,
-            y: prev[selectedIcon].y + deltaY,
+    if (!draggingWindow) return
+    const onMove = (e: MouseEvent) => {
+      setCursorStyle('grabbing')
+      setWindows(prev => ({
+        ...prev,
+        [draggingWindow]: {
+          ...prev[draggingWindow],
+          position: {
+            x: e.clientX - windowDragOffset.x,
+            y: Math.max(0, e.clientY - windowDragOffset.y),
           }
-        }))
-        
-        setDragStart({ x: e.clientX, y: e.clientY })
-      }
+        }
+      }))
     }
+    const onUp = () => { setDraggingWindow(null); setCursorStyle('default') }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [draggingWindow, windowDragOffset])
 
-    const handleTouchMove = (e: TouchEvent) => {
-      if (selectedIcon && iconPositions[selectedIcon]) {
-        const touch = e.touches[0]
-        const deltaX = touch.clientX - dragStart.x
-        const deltaY = touch.clientY - dragStart.y
-        
-        setIconPositions(prev => ({
-          ...prev,
-          [selectedIcon]: {
-            x: prev[selectedIcon].x + deltaX,
-            y: prev[selectedIcon].y + deltaY,
-          }
-        }))
-        
-        setDragStart({ x: touch.clientX, y: touch.clientY })
-      }
+  // Icon dragging
+  useEffect(() => {
+    if (!draggingIcon) return
+    const onMove = (e: MouseEvent) => {
+      const dx = e.clientX - iconDragStart.x
+      const dy = e.clientY - iconDragStart.y
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) { setIconDragHasMoved(true); setCursorStyle('grabbing') }
+      setIconPositions(prev => ({
+        ...prev,
+        [draggingIcon]: { x: prev[draggingIcon].x + dx, y: prev[draggingIcon].y + dy }
+      }))
+      setIconDragStart({ x: e.clientX, y: e.clientY })
+      setIconDragShadow({ x: e.clientX, y: e.clientY })
     }
-
-    const handleMouseUp = () => {
-      setIsDragging(false)
-      // Save positions to localStorage
-      if (selectedIcon) {
-        localStorage.setItem('icon_positions', JSON.stringify(iconPositions))
-      }
+    const onTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0]
+      setIconPositions(prev => ({
+        ...prev,
+        [draggingIcon]: {
+          x: prev[draggingIcon].x + (touch.clientX - iconDragStart.x),
+          y: prev[draggingIcon].y + (touch.clientY - iconDragStart.y),
+        }
+      }))
+      setIconDragStart({ x: touch.clientX, y: touch.clientY })
     }
-
-    const handleTouchEnd = () => {
-      setIsDragging(false)
-      // Save positions to localStorage
-      if (selectedIcon) {
-        localStorage.setItem('icon_positions', JSON.stringify(iconPositions))
-      }
+    const onUp = () => {
+      setIconPositions(prev => {
+        const snapped = { ...prev, [draggingIcon]: { x: snapToGrid(prev[draggingIcon].x), y: snapToGrid(prev[draggingIcon].y) } }
+        localStorage.setItem('icon_positions', JSON.stringify(snapped))
+        return snapped
+      })
+      setDraggingIcon(null); setIconDragShadow(null); setCursorStyle('default')
+      setTimeout(() => setIconDragHasMoved(false), 50)
     }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
-    window.addEventListener('touchmove', handleTouchMove)
-    window.addEventListener('touchend', handleTouchEnd)
-    
+    const onTouchEnd = () => {
+      setIconPositions(prev => {
+        const snapped = { ...prev, [draggingIcon]: { x: snapToGrid(prev[draggingIcon].x), y: snapToGrid(prev[draggingIcon].y) } }
+        localStorage.setItem('icon_positions', JSON.stringify(snapped))
+        return snapped
+      })
+      setDraggingIcon(null); setIconDragShadow(null)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    window.addEventListener('touchmove', onTouchMove)
+    window.addEventListener('touchend', onTouchEnd)
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onTouchEnd)
     }
-  }, [isDragging, selectedIcon, dragStart, iconPositions])
+  }, [draggingIcon, iconDragStart])
 
-  // Handle double-click to open (desktop) or single-click (mobile)
-  const handleIconClick = (iconId: WindowContent) => {
-    // On mobile, open immediately on first click
-    if (isMobile && !isDragging) {
-      setOpenWindow(iconId)
-      setSelectedIcon(iconId)
-      return
-    }
-    
-    // On desktop, require double-click
+  const handleIconMouseDown = (e: React.MouseEvent, id: WindowId) => {
+    e.preventDefault(); setSelectedIcon(id); setDraggingIcon(id)
+    setIconDragStart({ x: e.clientX, y: e.clientY }); setIconDragHasMoved(false); setCursorStyle('grab')
+  }
+  const handleIconTouchStart = (e: React.TouchEvent, id: WindowId) => {
+    const touch = e.touches[0]; setSelectedIcon(id); setDraggingIcon(id)
+    setIconDragStart({ x: touch.clientX, y: touch.clientY }); setIconDragHasMoved(false)
+  }
+  const handleIconClick = (id: WindowId) => {
+    if (iconDragHasMoved) return
+    if (isMobile) { openWindow(id); return }
     const now = Date.now()
-    const timeSinceLastClick = now - lastClickTime
-    
-    if (timeSinceLastClick < 300 && selectedIcon === iconId && !isDragging) {
-      // Double-click detected
-      setOpenWindow(iconId)
-    }
-    
-    setLastClickTime(now)
-    setSelectedIcon(iconId)
+    if (now - lastClickTime < 300 && selectedIcon === id) openWindow(id)
+    setLastClickTime(now); setSelectedIcon(id)
   }
 
-  // Cursor trail effect
+  const openWindow = (id: WindowId) => {
+    const newZ = topZIndex + 1; setTopZIndex(newZ)
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], isOpen: true, zIndex: newZ } }))
+  }
+  const closeWindow = (id: WindowId) => {
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], isOpen: false } }))
+  }
+  const bringToFront = (id: WindowId) => {
+    const newZ = topZIndex + 1; setTopZIndex(newZ)
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], zIndex: newZ } }))
+  }
+  const handleWindowTitlebarMouseDown = (e: React.MouseEvent, id: WindowId) => {
+    e.preventDefault(); bringToFront(id); setDraggingWindow(id)
+    setWindowDragOffset({ x: e.clientX - windows[id].position.x, y: e.clientY - windows[id].position.y })
+    setCursorStyle('grabbing')
+  }
+
+  // Cursor trail
   useEffect(() => {
     if (!hasEntered || !cursorTrailEnabled || isMobile) return
-    
-    // Check if user prefers reduced motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newDot = {
-        x: e.clientX,
-        y: e.clientY,
-        id: dotIdRef.current++,
-      }
-      
-      setTrailDots(prev => [...prev, newDot])
-      
-      // Remove dot after animation completes (longer for 90s effect)
-      setTimeout(() => {
-        setTrailDots(prev => prev.filter(dot => dot.id !== newDot.id))
-      }, 600)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const handler = (e: MouseEvent) => {
+      const dot = { x: e.clientX, y: e.clientY, id: dotIdRef.current++ }
+      setTrailDots(prev => [...prev, dot])
+      setTimeout(() => setTrailDots(prev => prev.filter(d => d.id !== dot.id)), 600)
     }
-
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handler)
+    return () => window.removeEventListener('mousemove', handler)
   }, [hasEntered, cursorTrailEnabled, isMobile])
 
   const handleConsent = (accepted: boolean) => {
     localStorage.setItem('analytics_consent', accepted ? 'accepted' : 'declined')
     localStorage.setItem('has_entered', 'true')
-    
-    // Show loading screen
     setIsLoading(true)
-    
-    // Play Mac startup sound
-    if (audioRef.current) {
-      audioRef.current.play().catch(e => console.log('Audio play failed:', e))
-    }
-    
-    // Wait for sound to finish completely, then show desktop
-    setTimeout(() => {
-      setHasEntered(true)
-      setIsLoading(false)
-    }, 3500) // 3.5 seconds to ensure sound fully completes with buffer
+    if (audioRef.current) audioRef.current.play().catch(() => {})
+    setTimeout(() => { setHasEntered(true); setIsLoading(false) }, 3500)
   }
-
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
+    const n = theme === 'light' ? 'dark' : 'light'; setTheme(n); localStorage.setItem('theme', n)
   }
-
   const toggleCursorTrail = () => {
-    const newState = !cursorTrailEnabled
-    setCursorTrailEnabled(newState)
-    localStorage.setItem('cursor_trail', newState.toString())
+    const n = !cursorTrailEnabled; setCursorTrailEnabled(n); localStorage.setItem('cursor_trail', n.toString())
+  }
+  const changeIconSize = (s: 'small' | 'medium' | 'large') => {
+    setIconSize(s); localStorage.setItem('icon_size', s)
   }
 
-  const changeIconSize = (size: 'small' | 'medium' | 'large') => {
-    setIconSize(size)
-    localStorage.setItem('icon_size', size)
-  }
-
-  // Calculate icon sizes (WCAG 2.1 Level AA: minimum 44x44px touch target)
   const iconSizes = {
-    small: { icon: 48, width: 95, font: 10 },
+    small:  { icon: 48, width: 95,  font: 10 },
     medium: { icon: 64, width: 120, font: 11 },
-    large: { icon: 80, width: 140, font: 13 }
+    large:  { icon: 80, width: 140, font: 13 },
   }
-  const currentSize = iconSizes[iconSize]
+  const cs = iconSizes[iconSize]
 
-  const content = {
+  // Labels — bilingual
+  const labels = {
     en: {
-      // Landing page
-      landingTitle: 'Architecture of Agency',
-      landingText1: 'This site collects anonymised usage data for research purposes:',
-      landingBullets: [
-        'Which pages you visit',
-        'How you navigate the site',
-        'Device type and region (country only)',
-      ],
-      landingText2: 'This helps us understand how communities engage with data sovereignty research.',
-      landingText3: 'No personal information is collected.',
-      acceptButton: 'Accept and enter',
-      declineButton: 'Decline and enter',
-      privacyLink: 'Read full privacy policy',
-      
-      // Desktop
-      desktopAbout: 'About',
-      desktopWhyWeb3: 'Why Web3',
-      desktopGovernance: 'Data Governance',
-      desktopPrivacy: 'Privacy',
-      desktopContact: 'Contact',
-      desktopLang: 'Cymraeg',
-      desktopTheme: theme === 'light' ? 'Dark mode' : 'Light mode',
-      desktopTrail: cursorTrailEnabled ? 'Trail: on' : 'Trail: off',
-      
-      // Start menu
-      startMenu: 'Menu',
-      startTheme: theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode',
-      startLang: 'Newid i Gymraeg',
-      startTrail: cursorTrailEnabled ? 'Cursor trail: on' : 'Cursor trail: off',
-      
-      // Accessibility
-      iconSizeLabel: 'Icons:',
-      iconSmall: 'S',
-      iconMedium: 'M',
-      iconLarge: 'L',
-      
-      // About window
-      aboutTitle: 'About Architecture of Agency',
-      aboutText1: 'Researching Web3-enabled governance systems that centre marginalised voices in shaping the built environment.',
-      aboutProblem: 'The problem',
-      aboutProblemText: 'Multiple types of power exclude communities from decisions about place:',
-      aboutPowerTypes: [
-        'Property power: Landowners can override everyone through legal rights',
-        'Economic power: Developers can override through capital',
-        'Institutional power: Local Authority overrides through statutory powers',
-        'Epistemic power: Professionals gatekeep through technical expertise',
-      ],
-      aboutMargin: 'Within already-excluded communities, majoritarian dynamics further silence disabled people, renters, and minorities.',
-      aboutCardiff: 'Cardiff context',
-      aboutCardiffText: '28 wards: 6 with community councils (tokenistic consultation only), 22 with no formal structure. All have zero decision-making power.',
-      
-      aboutMethod: 'Design Justice methodology',
-      aboutMethodText: 'This research uses Design Justice (Costanza-Chock, 2020) as an umbrella framework, synthesising power analysis, epistemic justice, feminist technology critique, and Indigenous Data Sovereignty principles. Design Justice centres those most affected by design decisions in the design process itself—not as consultants, but as leaders.',
-      
-      aboutQuestions: 'Research questions',
-      aboutQuestionsList: [
-        'How can governance systems engage all stakeholders whilst centring communities?',
-        'What mechanisms prevent both institutional capture and majoritarian tyranny?',
-        'How does Web3 technology enable anti-majoritarian governance at scale?',
-        'What does Design Justice look like in blockchain-based urban planning systems?',
-        'How do we redistribute epistemic authority alongside decision-making power?',
-      ],
-      
-      aboutStatus: 'PhD Year 1, Welsh School of Architecture, Cardiff University',
-      
-      // Why Web3 window
-      whyTitle: 'Why Web3?',
-      whyIntro: 'Multi-stakeholder governance for the built environment requires technical infrastructure that can encode anti-majoritarian principles, make power visible and contestable, and redistribute authority without creating new centralisation points.',
-      whyWeb2Problem: 'The problem with traditional systems',
-      whyWeb2Text: 'Traditional database systems require someone to own and control the infrastructure. This creates inevitable power concentration: centralised control, opaque decision-making, trust requirements, single points of failure, and capture risk. For urban governance, this means replacing Local Authority control with another centralised controller. The power structure doesn\'t change—it just moves.',
-      whyWeb3Enables: 'What Web3 enables',
-      whyWeb3Points: [
-        'Distributed authority: No single owner or controller',
-        'Transparent, auditable records: All decisions on public ledger',
-        'Programmable governance rules: Anti-majoritarian protections encoded in smart contracts',
-        'Trustless coordination: Stakeholders coordinate without central arbiter',
-        'Community data sovereignty: Place-based data owned collectively at local scale',
-      ],
-      whyMechanisms: 'Anti-majoritarian mechanisms',
-      whyMechanismsList: [
-        'Quadratic voting: Non-linear voting power prevents majority domination',
-        'Conviction voting: Time-weighted preferences allow passionate minorities to win',
-        'Identity-based weighting: Those most affected have higher voting power',
-        'Veto rights: Protected groups can block decisions that harm them',
-        'Mandatory inclusion thresholds: Minimum participation from marginalised groups required',
-      ],
-      whyLimitations: 'Limitations and critiques',
-      whyLimitationsText: 'Web3 is not a technological solution to social and political problems. The research acknowledges: technology doesn\'t fix power structures, accessibility barriers exist, some blockchain systems have environmental costs, regulatory frameworks are underdeveloped, and digital divides exclude people. These limitations are part of what the research investigates.',
-      
-      // Governance window
-      govTitle: 'Data Governance',
-      govIntro: 'This research investigates what governance should look like for place-based data. We don\'t have the answers yet—that\'s what the PhD will discover.',
-      govWebsiteData: 'Website visitor data',
-      govWebsiteText: 'Anonymised usage data from people visiting this site (which pages, navigation patterns, device type, country). Used to understand how communities engage with data sovereignty research. Cardiff University temporarily holds this data as custodian during PhD research (2025-2028). This is stewardship, not ownership. Upon research completion, governance will transition to community-determined structures.',
-      govResearchData: 'Research/stakeholder data',
-      govResearchText: 'Data from interviews with communities, planners, developers, architects, housing associations, and other stakeholders. Multi-party co-created research data with complex governance considerations. Different stakeholders have legitimate but sometimes competing interests.',
-      govQuestions: 'What this research investigates',
-      govQuestionsList: [
-        'How should multi-party research data be governed?',
-        'What rights do different stakeholders have?',
-        'How do you balance transparency with privacy?',
-        'What does community data sovereignty mean when "community" isn\'t monolithic?',
-        'How do you prevent both institutional capture and majoritarian tyranny in data governance?',
-      ],
-      govCommitments: 'Current commitments',
-      govCommitmentsList: [
-        'Minimal collection (only what\'s necessary)',
-        'Full transparency about what\'s collected and why',
-        'Cardiff University research ethics approval for all data collection',
-        'Commitment to transition governance to communities post-PhD',
-        'Privacy protection for sensitive information',
-      ],
-      
-      // Privacy window
-      privacyTitle: 'Privacy Policy',
-      privacyUpdated: 'Last updated: February 2025',
-      privacyCollect: 'What this site collects',
-      privacyCollectText: 'This research website uses Vercel Analytics to collect minimal anonymised usage data: which pages you visit, how you navigate the site, device type (mobile/desktop), geographic region (country only). No personal information is collected. No tracking cookies, no cross-site tracking, no identifiable data.',
-      privacyWhy: 'Why we collect this',
-      privacyWhyText: 'To understand how communities engage with data sovereignty research. The data helps us understand whether content is clear and accessible, and what improvements would serve users better.',
-      privacyStorage: 'Where it\'s stored',
-      privacyStorageText: 'Data is processed by Vercel Inc. under their privacy policy. Vercel Analytics is designed to be privacy-friendly and GDPR compliant.',
-      privacyFuture: 'Future governance',
-      privacyFutureText: 'This data is temporarily stewarded by Cardiff University during PhD research but belongs to visitors and communities. Upon research completion (expected 2028), governance will transition to community-determined structures.',
-      privacyRights: 'Your rights',
-      privacyRightsList: [
-        'Understand what data is collected (documented here)',
-        'Opt-out (decline on entry screen or clear browser data)',
-        'Use privacy-focused browsers that block analytics',
-        'Contact us with questions or concerns',
-      ],
-      privacyContact: 'Contact: Lucy Dunhill, dunhilll@cardiff.ac.uk',
-      
-      // Contact window
-      contactTitle: 'Contact',
-      contactName: 'Lucy Dunhill',
-      contactRole: 'PhD Researcher',
-      contactInst: 'Welsh School of Architecture, Cardiff University',
-      contactEmail: 'dunhilll@cardiff.ac.uk',
-      contactAvail: 'Available for meetings in Cardiff and online',
-      
-      closeButton: 'Close',
+      about: 'About', 'why-web3': 'Why Web3', governance: 'Governance',
+      privacy: 'Privacy', contact: 'Contact', 'phd-development': 'PhD',
+      literature: 'Reading', splott: 'Splott',
+      menu: 'Menu', langSwitch: 'Newid i Gymraeg',
+      lightMode: 'Switch to light mode', darkMode: 'Switch to dark mode',
+      trailOn: 'Cursor trail: on', trailOff: 'Cursor trail: off',
+      iconsLabel: 'Icons:', close: 'Close',
     },
     cy: {
-      // Landing page
-      landingTitle: 'Architecture of Agency',
-      landingText1: 'Mae\'r wefan hon yn casglu data defnydd dienw at ddibenion ymchwil:',
-      landingBullets: [
-        'Pa dudalennau rydych chi\'n ymweld â nhw',
-        'Sut rydych chi\'n llywio\'r wefan',
-        'Math o ddyfais a rhanbarth (gwlad yn unig)',
-      ],
-      landingText2: 'Mae hyn yn ein helpu i ddeall sut mae cymunedau yn ymgysylltu ag ymchwil sofraniaeth data.',
-      landingText3: 'Nid oes gwybodaeth bersonol yn cael ei chasglu.',
-      acceptButton: 'Derbyn a mynd i mewn',
-      declineButton: 'Gwrthod a mynd i mewn',
-      privacyLink: 'Darllen polisi preifatrwydd llawn',
-      
-      // Desktop
-      desktopAbout: 'Ynghylch',
-      desktopWhyWeb3: 'Pam Gwe3',
-      desktopGovernance: 'Llywodraethu Data',
-      desktopPrivacy: 'Preifatrwydd',
-      desktopContact: 'Cysylltu',
-      desktopLang: 'English',
-      desktopTheme: theme === 'light' ? 'Modd tywyll' : 'Modd golau',
-      desktopTrail: cursorTrailEnabled ? 'Llwybr: ymlaen' : 'Llwybr: i ffwrdd',
-      
-      // Start menu
-      startMenu: 'Dewislen',
-      startTheme: theme === 'light' ? 'Newid i fodd tywyll' : 'Newid i fodd golau',
-      startLang: 'Switch to English',
-      startTrail: cursorTrailEnabled ? 'Llwybr cyrchwr: ymlaen' : 'Llwybr cyrchwr: i ffwrdd',
-      
-      // Accessibility
-      iconSizeLabel: 'Eiconau:',
-      iconSmall: 'B',
-      iconMedium: 'C',
-      iconLarge: 'M',
-      
-      // About window
-      aboutTitle: 'Ynghylch Architecture of Agency',
-      aboutText1: 'Ymchwilio i systemau llywodraethiant Gwe3-alluog sy\'n canoli lleisiau ymylol wrth lunio\'r amgylchedd adeiledig.',
-      aboutProblem: 'Y broblem',
-      aboutProblemText: 'Mae mathau lluosog o bŵer yn eithrio cymunedau o benderfyniadau am le:',
-      aboutPowerTypes: [
-        'Pŵer eiddo: Gall perchnogion tir wrthod pawb trwy hawliau cyfreithiol',
-        'Pŵer economaidd: Gall datblygwyr wrthod trwy gyfalaf',
-        'Pŵer sefydliadol: Mae Awdurdod Lleol yn gwrthod trwy bwerau statudol',
-        'Pŵer epistemolegol: Mae gweithwyr proffesiynol yn gatekeeper trwy arbenigedd technegol',
-      ],
-      aboutMargin: 'O fewn cymunedau sydd eisoes wedi\'u heithrio, mae deinameg fwyafrifol yn tawelu pobl anabl, rhentwyr, a lleiafrifoedd ymhellach.',
-      aboutCardiff: 'Cyd-destun Caerdydd',
-      aboutCardiffText: '28 ward: 6 gyda chynghorau cymuned (ymgynghori tocenistig yn unig), 22 heb strwythur ffurfiol. Mae gan bawb sero pŵer gwneud penderfyniadau.',
-      
-      aboutMethod: 'Methodoleg Cyfiawnder Dylunio',
-      aboutMethodText: 'Mae\'r ymchwil hwn yn defnyddio Cyfiawnder Dylunio (Costanza-Chock, 2020) fel fframwaith ymbarél, gan syntheseiddio dadansoddiad pŵer, cyfiawnder epistemolegol, beirniadaeth technoleg ffeministaidd, ac egwyddorion Sofraniaeth Data Brodorol. Mae Cyfiawnder Dylunio yn canoli\'r rhai sy\'n cael eu heffeithio fwyaf gan benderfyniadau dylunio yn y broses dylunio ei hun—nid fel ymgynghorwyr, ond fel arweinwyr.',
-      
-      aboutQuestions: 'Cwestiynau ymchwil',
-      aboutQuestionsList: [
-        'Sut gall systemau llywodraethiant ymgysylltu â phob rhanddeiliad tra\'n canoli cymunedau?',
-        'Pa fecanweithiau sy\'n atal cipio sefydliadol a gormes mwyafrifol?',
-        'Sut mae technoleg Gwe3 yn galluogi llywodraethiant gwrth-fwyafrifol ar raddfa?',
-        'Beth mae Cyfiawnder Dylunio yn ei olygu mewn systemau cynllunio trefol blockchain?',
-        'Sut rydym yn ailddosbarthu awdurdod epistemolegol ochr yn ochr â phŵer gwneud penderfyniadau?',
-      ],
-      
-      aboutStatus: 'PhD Blwyddyn 1, Ysgol Bensaernïaeth Cymru, Prifysgol Caerdydd',
-      
-      // Why Web3 window
-      whyTitle: 'Pam Gwe3?',
-      whyIntro: 'Mae llywodraethiant aml-randdeiliaid ar gyfer yr amgylchedd adeiledig yn gofyn am seilwaith technegol a all amgodio egwyddorion gwrth-fwyafrifol, gwneud pŵer yn weladwy ac yn herio, ac ailddosbarthu awdurdod heb greu pwyntiau canoli newydd.',
-      whyWeb2Problem: 'Y broblem gyda systemau traddodiadol',
-      whyWeb2Text: 'Mae systemau cronfa ddata traddodiadol yn gofyn i rywun berchnogi a rheoli\'r seilwaith. Mae hyn yn creu crynodiad pŵer anochel: rheolaeth ganolog, gwneud penderfyniadau anhryloyw, gofynion ymddiriedaeth, pwyntiau methiant sengl, a risg cipio. Ar gyfer llywodraethiant trefol, mae hyn yn golygu disodli rheolaeth Awdurdod Lleol â rheolydd canolog arall. Nid yw\'r strwythur pŵer yn newid—mae\'n symud yn unig.',
-      whyWeb3Enables: 'Beth mae Gwe3 yn ei alluogi',
-      whyWeb3Points: [
-        'Awdurdod dosbarthedig: Dim perchennog na rheolydd sengl',
-        'Cofnodion tryloyw, archwiliadwy: Pob penderfyniad ar ledger cyhoeddus',
-        'Rheolau llywodraethiant rhaglenadwy: Amddiffyniadau gwrth-fwyafrifol wedi\'u hamgodio mewn contractau craff',
-        'Cydlynu heb ymddiriedaeth: Rhanddeiliaid yn cydlynu heb ganolwr',
-        'Sofraniaeth data cymunedol: Data lle-seiliedig yn eiddo ar y cyd ar raddfa leol',
-      ],
-      whyMechanisms: 'Mecanweithiau gwrth-fwyafrifol',
-      whyMechanismsList: [
-        'Pleidleisio cwadratig: Mae pŵer pleidleisio anlinol yn atal dominyddiaeth mwyafrif',
-        'Pleidleisio argyhoeddiad: Mae dewisiadau pwysoli amser yn caniatáu i leiafrifoedd angerddol ennill',
-        'Pwysoli seiliedig ar hunaniaeth: Mae\'r rhai sy\'n cael eu heffeithio fwyaf â phŵer pleidleisio uwch',
-        'Hawliau feto: Gall grwpiau gwarchodedig rwystro penderfyniadau sy\'n eu niweidio',
-        'Trothwyon cynhwysiant gorfodol: Mae angen cyfranogiad lleiaf gan grwpiau ymylol',
-      ],
-      whyLimitations: 'Cyfyngiadau a beirniadaethau',
-      whyLimitationsText: 'Nid yw Gwe3 yn ateb technolegol i broblemau cymdeithasol a gwleidyddol. Mae\'r ymchwil yn cydnabod: nid yw technoleg yn trwsio strwythurau pŵer, mae rhwystrau hygyrchedd yn bodoli, mae gan rai systemau blockchain gostau amgylcheddol, mae fframweithiau rheoleiddiol yn ddatblygedig, ac mae rhaniadau digidol yn eithrio pobl. Mae\'r cyfyngiadau hyn yn rhan o\'r hyn mae\'r ymchwil yn ei ymchwilio.',
-      
-      // Governance window
-      govTitle: 'Llywodraethu Data',
-      govIntro: 'Mae\'r ymchwil hwn yn ymchwilio i sut olwg ddylai llywodraethiant ar ddata lle-seiliedig. Nid oes gennym yr atebion eto—dyna beth fydd y PhD yn ei ddarganfod.',
-      govWebsiteData: 'Data ymwelwyr y wefan',
-      govWebsiteText: 'Data defnydd dienw gan bobl sy\'n ymweld â\'r wefan hon (pa dudalennau, patrymau llywio, math o ddyfais, gwlad). Yn cael ei ddefnyddio i ddeall sut mae cymunedau yn ymgysylltu ag ymchwil sofraniaeth data. Mae Prifysgol Caerdydd yn dal y data hwn dros dro fel stiward yn ystod ymchwil PhD (2025-2028). Stiwardiaeth yw hyn, nid perchnogaeth. Ar ôl cwblhau\'r ymchwil, bydd llywodraethiant yn trosglwyddo i strwythurau a bennir gan y gymuned.',
-      govResearchData: 'Data ymchwil/rhanddeiliaid',
-      govResearchText: 'Data o gyfweliadau â chymunedau, cynllunwyr, datblygwyr, penseiri, cymdeithasau tai, a rhanddeiliaid eraill. Data ymchwil aml-blaid wedi\'i gyd-greu gyda ystyriaethau llywodraethiant cymhleth. Mae gan wahanol randdeiliaid fuddiannau dilys ond weithiau\'n cystadlu.',
-      govQuestions: 'Beth mae\'r ymchwil hwn yn ei ymchwilio',
-      govQuestionsList: [
-        'Sut ddylai data ymchwil aml-blaid gael ei lywodraethu?',
-        'Pa hawliau sydd gan wahanol randdeiliaid?',
-        'Sut rydych chi\'n cydbwyso tryloywder â phreifatrwydd?',
-        'Beth mae sofraniaeth data cymunedol yn ei olygu pan nad yw "cymuned" yn unffurf?',
-        'Sut rydych chi\'n atal cipio sefydliadol a gormes mwyafrifol mewn llywodraethiant data?',
-      ],
-      govCommitments: 'Ymrwymiadau cyfredol',
-      govCommitmentsList: [
-        'Casgliad lleiaf (dim ond yr hyn sy\'n angenrheidiol)',
-        'Tryloywder llawn am yr hyn sy\'n cael ei gasglu a pham',
-        'Cymeradwyaeth moeseg ymchwil Prifysgol Caerdydd ar gyfer pob casgliad data',
-        'Ymrwymiad i drosglwyddo llywodraethiant i gymunedau ar ôl PhD',
-        'Amddiffyniad preifatrwydd ar gyfer gwybodaeth sensitif',
-      ],
-      
-      // Privacy window
-      privacyTitle: 'Polisi Preifatrwydd',
-      privacyUpdated: 'Diweddariad diwethaf: Chwefror 2025',
-      privacyCollect: 'Beth mae\'r wefan hon yn ei gasglu',
-      privacyCollectText: 'Mae\'r wefan ymchwil hon yn defnyddio Vercel Analytics i gasglu data defnydd dienw lleiaf: pa dudalennau rydych chi\'n ymweld â nhw, sut rydych chi\'n llywio\'r wefan, math o ddyfais (symudol/bwrdd gwaith), rhanbarth daearyddol (gwlad yn unig). Nid oes gwybodaeth bersonol yn cael ei chasglu. Dim cwcis tracio, dim tracio traws-wefan, dim data adnabyddadwy.',
-      privacyWhy: 'Pam rydym yn casglu hyn',
-      privacyWhyText: 'I ddeall sut mae cymunedau yn ymgysylltu ag ymchwil sofraniaeth data. Mae\'r data yn ein helpu i ddeall a yw cynnwys yn glir ac yn hygyrch, a pha welliannau fyddai\'n gwasanaethu defnyddwyr yn well.',
-      privacyStorage: 'Ble mae\'n cael ei storio',
-      privacyStorageText: 'Mae data yn cael ei brosesu gan Vercel Inc. o dan eu polisi preifatrwydd. Mae Vercel Analytics wedi\'i gynllunio i fod yn gyfeillgar i breifatrwydd ac yn gydymffurfio â GDPR.',
-      privacyFuture: 'Llywodraethiant y dyfodol',
-      privacyFutureText: 'Mae\'r data hwn yn cael ei stiwardio dros dro gan Brifysgol Caerdydd yn ystod ymchwil PhD ond yn perthyn i ymwelwyr a chymunedau. Ar ôl cwblhau\'r ymchwil (disgwylir 2028), bydd llywodraethiant yn trosglwyddo i strwythurau a bennir gan y gymuned.',
-      privacyRights: 'Eich hawliau',
-      privacyRightsList: [
-        'Deall pa ddata sy\'n cael ei gasglu (wedi\'i ddogfennu yma)',
-        'Optio allan (gwrthod ar y sgrin mynediad neu glirio data porwr)',
-        'Defnyddio porwyr sy\'n canolbwyntio ar breifatrwydd sy\'n rhwystro dadansoddeg',
-        'Cysylltu â ni gyda chwestiynau neu bryderon',
-      ],
-      privacyContact: 'Cysylltu: Lucy Dunhill, dunhilll@cardiff.ac.uk',
-      
-      // Contact window
-      contactTitle: 'Cysylltu',
-      contactName: 'Lucy Dunhill',
-      contactRole: 'Ymchwilydd PhD',
-      contactInst: 'Ysgol Bensaernïaeth Cymru, Prifysgol Caerdydd',
-      contactEmail: 'dunhilll@cardiff.ac.uk',
-      contactAvail: 'Ar gael ar gyfer cyfarfodydd yng Nghaerdydd ac ar-lein',
-      
-      closeButton: 'Cau',
+      about: 'Ynghylch', 'why-web3': 'Pam Web3', governance: 'Llywodraethu',
+      privacy: 'Preifatrwydd', contact: 'Cysylltu', 'phd-development': 'PhD',
+      literature: 'Darllen', splott: 'Splott',
+      menu: 'Dewislen', langSwitch: 'Switch to English',
+      lightMode: 'Newid i fodd golau', darkMode: 'Newid i fodd tywyll',
+      trailOn: 'Llwybr cyrchwr: ymlaen', trailOff: 'Llwybr cyrchwr: i ffwrdd',
+      iconsLabel: 'Eiconau:', close: 'Cau',
+    }
+  }
+  const t = labels[lang as 'en' | 'cy']
+
+  const windowTitles: Record<string, Record<WindowId, string>> = {
+    en: {
+      'about': 'About', 'why-web3': 'Why Web3?', 'governance': 'Data Governance',
+      'privacy': 'Privacy Policy', 'contact': 'Contact',
+      'phd-development': 'PhD Development', 'literature': 'Literature', 'splott': 'Splott',
+    },
+    cy: {
+      'about': 'Ynghylch', 'why-web3': 'Pam Web3?', 'governance': 'Llywodraethu Data',
+      'privacy': 'Polisi Preifatrwydd', 'contact': 'Cysylltu',
+      'phd-development': 'Datblygiad PhD', 'literature': 'Llenyddiaeth', 'splott': 'Splott',
     }
   }
 
-  const t = content[lang]
+  const isDark = theme === 'dark'
+  const bg      = isDark ? '#1a1a1a' : '#c0c0c0'
+  const surface = isDark ? '#2a2a2a' : '#ffffff'
+  const border  = isDark ? '#666666' : '#000000'
+  const text    = isDark ? '#e0e0e0' : '#000000'
+  const subtle  = isDark ? '#999999' : '#666666'
+
+  type IconType = 'document' | 'globe3' | 'cabinet' | 'lock' | 'envelope' | 'pencil' | 'books' | 'mappin'
+
+  const iconDefs: Array<{ id: WindowId; type: IconType }> = [
+    { id: 'about',           type: 'document' },
+    { id: 'why-web3',        type: 'globe3'   },
+    { id: 'governance',      type: 'cabinet'  },
+    { id: 'privacy',         type: 'lock'     },
+    { id: 'contact',         type: 'envelope' },
+    { id: 'phd-development', type: 'pencil'   },
+    { id: 'literature',      type: 'books'    },
+    { id: 'splott',          type: 'mappin'   },
+  ]
+
+  const renderIcon = (type: IconType, s: number) => {
+    switch (type) {
+
+      case 'document':
+        return (
+          <div style={{
+            width: s, height: s, background: surface, border: `2px solid ${border}`,
+            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)', position: 'relative',
+          }}>
+            {[0.2, 0.37, 0.54, 0.71].map((o, i) => (
+              <div key={i} style={{
+                position: 'absolute', top: `${o * s}px`,
+                left: s * 0.17, right: s * 0.17, height: 2, background: border,
+              }} />
+            ))}
+          </div>
+        )
+
+      case 'globe3':
+        return (
+          <div style={{
+            width: s, height: s, borderRadius: '50%',
+            background: isDark ? '#003366' : '#0055aa',
+            border: `2px solid ${border}`,
+            boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {/* Latitude lines */}
+            {[0.25, 0.5, 0.75].map((o, i) => (
+              <div key={i} style={{
+                position: 'absolute', top: `${o * s}px`, left: 0, right: 0,
+                height: 1, background: 'rgba(255,255,255,0.35)',
+              }} />
+            ))}
+            {/* Longitude lines */}
+            {[0.3, 0.5, 0.7].map((o, i) => (
+              <div key={i} style={{
+                position: 'absolute', top: 0, bottom: 0, left: `${o * s}px`,
+                width: 1, background: 'rgba(255,255,255,0.35)',
+              }} />
+            ))}
+            {/* Bold "3" */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: `${s * 0.42}px`, fontWeight: 700,
+              color: '#ffffff', fontFamily: 'Space Mono, monospace',
+              textShadow: '1px 1px 0 rgba(0,0,0,0.5)',
+            }}>3</div>
+          </div>
+        )
+
+      case 'cabinet':
+        return (
+          <div style={{
+            width: s, height: s, background: isDark ? '#555' : '#aaaaaa',
+            border: `2px solid ${border}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+            position: 'relative',
+          }}>
+            {/* Three drawers */}
+            {[0.08, 0.38, 0.68].map((o, i) => (
+              <div key={i} style={{
+                position: 'absolute', top: `${o * s}px`, left: s * 0.08, right: s * 0.08,
+                height: `${s * 0.22}px`,
+                background: isDark ? '#666' : '#cccccc',
+                border: `1px solid ${border}`,
+              }}>
+                {/* Drawer handle */}
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: s * 0.3, height: s * 0.06,
+                  background: isDark ? '#999' : '#888888',
+                  border: `1px solid ${border}`,
+                }} />
+              </div>
+            ))}
+          </div>
+        )
+
+      case 'lock':
+        return (
+          <div style={{ width: s, height: s, position: 'relative' }}>
+            <div style={{
+              position: 'absolute', top: s * 0.1, left: s * 0.25, width: s * 0.5, height: s * 0.3,
+              border: `${Math.max(3, s * 0.08)}px solid ${subtle}`,
+              borderBottom: 'none', borderRadius: `${s * 0.25}px ${s * 0.25}px 0 0`,
+              boxSizing: 'border-box',
+            }} />
+            <div style={{
+              position: 'absolute', bottom: s * 0.1, left: s * 0.125, width: s * 0.75, height: s * 0.5,
+              background: isDark ? '#cc9900' : '#ffcc00',
+              border: `2px solid ${border}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+              boxSizing: 'border-box',
+            }} />
+          </div>
+        )
+
+      case 'envelope':
+        return (
+          <div style={{ width: s, height: s, position: 'relative' }}>
+            <div style={{
+              position: 'absolute', bottom: s * 0.15, left: s * 0.08, width: s * 0.84, height: s * 0.6,
+              background: surface, border: `2px solid ${border}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+            }} />
+            <div style={{
+              position: 'absolute', bottom: s * 0.45, left: s * 0.08, width: s * 0.84, height: s * 0.3,
+              background: isDark ? '#cc4444' : '#ff6666',
+              clipPath: 'polygon(0% 0%, 50% 100%, 100% 0%)',
+            }} />
+          </div>
+        )
+
+      case 'pencil':
+        return (
+          <div style={{ width: s, height: s, position: 'relative' }}>
+            {/* Pencil body — diagonal */}
+            <div style={{
+              position: 'absolute',
+              top: s * 0.05, left: s * 0.45,
+              width: s * 0.2, height: s * 0.65,
+              background: isDark ? '#ddaa00' : '#ffdd00',
+              border: `2px solid ${border}`,
+              transform: 'rotate(35deg)',
+              transformOrigin: 'top center',
+              boxShadow: '1px 1px 0 rgba(0,0,0,0.3)',
+            }} />
+            {/* Eraser */}
+            <div style={{
+              position: 'absolute',
+              top: s * 0.04, left: s * 0.44,
+              width: s * 0.22, height: s * 0.15,
+              background: isDark ? '#cc6666' : '#ff9999',
+              border: `2px solid ${border}`,
+              transform: 'rotate(35deg)',
+              transformOrigin: 'top center',
+            }} />
+            {/* Tip */}
+            <div style={{
+              position: 'absolute',
+              bottom: s * 0.06, left: s * 0.38,
+              width: 0, height: 0,
+              borderLeft: `${s * 0.07}px solid transparent`,
+              borderRight: `${s * 0.07}px solid transparent`,
+              borderTop: `${s * 0.15}px solid ${border}`,
+              transform: 'rotate(35deg)',
+              transformOrigin: 'top center',
+            }} />
+          </div>
+        )
+
+      case 'books':
+        return (
+          <div style={{ width: s, height: s, position: 'relative' }}>
+            {/* Stack of 3 books */}
+            {[
+              { top: s * 0.62, h: s * 0.22, bg: isDark ? '#4466aa' : '#6688cc', label: isDark ? '#88aaff' : '#ffffff' },
+              { top: s * 0.35, h: s * 0.22, bg: isDark ? '#aa4444' : '#cc6666', label: isDark ? '#ffaaaa' : '#ffffff' },
+              { top: s * 0.08, h: s * 0.22, bg: isDark ? '#448844' : '#66aa66', label: isDark ? '#aaffaa' : '#ffffff' },
+            ].map(({ top, h, bg, label }, i) => (
+              <div key={i} style={{
+                position: 'absolute', top, left: s * 0.08, right: s * 0.08,
+                height: h, background: bg,
+                border: `2px solid ${border}`,
+                boxShadow: '1px 1px 0 rgba(0,0,0,0.3)',
+              }}>
+                {/* Spine line */}
+                <div style={{
+                  position: 'absolute', top: 0, bottom: 0, left: s * 0.08,
+                  width: 3, background: label, opacity: 0.6,
+                }} />
+              </div>
+            ))}
+          </div>
+        )
+
+      case 'mappin':
+        return (
+          <div style={{ width: s, height: s, position: 'relative' }}>
+            {/* Pin head */}
+            <div style={{
+              position: 'absolute', top: s * 0.05, left: '50%',
+              transform: 'translateX(-50%)',
+              width: s * 0.5, height: s * 0.5,
+              background: isDark ? '#cc3333' : '#ee3333',
+              border: `2px solid ${border}`,
+              borderRadius: '50% 50% 50% 0',
+              transformOrigin: 'center',
+              boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
+              rotate: '45deg',
+            }} />
+            {/* Pin dot */}
+            <div style={{
+              position: 'absolute', top: s * 0.18, left: '50%',
+              transform: 'translateX(-50%)',
+              width: s * 0.16, height: s * 0.16,
+              background: isDark ? '#ff8888' : '#ffffff',
+              borderRadius: '50%',
+              zIndex: 2,
+            }} />
+            {/* Pin stem */}
+            <div style={{
+              position: 'absolute', top: s * 0.52, left: '50%',
+              transform: 'translateX(-50%)',
+              width: 3, height: s * 0.32,
+              background: border,
+            }} />
+            {/* Shadow ellipse */}
+            <div style={{
+              position: 'absolute', bottom: s * 0.06, left: '50%',
+              transform: 'translateX(-50%)',
+              width: s * 0.3, height: s * 0.07,
+              background: 'rgba(0,0,0,0.2)',
+              borderRadius: '50%',
+            }} />
+          </div>
+        )
+    }
+  }
+
+  // ─── Window content ───────────────────────────────────────────────────────────
+
+  const renderWindowContent = (id: WindowId) => {
+    const h2 = { fontSize: '15px', fontWeight: 700, margin: '20px 0 8px', color: text } as const
+    const p  = { fontSize: '13px', lineHeight: 1.75, marginBottom: '14px', color: text } as const
+    const ul = { margin: '8px 0 14px 22px', fontSize: '13px', lineHeight: 1.75, color: text } as const
+    const li = { marginBottom: '8px' } as const
+    const note = { fontSize: '11px', color: subtle, marginTop: '20px' } as const
+    const divider = (
+      <div style={{ height: 1, background: isDark ? '#444' : '#e0e0e0', margin: '20px 0' }} />
+    )
+    const techLabel = (
+      <p style={{ fontSize: '11px', fontWeight: 700, color: subtle, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '20px 0 8px' }}>
+        {lang === 'en' ? 'Technical detail' : 'Manylion technegol'}
+      </p>
+    )
+
+    if (lang === 'cy') {
+      switch (id) {
+
+        case 'about':
+          return (
+            <>
+              <p style={p}>Mae'r ymchwil hwn yn archwilio sut mae cymunedau yn cael eu heithrio o benderfyniadau cynllunio — a sut y gallai adeiladu seilwaith digidol newydd roi'r grym hwnnw yn ôl iddynt.</p>
+              <h2 style={h2}>Y broblem</h2>
+              <p style={p}>Mewn cynllunio trefol, mae mathau lluosog o bŵer yn penderfynu pwy sy'n cael llais:</p>
+              <ul style={ul}>
+                <li style={li}><strong>Pŵer eiddo:</strong> Gall perchnogion tir wrthod pawb trwy hawliau cyfreithiol</li>
+                <li style={li}><strong>Pŵer economaidd:</strong> Gall datblygwyr wrthod trwy gyfalaf</li>
+                <li style={li}><strong>Pŵer sefydliadol:</strong> Mae Awdurdodau Lleol yn gwrthod trwy bwerau statudol</li>
+                <li style={li}><strong>Pŵer epistemolegol:</strong> Mae gweithwyr proffesiynol yn rheoli mynediad trwy arbenigedd technegol</li>
+              </ul>
+              <p style={p}>O fewn cymunedau sydd eisoes wedi'u heithrio, mae deinameg fwyafrifol yn distewi pobl anabl, rhentwyr, a lleiafrifoedd ymhellach.</p>
+              <h2 style={h2}>Cyd-destun Caerdydd</h2>
+              <p style={p}>Mae gan Gaerdydd 28 ward. Mae gan 6 ohonynt Gyngor Cymuned — ond hyd yn oed y rhain yn aml yn cynnig ymgynghori tocenistig yn unig, heb bŵer gwneud penderfyniadau go iawn. Mae gan 22 ward arall ddim strwythur ffurfiol o gwbl.</p>
+              <p style={p}>Nid yw absenoldeb Cyngor Cymuned yn atal cymuned rhag paratoi Cynllun Lle yn gyfreithiol — ond mae'n gadael y cwestiwn o gynrychiolaeth heb ei ateb: sut all awdurdod lleol fodloni ei hun bod grŵp yn cynrychioli'r gymdogaeth, heb sefydlu sefydliad newydd canolog?</p>
+              <h2 style={h2}>Architecture of Agency</h2>
+              <p style={p}>Cyfraniad damcaniaethol canolog y PhD yw'r cynnig bod amodau gofodol, sefydliadol, a thechnegol gyda'i gilydd yn cynhyrchu neu'n cau allan asiantaeth gymunedol — ac y gall ailddylunio unrhyw un o'r tri haen newid pwy sy'n gallu gweithredu, cyfrannu, a bod yn bresennol.</p>
+              <p style={p}>Mae dau gysyniad diagnostig yn sail i'r fframwaith: <strong>Absenoldeb Olrhain</strong> — ailadeiladu o gofnodion cynllunio pwy nad oedd yn bresennol a pha amodau strwythurol a gynhyrchodd yr absenoldeb hwnnw — a <strong>Cholled Olrhain</strong> — yr hyn a gynhyrchodd yr absenoldebau hynny: y penderfyniadau a wnaed, yr amgylcheddau a siapiwd, y lleoedd a gynlluniwyd heb wybodaeth y rhai a eithriawyd.</p>
+              <h2 style={h2}>Cwestiynau ymchwil</h2>
+              <ul style={ul}>
+                <li style={li}>Sut all systemau llywodraethiant ymgysylltu â phob rhanddeiliad tra'n canoli cymunedau?</li>
+                <li style={li}>Pa fecanweithiau sy'n atal cipio sefydliadol a gormes mwyafrifol?</li>
+                <li style={li}>All technoleg ddigidol alluogi asiantaeth gymunedol ddilysiedig, heb greu pwyntiau canoli newydd?</li>
+                <li style={li}>Beth mae Cyfiawnder Dylunio yn ei olygu pan fo'n rhan o seilwaith dinesig?</li>
+                <li style={li}>Sut rydym yn ailddosbarthu awdurdod epistemolegol ochr yn ochr â phŵer gwneud penderfyniadau?</li>
+              </ul>
+              <p style={note}>PhD Blwyddyn 1 — Ysgol Bensaernïaeth Cymru, Prifysgol Caerdydd<br />Dan oruchwyliaeth yr Athro Mhairi McVicar, Dr Neil Turnbull, a Simon Gilbert (Pennaeth Cynllunio, Cyngor Caerdydd)</p>
+            </>
+          )
+
+        case 'why-web3':
+          return (
+            <>
+              <p style={p}>Mae'r ymchwil hwn yn archwilio a all technoleg ddigidol ddosbarthedig helpu i ddatrys methiant cydlynu penodol mewn cynllunio cymunedol — un lle na all y naill ochr na'r llall rannu gwybodaeth angenrheidiol heb risgiau preifatrwydd annerbyniol.</p>
+              <h2 style={h2}>Y methiant cydlynu</h2>
+              <p style={p}>I gymuned heb Gyngor Cymuned gynhyrchu sylfaen wybodaeth ddilysiedig ar gyfer Cynllun Lle, mae angen cydlynu ar draws sawl math o actor — cymunedau, sefydliadau cymunedol, a'r Cyngor — ond nid oes gan unrhyw un ohonynt ffordd bresennol i rannu'r wybodaeth angenrheidiol heb greu risgiau preifatrwydd neu fynediad annerbyniol.</p>
+              <p style={p}>Mae'r her yn ddwyochrog. Nid yn unig mae cymunedau'n methu cyflwyno tystiolaeth gymunedol ddilysiedig i'r awdurdod cynllunio — ni all Cynghorau Cymuned a grwpiau cymunedol gael gafael ar ddata perthnasol gan yr awdurdod lleol mewn ffordd ddilysiedig, preifatrwydd-barchus chwaith.</p>
+              <h2 style={h2}>Pam technoleg ddosbarthedig</h2>
+              <p style={p}>Mae systemau cronfa ddata traddodiadol yn gofyn i rywun berchnogi a rheoli'r seilwaith. Ar gyfer llywodraethiant trefol, mae hyn yn golygu amnewid rheolaeth yr Awdurdod Lleol â phwynt canoli arall. Nid yw'r strwythur pŵer yn newid — mae'n symud yn unig.</p>
+              <p style={p}>Mae'r ymchwil hwn yn archwilio a all technoleg sy'n rhedeg ar draws rhwydwaith dosbarthedig — lle nad oes unrhyw unigolyn neu sefydliad yn berchen ar y seilwaith — gynnal trefniadau cydlynu gwahanol: rhai lle mae preifatrwydd yn cael ei orfodi'n dechnegol, nid ei addo'n unig.</p>
+              {divider}
+              {techLabel}
+              <p style={p}>Mae'r ymchwil yn canolbwyntio ar gredynnau sero-wybodaeth — math o brawf cryptograffig sy'n caniatáu i chi brofi bod rhywbeth yn wir heb ddatgelu'r wybodaeth sylfaenol. Mae hyn yn golygu y gallai Cyngor Caerdydd gael prawf bod sylfaen wybodaeth wedi'i chynhyrchu gan gymuned ddigon gynrychiadol o drigolion — heb erioed weld pwy gyfrannodd beth.</p>
+              <p style={p}>Mae Ethereum yn blatfform cynllunio agored-ffynhonnell sy'n rhedeg ar rwydwaith o gyfrifiaduron ledled y byd — nid yw'n eiddo i unrhyw gwmni unigol. Gellir ei ddefnyddio i storio tystiaeth ar-gadwyn yn gyhoeddus ac yn archwiliadwy. Er ei fod yn adnabyddus fel platfform arian digidol, mae ei seilwaith yn cael ei ymchwilio yma at ddibenion llywodraethiant dinesig, nid ariannol.</p>
+              <p style={p}>Nid yw technoleg yn datrys problemau pŵer cymdeithasol a gwleidyddol. Mae hygyrchedd yn ofyniad dylunio craidd, nid nodyn troedfel. Dyna pam mae cyd-ddylunio gyda thrigolion Splott yn pennu paramedrau'r system — nid rhagdybiaethau technegol.</p>
+            </>
+          )
+
+        case 'governance':
+          return (
+            <>
+              <p style={p}>Mae'r ymchwil hwn yn ymchwilio i sut ddylai data cymunedol gael ei lywodraethu. Nid oes gennym yr atebion eto — dyna beth fydd y PhD yn ei ddarganfod.</p>
+              <h2 style={h2}>Data ymwelwyr y wefan</h2>
+              <p style={p}>Mae'r wefan hon yn casglu data defnydd dienw: pa dudalennau rydych chi'n ymweld â nhw, sut rydych chi'n llywio, math o ddyfais, a gwlad yn unig. Mae Prifysgol Caerdydd yn dal y data hwn dros dro fel stiward yn ystod yr ymchwil PhD (2025–2028). Stiwardiaeth yw hyn, nid perchnogaeth.</p>
+              <h2 style={h2}>Data ymchwil</h2>
+              <p style={p}>Bydd data o gyfweliadau â chymunedau, cynllunwyr, a rhanddeiliaid eraill yn cael ei lywodraethu gyda chydnabyddiaeth o fuddiannau cymhleth ac weithiau gwrthdaro. Mae gan wahanol randdeiliaid hawliau dilys — nid oes un ateb syml.</p>
+              <h2 style={h2}>Beth mae'r ymchwil hwn yn ei archwilio</h2>
+              <ul style={ul}>
+                <li style={li}>Sut ddylai data ymchwil aml-blaid gael ei lywodraethu?</li>
+                <li style={li}>Pa hawliau sydd gan wahanol randdeiliaid?</li>
+                <li style={li}>Sut rydych chi'n cydbwyso tryloywder â phreifatrwydd?</li>
+                <li style={li}>Beth mae sofraniaeth data cymunedol yn ei olygu pan nad yw "cymuned" yn unffurf?</li>
+              </ul>
+              <h2 style={h2}>Ymrwymiadau cyfredol</h2>
+              <ul style={ul}>
+                <li style={li}>Casglu lleiaf — dim ond yr hyn sy'n angenrheidiol</li>
+                <li style={li}>Tryloywder llawn am yr hyn sy'n cael ei gasglu a pham</li>
+                <li style={li}>Cymeradwyaeth moeseg ymchwil Prifysgol Caerdydd ar gyfer pob casgliad data</li>
+                <li style={li}>Ymrwymiad i drosglwyddo llywodraethiant i gymunedau ar ôl y PhD</li>
+              </ul>
+            </>
+          )
+
+        case 'privacy':
+          return (
+            <>
+              <p style={{ fontSize: '11px', color: subtle, marginBottom: '16px' }}>Diweddariad diwethaf: Chwefror 2025</p>
+              <h2 style={h2}>Beth mae'r wefan hon yn ei gasglu</h2>
+              <p style={p}>Data defnydd dienw: pa dudalennau rydych chi'n ymweld â nhw, sut rydych chi'n llywio, math o ddyfais (symudol/bwrdd gwaith), rhanbarth daearyddol (gwlad yn unig). Dim gwybodaeth bersonol. Dim cwcis tracio. Dim data adnabyddadwy.</p>
+              <h2 style={h2}>Pam rydym yn casglu hyn</h2>
+              <p style={p}>I ddeall sut mae cymunedau yn ymgysylltu ag ymchwil sofraniaeth data, ac i wella hygyrchedd y cynnwys.</p>
+              <h2 style={h2}>Ble mae'n cael ei storio</h2>
+              <p style={p}>Mae data yn cael ei brosesu gan Vercel Inc. o dan eu polisi preifatrwydd. Mae Vercel Analytics wedi'i gynllunio i fod yn gydymffurfiol â GDPR.</p>
+              <h2 style={h2}>Eich hawliau</h2>
+              <ul style={ul}>
+                <li style={li}>Deall pa ddata sy'n cael ei gasglu — wedi'i ddogfennu yma</li>
+                <li style={li}>Optio allan — gwrthod ar y sgrin mynediad neu glirio data porwr</li>
+                <li style={li}>Cysylltu â ni gyda chwestiynau neu bryderon</li>
+              </ul>
+              <p style={{ fontSize: '12px', marginTop: '20px', color: text }}>Cysylltu: Lucy Dunhill — dunhilll@cardiff.ac.uk</p>
+            </>
+          )
+
+        case 'contact':
+          return (
+            <>
+              <p style={{ ...p, fontWeight: 700 }}>Lucy Dunhill</p>
+              <p style={p}>Ymchwilydd PhD<br />Ysgol Bensaernïaeth Cymru, Prifysgol Caerdydd</p>
+              <p style={p}><a href="mailto:dunhilll@cardiff.ac.uk" style={{ color: 'inherit', textDecoration: 'underline' }}>dunhilll@cardiff.ac.uk</a></p>
+              <p style={p}>Ar gael ar gyfer cyfarfodydd yng Nghaerdydd ac ar-lein.</p>
+              <div style={{ marginTop: '20px' }}>
+                {[
+                  ['ORCID', 'https://orcid.org/0009-0009-3588-4823'],
+                  ['Proffil Caerdydd', 'https://profiles.cardiff.ac.uk/research-staff/dunhilll'],
+                  ['GitHub', 'https://github.com/Architecture-of-Agency/overview'],
+                  ['Gwefan', 'https://architectureof.agency'],
+                ].map(([label, url]) => (
+                  <p key={label} style={{ fontSize: '12px', marginBottom: '8px' }}>
+                    <strong>{label}:</strong>{' '}
+                    <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{url}</a>
+                  </p>
+                ))}
+              </div>
+            </>
+          )
+
+        case 'phd-development':
+          return (
+            <>
+              <p style={{ ...p, fontStyle: 'italic', color: subtle }}>Cofnod byw o ddatblygiad y PhD. Wedi'i ddiweddaru wrth i'r ymchwil fynd rhagddo.</p>
+              <h2 style={h2}>Cam cyfredol</h2>
+              <p style={p}>PhD Blwyddyn 1, Ysgol Bensaernïaeth Cymru, Prifysgol Caerdydd. Cyfnod: Sefydlu'r fframwaith damcaniaethol, adeiladu perthnasoedd sefydliadol, a dechrau ymgysylltu â'r gymuned yn Splott.</p>
+              <h2 style={h2}>Partneriaethau wedi'u cadarnhau</h2>
+              <ul style={ul}>
+                <li style={li}>Cyngor Caerdydd — Simon Gilbert (Pennaeth Cynllunio) yn oruchwyliwr eilaidd</li>
+                <li style={li}>Prosiect AHRC Co-PP dan arweiniad yr Athro Mhairi McVicar — yn rhedeg Mai–Rhagfyr 2026 ochr yn ochr â'r ymchwil</li>
+              </ul>
+              <h2 style={h2}>Myfyrdodau a nodiadau proses</h2>
+              <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ I'w ychwanegu wrth i'r ymchwil ddatblygu. ]</p>
+              <h2 style={h2}>Penderfyniadau allweddol</h2>
+              <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ I'w ychwanegu wrth i benderfyniadau allweddol gael eu gwneud. ]</p>
+            </>
+          )
+
+        case 'literature':
+          return (
+            <>
+              <p style={{ ...p, fontStyle: 'italic', color: subtle }}>Wedi'i drefnu yn ôl thema. Bydd anodiadau yn cael eu hehangu wrth i'r PhD fynd rhagddo.</p>
+              {[
+                {
+                  theme: 'Theori Cynllunio',
+                  entries: [
+                    { ref: 'Arnstein (1969)', note: 'Fframwaith sylfaenol ar gyfer cyfranogiad. Yn sefydlu bod ymgysylltiad cymunedol yn aml yn lawrlwytho cyfrifoldeb heb ailddosbarthu pŵer.' },
+                    { ref: 'Rydin (2007)', note: 'Mae gwybodaeth mewn cynllunio yn adnodd cystadleuol y mae ei gyfreithlondeb yn cael ei bennu\'n gymdeithasol — nid mewnbwn niwtral.' },
+                    { ref: 'Miessen (2016)', note: 'Cynulliad agweddol fel dewis arall i gyfranogiad consensws. Sail ddamcaniaethol ar gyfer pensaernïaeth luosogol, anghytgord y sylfaen wybodaeth.' },
+                    { ref: 'Parvin (2021)', note: 'Cynllunio cymunedol fel problem seilwaith heb ei datrys.' },
+                  ]
+                },
+                {
+                  theme: 'Cyfiawnder Dylunio a Methodoleg',
+                  entries: [
+                    { ref: 'Costanza-Chock (2020)', note: 'Fframwaith ymbarél ar gyfer yr ymchwil hwn. Yn canoli\'r rhai sy\'n cael eu heffeithio fwyaf gan benderfyniadau dylunio yn y broses ddylunio ei hun — nid fel ymgynghorwyr, ond fel arweinwyr.' },
+                    { ref: 'Carroll et al. (2020)', note: 'Egwyddorion CARE ar gyfer Llywodraethu Data Brodorol: Budd Cyfunol, Awdurdod i Reoli, Cyfrifoldeb, Moeseg.' },
+                  ]
+                },
+                {
+                  theme: 'Anabledd a Chyfiawnder Epistemolegol',
+                  entries: [
+                    { ref: 'Fricker (2007)', note: 'Anghyfiawnder hermeniwtig — y niwed a wneir pan fo rhywun yn methu â deall eu profiad eu hunain. Yn sail i\'r gofyniad nad yw seilwaith hunaniaeth yn amgodio allgáu presennol.' },
+                    { ref: 'Garland-Thomson (2011)', note: 'Y cysyniad camffitio: nid y corff yw\'r broblem ond yr amgylchedd adeiledig sy\'n methu â\'i lety.' },
+                    { ref: 'Hamraie (2017)', note: 'Theori anabledd beirniadol wedi\'i gymhwyso i ddylunio. Nid llety yw Cyfiawnder Dylunio — ailddylunio ydyw.' },
+                    { ref: 'Goodley (2013)', note: 'Fframwaith astudiaethau anabledd beirniadol wedi\'i integreiddio i gyfraniad damcaniaethol Architecture of Agency.' },
+                  ]
+                },
+                {
+                  theme: 'Blockchain a Systemau Trefol',
+                  entries: [
+                    { ref: 'Ietto et al. (2022); Muth et al. (2022); Rabe et al. (2021)', note: 'Prosiect BBBlockchain, Berlin. Tystiolaeth empirig fwyaf sylweddol ar gyfer blockchain mewn cyd-destunau cynllunio.' },
+                    { ref: 'Schneider (2019)', note: 'Mae honiadau datganoli yn aml yn anghyflawn ac yn cuddio asimetreddau pŵer parhaus.' },
+                    { ref: 'Lumineau et al. (2021)', note: 'Mae honiadau llywodraethiant angen sylfaen empirig.' },
+                  ]
+                },
+                {
+                  theme: 'Sofraniaeth Data a Ffeministiaeth',
+                  entries: [
+                    { ref: 'Haraway (1991)', note: 'Epistemeg ffeministaidd sylfaenol. Mae gwybodaeth bob amser yn cael ei chynhyrchu o safbwynt — ac mae\'r cwestiwn pwy sy\'n cyfri yn gynllunio yn gwestiwn gwleidyddol, nid technegol.' },
+                    { ref: 'Plant (1997)', note: 'Seibrffeminisdiaeth wedi\'i integreiddio i\'r synthesis damcaniaethol. Technoleg fel safle o bosibilrwydd a risg gwleidyddol ffeministaidd.' },
+                  ]
+                },
+              ].map(({ theme, entries }) => (
+                <div key={theme} style={{ marginBottom: '24px' }}>
+                  <h2 style={h2}>{theme}</h2>
+                  {entries.map(({ ref, note }) => (
+                    <div key={ref} style={{
+                      marginBottom: '10px', padding: '10px 12px',
+                      background: isDark ? '#222' : '#f8f8f8',
+                      borderLeft: `3px solid ${border}`,
+                    }}>
+                      <p style={{ fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: text }}>{ref}</p>
+                      <p style={{ fontSize: '12px', lineHeight: 1.6, color: text }}>{note}</p>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          )
+
+        case 'splott':
+          return (
+            <>
+              <p style={p}>Mae Splott yn gymdogaeth yng nghanol dinas Caerdydd heb Gyngor Cymuned. Mae wedi'i ddewis fel safle peilot ar gyfer yr ymchwil hwn oherwydd ei fod yn cynrychioli'r union fwlch sefydliadol y mae'r ymchwil yn ceisio mynd i'r afael ag ef.</p>
+              <h2 style={h2}>Pam Splott</h2>
+              <p style={p}>Cymuned drefol fewnol heb y seilwaith sefydliadol ffurfiol i gyfranogi yn y penderfyniadau cynllunio sy'n siapio ble mae ei thrigolion yn byw. Nid diffyg ymgysylltiad yw'r broblem — diffyg mecanwaith dilysiedig i gynrychiolaeth yw hi.</p>
+              <h2 style={h2}>Statws cyfredol</h2>
+              <p style={p}>Mae perthnasoedd cymunedol a sifil wedi'u hadeiladu dros y deuddeg mis diwethaf. Mae'r ymchwil yn dechrau.</p>
+              <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ Bydd nodiadau maes a diweddariadau yn ymddangos yma wrth i'r ymchwil fynd rhagddo. ]</p>
+            </>
+          )
+      }
+    }
+
+    // English content
+    switch (id) {
+
+      case 'about':
+        return (
+          <>
+            <p style={p}>This research investigates how communities are excluded from planning decisions — and whether building new digital infrastructure could return that power to them.</p>
+            <h2 style={h2}>The problem</h2>
+            <p style={p}>In urban planning, multiple types of power determine who gets a voice:</p>
+            <ul style={ul}>
+              <li style={li}><strong>Property power:</strong> Landowners can override everyone through legal rights</li>
+              <li style={li}><strong>Economic power:</strong> Developers can override through capital</li>
+              <li style={li}><strong>Institutional power:</strong> Local Authorities override through statutory powers</li>
+              <li style={li}><strong>Epistemic power:</strong> Professionals control access through technical expertise</li>
+            </ul>
+            <p style={p}>Within already-excluded communities, majoritarian dynamics further silence disabled people, renters, and minorities.</p>
+            <h2 style={h2}>Cardiff context</h2>
+            <p style={p}>Cardiff has 28 wards. Six have Community Councils — but even these often offer only tokenistic consultation with no real decision-making power. The other 22 wards have no formal structure at all.</p>
+            <p style={p}>The absence of a Community Council does not legally prevent a community from preparing a Place Plan — but it leaves the question of representation unanswered: how can a local authority satisfy itself that a group genuinely represents the neighbourhood, without requiring a new centralised institution?</p>
+            <h2 style={h2}>Architecture of Agency</h2>
+            <p style={p}>The PhD's central theoretical contribution proposes that spatial, institutional, and technical conditions together produce or foreclose community agency — and that redesigning any one of those three tiers changes who can act, contribute, and be present.</p>
+            <p style={p}>Two diagnostic concepts ground the framework: <strong>Traced Absence</strong> — reconstructing from planning records who was systematically not present and what structural conditions produced that non-participation — and <strong>Traced Loss</strong> — what those absences produced: the decisions made, the environments shaped, the places planned without the knowledge of those who were excluded.</p>
+            <h2 style={h2}>Research questions</h2>
+            <ul style={ul}>
+              <li style={li}>How can governance systems engage all stakeholders whilst centring the communities most affected by planning decisions?</li>
+              <li style={li}>What mechanisms prevent both institutional capture and majoritarian tyranny in community participation?</li>
+              <li style={li}>Can digital technology enable verified community agency without creating new centralisation points?</li>
+              <li style={li}>What does Design Justice look like as civic infrastructure?</li>
+              <li style={li}>How do we redistribute epistemic authority alongside decision-making power in urban planning?</li>
+            </ul>
+            <p style={note}>
+              PhD Year 1 — Welsh School of Architecture, Cardiff University<br />
+              Supervised by Prof. Mhairi McVicar, Dr Neil Turnbull, and Simon Gilbert (Head of Planning, Cardiff Council)
+            </p>
+          </>
+        )
+
+      case 'why-web3':
+        return (
+          <>
+            <p style={p}>This research investigates whether distributed digital technology can help resolve a specific coordination failure in community planning — one where neither side can currently share the information they need without unacceptable privacy risks.</p>
+            <h2 style={h2}>The coordination failure</h2>
+            <p style={p}>For a community without a Community Council to produce a verified knowledge base for a Place Plan, coordination is needed across residents, community organisations, and the Council. But none of these parties can currently share the necessary information without creating unacceptable privacy or gatekeeping risks.</p>
+            <p style={p}>The challenge runs in both directions. Communities cannot submit verified community evidence to the planning authority — but Community Councils and neighbourhood groups also cannot access relevant local authority data in a verified, privacy-respecting way.</p>
+            <h2 style={h2}>Why distributed technology</h2>
+            <p style={p}>Traditional database systems require someone to own and control the infrastructure. For urban governance, this means replacing Local Authority control with another centralised controller. The power structure doesn't change — it just moves.</p>
+            <p style={p}>This research investigates whether technology that runs across a distributed network — where no single person or organisation owns the infrastructure — can support different coordination arrangements: ones where privacy is enforced technically, not merely promised.</p>
+            {divider}
+            {techLabel}
+            <p style={p}>The specific focus is zero-knowledge credentials — a type of cryptographic proof that lets you verify something is true without revealing the underlying information. This means Cardiff Council could receive proof that a knowledge base was produced by a sufficiently representative cross-section of residents, without ever seeing who contributed what.</p>
+            <p style={p}>Ethereum is an open-source computing platform that runs on a global network of computers — it is not owned by any single company. It can be used to store attestations publicly and auditably on-chain. Although it is widely known as a platform for digital currency, its infrastructure is investigated here for civic governance purposes, not financial ones.</p>
+            <p style={p}>Technology does not solve social and political power problems. Accessibility is a core design requirement, not a footnote. This is why co-design with Splott residents determines the system's parameters — not technical assumptions made in advance.</p>
+          </>
+        )
+
+      case 'governance':
+        return (
+          <>
+            <p style={p}>This research investigates what governance should look like for community-held data. We don't have all the answers yet — that's what the PhD is here to find out.</p>
+            <h2 style={h2}>Website visitor data</h2>
+            <p style={p}>This site collects anonymised usage data: which pages you visit, how you navigate, device type, and country only. Cardiff University holds this data temporarily as steward during the PhD research (2025–2028). This is stewardship, not ownership. Upon research completion, governance will transition to community-determined structures.</p>
+            <h2 style={h2}>Research data</h2>
+            <p style={p}>Data from interviews with communities, planners, and other stakeholders will be governed with recognition of complex and sometimes competing interests. Different stakeholders have legitimate rights — there is no single simple answer.</p>
+            <h2 style={h2}>What this research investigates</h2>
+            <ul style={ul}>
+              <li style={li}>How should multi-party research data be governed?</li>
+              <li style={li}>What rights do different stakeholders have?</li>
+              <li style={li}>How do you balance transparency with privacy?</li>
+              <li style={li}>What does community data sovereignty mean when "community" isn't monolithic?</li>
+            </ul>
+            <h2 style={h2}>Current commitments</h2>
+            <ul style={ul}>
+              <li style={li}>Minimal collection — only what is necessary</li>
+              <li style={li}>Full transparency about what is collected and why</li>
+              <li style={li}>Cardiff University research ethics approval for all data collection</li>
+              <li style={li}>Commitment to transition governance to communities post-PhD</li>
+            </ul>
+          </>
+        )
+
+      case 'privacy':
+        return (
+          <>
+            <p style={{ fontSize: '11px', color: subtle, marginBottom: '16px' }}>Last updated: February 2025</p>
+            <h2 style={h2}>What this site collects</h2>
+            <p style={p}>Anonymised usage data: which pages you visit, how you navigate, device type (mobile/desktop), geographic region (country only). No personal information. No tracking cookies. No identifiable data.</p>
+            <h2 style={h2}>Why we collect this</h2>
+            <p style={p}>To understand how communities engage with data sovereignty research, and to improve the accessibility of content.</p>
+            <h2 style={h2}>Where it is stored</h2>
+            <p style={p}>Data is processed by Vercel Inc. under their privacy policy. Vercel Analytics is designed to be GDPR compliant.</p>
+            <h2 style={h2}>Your rights</h2>
+            <ul style={ul}>
+              <li style={li}>Understand what data is collected — documented here</li>
+              <li style={li}>Opt out — decline on the entry screen or clear browser data</li>
+              <li style={li}>Contact us with questions or concerns</li>
+            </ul>
+            <p style={{ fontSize: '12px', marginTop: '20px', color: text }}>Contact: Lucy Dunhill — dunhilll@cardiff.ac.uk</p>
+          </>
+        )
+
+      case 'contact':
+        return (
+          <>
+            <p style={{ ...p, fontWeight: 700 }}>Lucy Dunhill</p>
+            <p style={p}>PhD Researcher<br />Welsh School of Architecture, Cardiff University</p>
+            <p style={p}><a href="mailto:dunhilll@cardiff.ac.uk" style={{ color: 'inherit', textDecoration: 'underline' }}>dunhilll@cardiff.ac.uk</a></p>
+            <p style={p}>Available for meetings in Cardiff and online.</p>
+            <div style={{ marginTop: '20px' }}>
+              {[
+                ['ORCID', 'https://orcid.org/0009-0009-3588-4823'],
+                ['Cardiff Profile', 'https://profiles.cardiff.ac.uk/research-staff/dunhilll'],
+                ['GitHub', 'https://github.com/Architecture-of-Agency/overview'],
+                ['Website', 'https://architectureof.agency'],
+              ].map(([label, url]) => (
+                <p key={label} style={{ fontSize: '12px', marginBottom: '8px' }}>
+                  <strong>{label}:</strong>{' '}
+                  <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{url}</a>
+                </p>
+              ))}
+            </div>
+          </>
+        )
+
+      case 'phd-development':
+        return (
+          <>
+            <p style={{ ...p, fontStyle: 'italic', color: subtle }}>A living record of the PhD's development. Updated as the research progresses.</p>
+            <h2 style={h2}>Current stage</h2>
+            <p style={p}>PhD Year 1, Welsh School of Architecture, Cardiff University. Currently establishing the theoretical framework, building institutional relationships, and beginning community engagement in Splott.</p>
+            <h2 style={h2}>Confirmed partnerships</h2>
+            <ul style={ul}>
+              <li style={li}>Cardiff Council — Simon Gilbert (Head of Planning) as secondary supervisor</li>
+              <li style={li}>AHRC Co-PP project led by Prof. Mhairi McVicar — running May–December 2026 in parallel with the research</li>
+            </ul>
+            <h2 style={h2}>Reflections and process notes</h2>
+            <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ To be added as the research develops. ]</p>
+            <h2 style={h2}>Key decisions</h2>
+            <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ To be added as key decisions are made. ]</p>
+          </>
+        )
+
+      case 'literature':
+        return (
+          <>
+            <p style={{ ...p, fontStyle: 'italic', color: subtle }}>Organised by theme. Annotations will be expanded as the PhD progresses.</p>
+            {[
+              {
+                theme: 'Planning Theory',
+                entries: [
+                  { ref: 'Arnstein (1969)', note: 'Foundational framework for participation. Establishes that most community engagement downloads responsibility without redistributing power. Developed by Rosen and Painter (2019) for contemporary planning contexts.' },
+                  { ref: 'Rydin (2007)', note: 'Knowledge in planning functions as a contested resource whose legitimacy is socially determined — not a neutral input.' },
+                  { ref: 'Miessen (2016)', note: 'Agonistic assembly as an alternative to consensus-based participation. Theoretical foundation for the knowledge base\'s non-consensus, pluralistic architecture.' },
+                  { ref: 'Parvin (2021)', note: 'Community-led planning as an unresolved infrastructure problem.' },
+                ],
+              },
+              {
+                theme: 'Design Justice and Methodology',
+                entries: [
+                  { ref: 'Costanza-Chock (2020)', note: 'Umbrella framework for this research. Centres those most affected by design decisions in the design process itself — not as consultants, but as leaders.' },
+                  { ref: 'Carroll et al. (2020)', note: 'The CARE Principles for Indigenous Data Governance: Collective Benefit, Authority to Control, Responsibility, Ethics.' },
+                ],
+              },
+              {
+                theme: 'Disability and Epistemic Justice',
+                entries: [
+                  { ref: 'Fricker (2007)', note: 'Hermeneutical injustice — the harm done when someone lacks the conceptual resources to understand their own experience. Central to the requirement that identity infrastructure must not encode existing exclusions.' },
+                  { ref: 'Garland-Thomson (2011)', note: 'The misfit concept: the problem is not the body but the built environment that fails to accommodate it.' },
+                  { ref: 'Hamraie (2017)', note: 'Critical disability theory applied to design. Design Justice is not accommodation — it is redesign.' },
+                  { ref: 'Goodley (2013)', note: 'Critical disability studies framework integrated into the Architecture of Agency theoretical contribution.' },
+                ],
+              },
+              {
+                theme: 'Blockchain and Urban Systems',
+                entries: [
+                  { ref: 'Ietto et al. (2022); Muth et al. (2022); Rabe et al. (2021)', note: 'BBBlockchain Project, Berlin. Most substantive empirical evidence for blockchain in planning contexts — demonstrating both potential and limitations.' },
+                  { ref: 'Schneider (2019)', note: 'Decentralisation claims frequently remain structurally incomplete and obscure persistent power asymmetries.' },
+                  { ref: 'Lumineau et al. (2021)', note: 'Governance claims require empirical grounding.' },
+                ],
+              },
+              {
+                theme: 'Data Sovereignty and Feminism',
+                entries: [
+                  { ref: 'Haraway (1991)', note: 'Feminist epistemology foundational to the research\'s insistence that knowledge is always produced from a position — and that whose knowledge counts in planning is a political question, not a technical one.' },
+                  { ref: 'Plant (1997)', note: 'Cyberfeminism integrated into the theoretical synthesis. Technology as a site of feminist political possibility and risk.' },
+                ],
+              },
+            ].map(({ theme, entries }) => (
+              <div key={theme} style={{ marginBottom: '24px' }}>
+                <h2 style={h2}>{theme}</h2>
+                {entries.map(({ ref, note }) => (
+                  <div key={ref} style={{
+                    marginBottom: '10px', padding: '10px 12px',
+                    background: isDark ? '#222' : '#f8f8f8',
+                    borderLeft: `3px solid ${border}`,
+                  }}>
+                    <p style={{ fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: text }}>{ref}</p>
+                    <p style={{ fontSize: '12px', lineHeight: 1.6, color: text }}>{note}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </>
+        )
+
+      case 'splott':
+        return (
+          <>
+            <p style={p}>Splott is an inner-city neighbourhood in Cardiff without a Community Council. It is the identified pilot site for this research — selected because it represents precisely the institutional gap the research is trying to address.</p>
+            <h2 style={h2}>Why Splott</h2>
+            <p style={p}>An inner-city urban community without the formal institutional infrastructure to participate in the planning decisions that shape where its residents live. The problem is not lack of engagement — it is the absence of a verified mechanism for representation.</p>
+            <h2 style={h2}>Current status</h2>
+            <p style={p}>Community and civil society relationships have been built over the past twelve months. The research is beginning.</p>
+            <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ Field notes and updates will appear here as the research progresses. ]</p>
+          </>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────────
 
   if (!mounted) return null
 
-  // Loading screen while sound plays
   if (isLoading) {
     return (
       <>
         <Head>
           <title>Architecture of Agency | Loading...</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
         </Head>
-
         <style jsx global>{`
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Space Mono', 'Courier New', monospace;
-            background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
-            overflow: hidden;
-          }
-          
+          body { font-family: 'Space Mono', monospace; background: ${bg}; overflow: hidden; }
           .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease-in;
+            position: fixed; inset: 0; background: ${bg};
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
           }
-          
-          .loading-logo {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 32px;
-            opacity: 0.9;
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
-            filter: ${theme === 'light' ? 'none' : 'invert(0.9)'};
-            display: block;
-          }
-          
-          .loading-text {
-            font-family: 'Space Mono', monospace;
-            font-size: 14px;
-            color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-            opacity: 0.6;
-            margin-bottom: 20px;
-          }
-          
+          .loading-text { font-size: 14px; color: ${text}; opacity: 0.6; margin-bottom: 20px; }
           .loading-bar-container {
-            width: 240px;
-            height: 20px;
-            background: ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
-            border: 2px solid ${theme === 'light' ? '#000000' : '#666666'};
-            box-shadow: 
-              inset 2px 2px 0 ${theme === 'light' ? '#999999' : '#000000'},
-              2px 2px 0 rgba(0, 0, 0, 0.3);
-            position: relative;
+            width: 240px; height: 20px; background: ${surface};
+            border: 2px solid ${border};
+            box-shadow: inset 2px 2px 0 ${isDark ? '#000' : '#999'}, 2px 2px 0 rgba(0,0,0,0.3);
             overflow: hidden;
           }
-          
           .loading-bar-fill {
-            height: 100%;
-            background: ${theme === 'light' ? '#0000aa' : '#0066ff'};
-            width: 0%;
-            animation: loadingBarFill 3.5s linear forwards;
-            box-shadow: inset -2px -2px 0 ${theme === 'light' ? '#000066' : '#0044cc'};
+            height: 100%; background: ${isDark ? '#0066ff' : '#0000aa'};
+            width: 0%; animation: loadingFill 3.5s linear forwards;
           }
-          
-          @keyframes loadingBarFill {
-            0% { width: 0%; }
-            100% { width: 100%; }
-          }
-          
-          @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-          }
-          
-          @keyframes pulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.8; }
-          }
+          @keyframes loadingFill { 0% { width: 0% } 100% { width: 100% } }
         `}</style>
-
-        <audio ref={audioRef} preload="auto">
-          <source src="/audio/startup.mp3" type="audio/mpeg" />
-          <source src="/audio/startup.ogg" type="audio/ogg" />
-        </audio>
-
+        <audio ref={audioRef} preload="auto"><source src="/audio/startup.mp3" type="audio/mpeg" /></audio>
         <div className="loading-screen">
-        
           <div className="loading-text">Starting up...</div>
+          <div className="loading-bar-container"><div className="loading-bar-fill" /></div>
         </div>
       </>
     )
   }
 
-  // Landing / Consent Page
   if (!hasEntered) {
     return (
       <>
         <Head>
-          <title>Architecture of Agency </title>
-          <meta name="description" content="Community Governance Research" />
+          <title>Architecture of Agency</title>
+          <meta name="description" content="PhD Research — Welsh School of Architecture, Cardiff University" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
           <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
         </Head>
-
         <style jsx global>{`
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Space Mono', 'Courier New', monospace;
-            background: ${theme === 'light' ? '#e6e6e6' : '#1a1a1a'};
-            color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            line-height: 1.6;
-          }
+          body { font-family: 'Space Mono', monospace; background: ${isDark ? '#1a1a1a' : '#e6e6e6'}; color: ${text}; display: flex; align-items: center; justify-content: center; min-height: 100vh; line-height: 1.6; }
+          button { font-family: 'Space Mono', monospace; }
         `}</style>
-
-        <audio ref={audioRef} preload="auto">
-          <source src="/audio/startup.mp3" type="audio/mpeg" />
-          <source src="/audio/startup.ogg" type="audio/ogg" />
-        </audio>
-
-        <main style={{
-          maxWidth: '600px',
-          padding: '40px',
-          background: theme === 'light' ? '#ffffff' : '#2a2a2a',
-          border: `2px solid ${theme === 'light' ? '#000000' : '#666666'}`,
-          boxShadow: '4px 4px 0 rgba(0, 0, 0, 0.3)',
-        }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: 700,
-            marginBottom: '8px',
-            textAlign: 'center',
-          }}>
-            {t.landingTitle}
-          </h1>
-
-          <p style={{
-            fontSize: '14px',
-            textAlign: 'center',
-            marginBottom: '32px',
-            color: theme === 'light' ? '#666666' : '#999999',
-          }}>
-            {t.landingSubtitle}
-          </p>
-
-          <p style={{ fontSize: '14px', marginBottom: '16px' }}>
-            {t.landingText1}
-          </p>
-
-          <ul style={{ 
-            marginLeft: '24px', 
-            marginBottom: '16px',
-            fontSize: '14px',
-            listStyle: 'disc',
-          }}>
-            {t.landingBullets.map((bullet, i) => (
-              <li key={i} style={{ marginBottom: '8px' }}>{bullet}</li>
-            ))}
+        <audio ref={audioRef} preload="auto"><source src="/audio/startup.mp3" type="audio/mpeg" /></audio>
+        <main style={{ maxWidth: '600px', padding: '40px', background: surface, border: `2px solid ${border}`, boxShadow: '4px 4px 0 rgba(0,0,0,0.3)', position: 'relative' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px', textAlign: 'center' }}>Architecture of Agency</h1>
+          <p style={{ fontSize: '12px', textAlign: 'center', marginBottom: '32px', color: subtle }}>PhD Research — Welsh School of Architecture, Cardiff University</p>
+          <p style={{ fontSize: '14px', marginBottom: '16px' }}>This site collects anonymised usage data for research purposes:</p>
+          <ul style={{ marginLeft: '24px', marginBottom: '16px', fontSize: '14px', listStyle: 'disc' }}>
+            {['Which pages you visit', 'How you navigate the site', 'Device type and region (country only)'].map((b, i) => <li key={i} style={{ marginBottom: '8px' }}>{b}</li>)}
           </ul>
-
-          <p style={{ fontSize: '14px', marginBottom: '16px' }}>
-            {t.landingText2}
-          </p>
-
-          <p style={{ fontSize: '14px', marginBottom: '32px', fontWeight: 700 }}>
-            {t.landingText3}
-          </p>
-
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-          }}>
-            <button
-              onClick={() => handleConsent(true)}
-              style={{
-                flex: 1,
-                padding: '12px 24px',
-                fontSize: '14px',
-                fontWeight: 700,
-                fontFamily: 'Space Mono, monospace',
-                background: theme === 'light' ? '#000000' : '#ffffff',
-                color: theme === 'light' ? '#ffffff' : '#000000',
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '2px 2px 0 rgba(0, 0, 0, 0.3)',
-              }}
-            >
-              {t.acceptButton}
-            </button>
-
-            <button
-              onClick={() => handleConsent(false)}
-              style={{
-                flex: 1,
-                padding: '12px 24px',
-                fontSize: '14px',
-                fontWeight: 700,
-                fontFamily: 'Space Mono, monospace',
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a',
-                color: theme === 'light' ? '#000000' : '#e0e0e0',
-                border: `2px solid ${theme === 'light' ? '#000000' : '#666666'}`,
-                cursor: 'pointer',
-                boxShadow: '2px 2px 0 rgba(0, 0, 0, 0.3)',
-              }}
-            >
-              {t.declineButton}
-            </button>
+          <p style={{ fontSize: '14px', marginBottom: '16px' }}>This helps us understand how communities engage with data sovereignty research.</p>
+          <p style={{ fontSize: '14px', marginBottom: '32px', fontWeight: 700 }}>No personal information is collected.</p>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+            <button onClick={() => handleConsent(true)} style={{ flex: 1, padding: '12px 24px', fontSize: '14px', fontWeight: 700, background: isDark ? '#ffffff' : '#000000', color: isDark ? '#000000' : '#ffffff', border: 'none', cursor: 'pointer', boxShadow: '2px 2px 0 rgba(0,0,0,0.3)' }}>Accept and enter</button>
+            <button onClick={() => handleConsent(false)} style={{ flex: 1, padding: '12px 24px', fontSize: '14px', fontWeight: 700, background: surface, color: text, border: `2px solid ${border}`, cursor: 'pointer', boxShadow: '2px 2px 0 rgba(0,0,0,0.3)' }}>Decline and enter</button>
           </div>
-
-          <p style={{
-            fontSize: '12px',
-            textAlign: 'center',
-            color: theme === 'light' ? '#666666' : '#999999',
-          }}>
-            <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault()
-                handleConsent(false)
-                setTimeout(() => setOpenWindow('privacy'), 600)
-              }}
-              style={{
-                color: 'inherit',
-                textDecoration: 'underline',
-              }}
-            >
-              {t.privacyLink}
-            </a>
+          <p style={{ fontSize: '12px', textAlign: 'center', color: subtle }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); handleConsent(false); setTimeout(() => openWindow('privacy'), 600) }} style={{ color: 'inherit', textDecoration: 'underline' }}>Read full privacy policy</a>
           </p>
-
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            display: 'flex',
-            gap: '8px',
-          }}>
-            <button
-              onClick={toggleTheme}
-              style={{
-                padding: '8px 12px',
-                fontSize: '11px',
-                fontFamily: 'Space Mono, monospace',
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a',
-                color: theme === 'light' ? '#000000' : '#e0e0e0',
-                border: `1px solid ${theme === 'light' ? '#000000' : '#666666'}`,
-                cursor: 'pointer',
-              }}
-              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
-              {theme === 'light' ? '☾' : '☀'}
-            </button>
-
-            <button
-              onClick={() => setLang(lang === 'en' ? 'cy' : 'en')}
-              style={{
-                padding: '8px 12px',
-                fontSize: '11px',
-                fontFamily: 'Space Mono, monospace',
-                background: theme === 'light' ? '#ffffff' : '#2a2a2a',
-                color: theme === 'light' ? '#000000' : '#e0e0e0',
-                border: `1px solid ${theme === 'light' ? '#000000' : '#666666'}`,
-                cursor: 'pointer',
-              }}
-              aria-label={lang === 'en' ? 'Newid i Gymraeg' : 'Switch to English'}
-            >
-              {lang === 'en' ? 'CY' : 'EN'}
-            </button>
+          <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '8px' }}>
+            <button onClick={toggleTheme} style={{ padding: '8px 12px', fontSize: '11px', background: surface, color: text, border: `1px solid ${border}`, cursor: 'pointer' }}>{isDark ? '☀' : '☾'}</button>
+            <button onClick={() => setLang(lang === 'en' ? 'cy' : 'en')} style={{ padding: '8px 12px', fontSize: '11px', background: surface, color: text, border: `1px solid ${border}`, cursor: 'pointer' }}>{lang === 'en' ? 'CY' : 'EN'}</button>
           </div>
         </main>
       </>
     )
   }
 
-  // Desktop Interface
+  const cursorCSS = { default: 'default', pointer: 'pointer', grab: 'grab', grabbing: 'grabbing' }
+
   return (
     <>
       <Head>
         <title>Architecture of Agency</title>
-        <meta name="description" content="Research investigating Web3-enabled governance systems that centre marginalised voices" />
+        <meta name="description" content="PhD research — Welsh School of Architecture, Cardiff University" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
       </Head>
 
@@ -855,851 +1087,213 @@ export default function Home() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Space Mono', 'Courier New', monospace;
-          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
-          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-          overflow: hidden;
-          height: 100vh;
+          background: ${bg}; color: ${text};
+          overflow: hidden; height: 100vh;
+          cursor: ${cursorCSS[cursorStyle]};
         }
-        
         .desktop {
-          height: 100vh;
-          padding: 20px;
-          padding-bottom: 60px;
-          position: relative;
-          user-select: none;
+          height: 100vh; padding: 20px; padding-bottom: 42px;
+          position: relative; user-select: none;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+          background-size: 200px 200px;
         }
-        
-        .desktop-fade-in {
-          animation: fadeIn 0.8s ease-in;
+        .desktop::after {
+          content: '';
+          position: fixed; inset: 0;
+          background: repeating-linear-gradient(0deg, transparent, transparent 2px, ${isDark ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.04)'} 2px, ${isDark ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.04)'} 4px);
+          pointer-events: none; z-index: 9998;
         }
-        
-        @keyframes fadeIn {
-          0% {
-            opacity: 0;
-          }
-          100% {
-            opacity: 1;
-          }
-        }
-        
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        .desktop-fade-in { animation: fadeIn 0.8s ease-in; }
+
         .desktop-icon {
-          position: absolute;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          padding: 8px;
-          width: ${currentSize.width}px;
+          position: absolute; display: flex; flex-direction: column;
+          align-items: center; gap: 6px; cursor: pointer;
+          padding: 8px; width: ${cs.width}px;
         }
-        
         .desktop-icon.selected {
-          background: ${theme === 'light' ? 'rgba(0, 0, 255, 0.2)' : 'rgba(100, 100, 255, 0.3)'};
-          outline: 1px dotted ${theme === 'light' ? '#0000ff' : '#6666ff'};
+          background: ${isDark ? 'rgba(100,100,255,0.25)' : 'rgba(0,0,200,0.15)'};
+          outline: 1px dotted ${isDark ? '#6666ff' : '#0000cc'};
         }
-        
-        .desktop-icon:active {
-          cursor: grabbing;
-        }
-        
-        .icon-image {
-          width: ${currentSize.icon}px;
-          height: ${currentSize.icon}px;
-          position: relative;
-          image-rendering: pixelated;
-          image-rendering: -moz-crisp-edges;
-          image-rendering: crisp-edges;
-        }
-        
-        /* 90s folder icon */
-        .folder-icon {
-          width: ${currentSize.icon}px;
-          height: ${currentSize.icon}px;
-          position: relative;
-          background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
-          clip-path: polygon(
-            0% 20%, 30% 20%, 35% 0%, 100% 0%, 
-            100% 100%, 0% 100%
-          );
-          box-shadow: 
-            inset -2px -2px 0 ${theme === 'light' ? '#cc9900' : '#997700'},
-            inset 2px 2px 0 ${theme === 'light' ? '#ffee88' : '#ddaa00'},
-            2px 2px 0 rgba(0, 0, 0, 0.3);
-        }
-        
-        /* 90s document icon */
-        .document-icon {
-          width: ${currentSize.icon}px;
-          height: ${currentSize.icon}px;
-          background: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
-          border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
-          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-          position: relative;
-        }
-        
-        .document-icon::before {
-          content: '';
-          position: absolute;
-          top: ${currentSize.icon * 0.17}px;
-          left: ${currentSize.icon * 0.17}px;
-          right: ${currentSize.icon * 0.17}px;
-          height: 2px;
-          background: ${theme === 'light' ? '#000000' : '#333333'};
-          box-shadow: 
-            0 ${currentSize.icon * 0.125}px 0 ${theme === 'light' ? '#000000' : '#333333'},
-            0 ${currentSize.icon * 0.25}px 0 ${theme === 'light' ? '#000000' : '#333333'},
-            0 ${currentSize.icon * 0.375}px 0 ${theme === 'light' ? '#000000' : '#333333'};
-        }
-        
-        /* 90s lock icon */
-        .lock-icon {
-          width: ${currentSize.icon}px;
-          height: ${currentSize.icon}px;
-          position: relative;
-        }
-        
-        .lock-icon::before {
-          content: '';
-          position: absolute;
-          top: ${currentSize.icon * 0.125}px;
-          left: ${currentSize.icon * 0.25}px;
-          width: ${currentSize.icon * 0.5}px;
-          height: ${currentSize.icon * 0.29}px;
-          border: ${Math.max(3, currentSize.icon * 0.083)}px solid ${theme === 'light' ? '#666666' : '#999999'};
-          border-bottom: none;
-          border-radius: ${currentSize.icon * 0.25}px ${currentSize.icon * 0.25}px 0 0;
-          box-sizing: border-box;
-        }
-        
-        .lock-icon::after {
-          content: '';
-          position: absolute;
-          bottom: ${currentSize.icon * 0.125}px;
-          left: ${currentSize.icon * 0.125}px;
-          width: ${currentSize.icon * 0.75}px;
-          height: ${currentSize.icon * 0.5}px;
-          background: ${theme === 'light' ? '#ffcc00' : '#cc9900'};
-          border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
-          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-          box-sizing: border-box;
-        }
-        
-        /* 90s envelope icon */
-        .envelope-icon {
-          width: ${currentSize.icon}px;
-          height: ${currentSize.icon}px;
-          position: relative;
-        }
-        
-        .envelope-icon::before {
-          content: '';
-          position: absolute;
-          bottom: ${currentSize.icon * 0.17}px;
-          left: ${currentSize.icon * 0.083}px;
-          width: ${currentSize.icon * 0.833}px;
-          height: ${currentSize.icon * 0.583}px;
-          background: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
-          border: 2px solid ${theme === 'light' ? '#000000' : '#333333'};
-          box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-        }
-        
-        .envelope-icon::after {
-          content: '';
-          position: absolute;
-          bottom: ${currentSize.icon * 0.458}px;
-          left: ${currentSize.icon * 0.083}px;
-          width: ${currentSize.icon * 0.833}px;
-          height: ${currentSize.icon * 0.292}px;
-          background: ${theme === 'light' ? '#ff6666' : '#cc4444'};
-          clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
-        }
-        
+        .desktop-icon.dragging { opacity: 0.45; }
         .icon-label {
-          font-size: ${currentSize.font}px;
-          text-align: center;
-          max-width: ${currentSize.width}px;
-          line-height: 1.3;
-          overflow-wrap: break-word;
-          word-break: keep-all;
-          hyphens: none;
+          font-size: ${cs.font}px; text-align: center;
+          max-width: ${cs.width}px; line-height: 1.3;
+          overflow-wrap: break-word; word-break: keep-all;
+          color: ${text};
+          text-shadow: ${isDark ? 'none' : '1px 1px 0 rgba(255,255,255,0.7)'};
         }
-        
+
         .window {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 90%;
-          max-width: 700px;
-          max-height: 80vh;
-          background: ${theme === 'light' ? '#ffffff' : '#2a2a2a'};
-          border: 2px solid ${theme === 'light' ? '#000000' : '#666666'};
-          box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
-          display: flex;
-          flex-direction: column;
-          z-index: 1000;
+          position: fixed; width: min(680px, 92vw); max-height: 78vh;
+          background: ${surface}; border: 2px solid ${border};
+          box-shadow: 6px 6px 0 rgba(0,0,0,0.4);
+          display: flex; flex-direction: column;
         }
-        
         .window-titlebar {
-          background: ${theme === 'light' ? '#000000' : '#1a1a1a'};
-          color: ${theme === 'light' ? '#ffffff' : '#e0e0e0'};
-          padding: 8px 12px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 2px solid ${theme === 'light' ? '#000000' : '#666666'};
+          background: ${isDark ? '#1a1a1a' : '#000000'}; color: #ffffff;
+          padding: 7px 10px; display: flex; justify-content: space-between; align-items: center;
+          border-bottom: 2px solid ${border}; cursor: grab; user-select: none;
         }
-        
-        .window-title {
-          font-size: 14px;
-          font-weight: 700;
-        }
-        
+        .window-titlebar:active { cursor: grabbing; }
+        .window-title { font-size: 13px; font-weight: 700; }
         .window-close {
-          background: #ff4444;
-          border: 1px solid #000000;
-          width: 16px;
-          height: 16px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          color: #000000;
+          background: #ff4444; border: 1px solid #000; width: 16px; height: 16px;
+          cursor: pointer; display: flex; align-items: center; justify-content: center;
+          font-size: 11px; color: #000; font-family: 'Space Mono', monospace; flex-shrink: 0;
         }
-        
-        .window-content {
-          padding: 24px;
-          overflow-y: auto;
-          flex: 1;
-        }
-        
-        .window-content h2 {
-          font-size: 18px;
-          margin: 24px 0 12px 0;
-          font-weight: 700;
-        }
-        
-        .window-content h3 {
-          font-size: 14px;
-          margin: 16px 0 8px 0;
-          font-weight: 700;
-        }
-        
-        .window-content p {
-          font-size: 13px;
-          line-height: 1.7;
-          margin-bottom: 16px;
-        }
-        
-        .window-content ul {
-          margin: 16px 0 16px 24px;
-          font-size: 13px;
-          line-height: 1.7;
-        }
-        
-        .window-content li {
-          margin-bottom: 8px;
-        }
-        
+        .window-close:hover { background: #ff6666; }
+        .window-content { padding: 20px 24px; overflow-y: auto; flex: 1; }
+        .window-content::-webkit-scrollbar { width: 12px; }
+        .window-content::-webkit-scrollbar-track { background: ${isDark ? '#1a1a1a' : '#ddd'}; border-left: 1px solid ${border}; }
+        .window-content::-webkit-scrollbar-thumb { background: ${isDark ? '#555' : '#999'}; border: 1px solid ${border}; }
+
         .menubar {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 32px;
-          background: ${theme === 'light' ? '#dddddd' : '#2a2a2a'};
-          border-top: 1px solid ${theme === 'light' ? '#000000' : '#666666'};
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 8px;
-          gap: 16px;
-          font-size: 12px;
-          z-index: 999;
-          box-shadow: 0 -1px 0 ${theme === 'light' ? '#ffffff' : '#1a1a1a'};
+          position: fixed; bottom: 0; left: 0; right: 0; height: 32px;
+          background: ${isDark ? '#2a2a2a' : '#dddddd'};
+          border-top: 1px solid ${border};
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 8px; font-size: 12px; z-index: 9999;
+          box-shadow: 0 -1px 0 ${isDark ? '#1a1a1a' : '#ffffff'};
         }
-        
-        .menubar-left {
-          display: flex;
-          align-items: center;
-          gap: 8px;
+        .menubar-left { display: flex; align-items: center; gap: 8px; }
+        .menubar-right { display: flex; align-items: center; gap: 8px; }
+        .menu-btn {
+          display: flex; align-items: center; padding: 3px 10px;
+          background: ${isDark ? '#3a3a3a' : '#e0e0e0'};
+          border: 2px solid ${isDark ? '#555' : '#999'};
+          font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+          color: ${text}; cursor: pointer; height: 24px; border-radius: 2px;
         }
-        
-        .menubar-right {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        
-        .icon-size-label {
-          font-size: 11px;
-          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-          margin-right: 4px;
-        }
-        
-        .icon-size-button {
-          padding: 3px 8px;
-          background: ${theme === 'light' ? '#e0e0e0' : '#3a3a3a'};
-          border: 1px solid ${theme === 'light' ? '#999999' : '#555555'};
-          font-family: 'Space Mono', monospace;
-          font-size: 11px;
-          font-weight: 700;
-          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-          cursor: pointer;
-          min-width: 28px;
-        }
-        
-        .icon-size-button:hover {
-          background: ${theme === 'light' ? '#d0d0d0' : '#4a4a4a'};
-        }
-        
-        .icon-size-button.active {
-          background: ${theme === 'light' ? '#000000' : '#0000ff'};
-          color: #ffffff;
-          border-color: ${theme === 'light' ? '#000000' : '#0000ff'};
-        }
-        
-        .apple-menu-button {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 4px 12px;
-          background: ${theme === 'light' ? '#e0e0e0' : '#3a3a3a'};
-          border: 2px solid ${theme === 'light' ? '#999999' : '#555555'};
-          font-family: 'Space Mono', monospace;
-          font-size: 13px;
-          font-weight: 700;
-          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-          cursor: pointer;
-          height: 26px;
-          border-radius: 3px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        }
-        
-        .apple-menu-button:hover {
-          background: ${theme === 'light' ? '#d0d0d0' : '#4a4a4a'};
-          border-color: ${theme === 'light' ? '#000000' : '#666666'};
-        }
-        
-        .apple-menu-button.open {
-          background: ${theme === 'light' ? '#000000' : '#0000ff'};
-          color: #ffffff;
-          border-color: ${theme === 'light' ? '#000000' : '#0000ff'};
-        }
-        
+        .menu-btn:hover { background: ${isDark ? '#4a4a4a' : '#d0d0d0'}; border-color: ${border}; }
+        .menu-btn.open { background: ${isDark ? '#0000ff' : '#000000'}; color: #ffffff; border-color: ${isDark ? '#0000ff' : '#000000'}; }
         .apple-menu {
-          position: fixed;
-          bottom: 34px;
-          left: 8px;
-          background: ${theme === 'light' ? '#ffffff' : '#2a2a2a'};
-          border: 1px solid ${theme === 'light' ? '#000000' : '#666666'};
-          box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
-          min-width: 220px;
-          z-index: 1000;
-          border-radius: 0;
+          position: fixed; bottom: 34px; left: 8px;
+          background: ${surface}; border: 1px solid ${border};
+          box-shadow: 0 -2px 8px rgba(0,0,0,0.3); min-width: 220px; z-index: 10000;
         }
-        
         .apple-menu-item {
-          display: block;
-          width: 100%;
-          padding: 8px 20px;
-          background: transparent;
-          border: none;
-          text-align: left;
-          font-family: 'Space Mono', monospace;
-          font-size: 12px;
-          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-          cursor: pointer;
+          display: block; width: 100%; padding: 7px 18px;
+          background: transparent; border: none; text-align: left;
+          font-family: 'Space Mono', monospace; font-size: 12px; color: ${text}; cursor: pointer;
         }
-        
-        .apple-menu-item:hover {
-          background: ${theme === 'light' ? '#000000' : '#0000ff'};
-          color: #ffffff;
+        .apple-menu-item:hover { background: ${isDark ? '#0000ff' : '#000000'}; color: #ffffff; }
+        .apple-menu-sep { height: 1px; background: ${isDark ? '#555' : '#999'}; margin: 4px 0; }
+        .clock { font-size: 12px; font-weight: 700; color: ${text}; padding: 0 8px; border-left: 1px solid ${isDark ? '#555' : '#999'}; margin-left: 4px; }
+        .size-btn {
+          padding: 2px 7px; background: ${isDark ? '#3a3a3a' : '#e0e0e0'};
+          border: 1px solid ${isDark ? '#555' : '#999'};
+          font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+          color: ${text}; cursor: pointer;
         }
-        
-        .apple-menu-separator {
-          height: 1px;
-          background: ${theme === 'light' ? '#999999' : '#555555'};
-          margin: 6px 0;
-        }
-        
+        .size-btn:hover { background: ${isDark ? '#4a4a4a' : '#d0d0d0'}; }
+        .size-btn.active { background: ${isDark ? '#0000ff' : '#000000'}; color: #ffffff; border-color: ${isDark ? '#0000ff' : '#000000'}; }
         .cursor-dot {
-          position: fixed;
-          width: 10px;
-          height: 10px;
-          background: ${theme === 'light' ? '#000000' : '#ffffff'};
-          pointer-events: none;
-          z-index: 9999;
-          animation: cursorFade90s 0.6s linear forwards;
-          image-rendering: pixelated;
-          image-rendering: -moz-crisp-edges;
-          image-rendering: crisp-edges;
-          box-shadow: 
-            0 0 0 1px ${theme === 'light' ? '#333333' : '#cccccc'},
-            1px 1px 0 ${theme === 'light' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)'};
-        }
-        
-        @keyframes cursorFade90s {
-          0% {
-            opacity: 1;
-          }
-          40% {
-            opacity: 0.8;
-          }
-          70% {
-            opacity: 0.5;
-          }
-          100% {
-            opacity: 0;
-          }
-        }
-        
-        .loading-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: ${theme === 'light' ? '#c0c0c0' : '#2a2a2a'};
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          z-index: 10000;
-          animation: fadeIn 0.3s ease-in;
-        }
-        
-        .loading-logo {
-          width: 80px;
-          height: 80px;
-          margin-bottom: 24px;
-          opacity: 0.8;
+          position: fixed; width: 8px; height: 8px;
+          background: ${isDark ? '#ffffff' : '#000000'};
+          pointer-events: none; z-index: 9997;
+          animation: dotFade 0.6s linear forwards;
           image-rendering: pixelated;
         }
-        
-        .loading-text {
-          font-family: 'Space Mono', monospace;
-          font-size: 14px;
-          color: ${theme === 'light' ? '#000000' : '#e0e0e0'};
-          opacity: 0.6;
-          animation: pulse 1.5s ease-in-out infinite;
+        @keyframes dotFade { 0% { opacity: 0.9; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 0; transform: scale(0.4); } }
+        .drag-shadow {
+          position: fixed; width: ${cs.icon}px; height: ${cs.icon}px;
+          background: rgba(0,0,0,0.15); border: 2px dashed ${isDark ? '#888' : '#555'};
+          pointer-events: none; z-index: 9996; transform: translate(-50%, -50%);
         }
-        
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 0.4;
-          }
-          50% {
-            opacity: 0.8;
-          }
-        }
-        
         @media (max-width: 768px) {
-          .desktop-icon {
-            width: ${Math.max(70, currentSize.width * 0.8)}px;
-          }
-          .icon-label {
-            font-size: ${Math.max(9, currentSize.font - 1)}px;
-            max-width: ${Math.max(70, currentSize.width * 0.8)}px;
-          }
-          .menubar {
-            font-size: 11px;
-            padding: 0 4px;
-            gap: 8px;
-          }
-          .icon-size-label {
-            display: none;
-          }
-          .icon-size-button {
-            font-size: 10px;
-            padding: 2px 6px;
-            min-width: 24px;
-          }
-          .apple-menu-button {
-            font-size: 11px;
-            padding: 3px 8px;
-          }
+          .menubar { font-size: 11px; padding: 0 4px; }
+          .menu-btn { font-size: 11px; padding: 2px 8px; }
+          .clock { font-size: 11px; }
         }
       `}</style>
 
-      <div className="desktop desktop-fade-in">
-        {/* About Icon */}
-        <div
-          className={`desktop-icon ${selectedIcon === 'about' ? 'selected' : ''}`}
-          style={{
-            left: `${iconPositions.about.x}px`,
-            top: `${iconPositions.about.y}px`,
-          }}
-          onMouseDown={(e) => handleIconMouseDown(e, 'about')}
-          onTouchStart={(e) => handleIconTouchStart(e, 'about')}
-          onClick={() => handleIconClick('about')}
-          tabIndex={0}
-          role="button"
-          aria-label={t.desktopAbout}
-        >
-          <div className="icon-image">
-            <div className="document-icon"></div>
-          </div>
-          <div className="icon-label">{t.desktopAbout}</div>
-        </div>
+      <audio ref={audioRef} preload="auto"><source src="/audio/startup.mp3" type="audio/mpeg" /></audio>
 
-        {/* Why Web3 Icon */}
-        <div
-          className={`desktop-icon ${selectedIcon === 'why-web3' ? 'selected' : ''}`}
-          style={{
-            left: `${iconPositions['why-web3'].x}px`,
-            top: `${iconPositions['why-web3'].y}px`,
-          }}
-          onMouseDown={(e) => handleIconMouseDown(e, 'why-web3')}
-          onTouchStart={(e) => handleIconTouchStart(e, 'why-web3')}
-          onClick={() => handleIconClick('why-web3')}
-          tabIndex={0}
-          role="button"
-          aria-label={t.desktopWhyWeb3}
-        >
-          <div className="icon-image">
-            <div className="folder-icon"></div>
+      <div className="desktop desktop-fade-in" onClick={() => { setSelectedIcon(null); setStartMenuOpen(false) }}>
+        {iconDefs.map(({ id, type }) => (
+          <div
+            key={id}
+            className={`desktop-icon ${selectedIcon === id ? 'selected' : ''} ${draggingIcon === id ? 'dragging' : ''}`}
+            style={{ left: `${iconPositions[id]?.x ?? 20}px`, top: `${iconPositions[id]?.y ?? 20}px` }}
+            onMouseDown={(e) => { e.stopPropagation(); handleIconMouseDown(e, id) }}
+            onTouchStart={(e) => handleIconTouchStart(e, id)}
+            onClick={(e) => { e.stopPropagation(); handleIconClick(id) }}
+            onMouseEnter={() => { if (!draggingIcon) setCursorStyle('pointer') }}
+            onMouseLeave={() => { if (!draggingIcon) setCursorStyle('default') }}
+            tabIndex={0} role="button" aria-label={t[id]}
+            onKeyDown={(e) => { if (e.key === 'Enter') openWindow(id) }}
+          >
+            <div style={{ width: cs.icon, height: cs.icon }}>
+              {renderIcon(type, cs.icon)}
+            </div>
+            <div className="icon-label">{t[id]}</div>
           </div>
-          <div className="icon-label">{t.desktopWhyWeb3}</div>
-        </div>
-
-        {/* Data Governance Icon */}
-        <div
-          className={`desktop-icon ${selectedIcon === 'governance' ? 'selected' : ''}`}
-          style={{
-            left: `${iconPositions.governance.x}px`,
-            top: `${iconPositions.governance.y}px`,
-          }}
-          onMouseDown={(e) => handleIconMouseDown(e, 'governance')}
-          onTouchStart={(e) => handleIconTouchStart(e, 'governance')}
-          onClick={() => handleIconClick('governance')}
-          tabIndex={0}
-          role="button"
-          aria-label={t.desktopGovernance}
-        >
-          <div className="icon-image">
-            <div className="folder-icon"></div>
-          </div>
-          <div className="icon-label">{t.desktopGovernance}</div>
-        </div>
-
-        {/* Privacy Icon */}
-        <div
-          className={`desktop-icon ${selectedIcon === 'privacy' ? 'selected' : ''}`}
-          style={{
-            left: `${iconPositions.privacy.x}px`,
-            top: `${iconPositions.privacy.y}px`,
-          }}
-          onMouseDown={(e) => handleIconMouseDown(e, 'privacy')}
-          onTouchStart={(e) => handleIconTouchStart(e, 'privacy')}
-          onClick={() => handleIconClick('privacy')}
-          tabIndex={0}
-          role="button"
-          aria-label={t.desktopPrivacy}
-        >
-          <div className="icon-image">
-            <div className="lock-icon"></div>
-          </div>
-          <div className="icon-label">{t.desktopPrivacy}</div>
-        </div>
-
-        {/* Contact Icon */}
-        <div
-          className={`desktop-icon ${selectedIcon === 'contact' ? 'selected' : ''}`}
-          style={{
-            left: `${iconPositions.contact.x}px`,
-            top: `${iconPositions.contact.y}px`,
-          }}
-          onMouseDown={(e) => handleIconMouseDown(e, 'contact')}
-          onTouchStart={(e) => handleIconTouchStart(e, 'contact')}
-          onClick={() => handleIconClick('contact')}
-          tabIndex={0}
-          role="button"
-          aria-label={t.desktopContact}
-        >
-          <div className="icon-image">
-            <div className="envelope-icon"></div>
-          </div>
-          <div className="icon-label">{t.desktopContact}</div>
-        </div>
+        ))}
       </div>
 
-      {/* Menubar with menu button and icon size controls */}
-      <div className="menubar">
-        <div className="menubar-left">
-          <button
-            className={`apple-menu-button ${startMenuOpen ? 'open' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              setStartMenuOpen(!startMenuOpen)
-            }}
-            aria-label="Menu"
-            aria-expanded={startMenuOpen}
-          >
-            {t.startMenu}
-          </button>
-        </div>
-        
-        <div className="menubar-right">
-          <span className="icon-size-label">{t.iconSizeLabel}</span>
-          <button
-            className={`icon-size-button ${iconSize === 'small' ? 'active' : ''}`}
-            onClick={() => changeIconSize('small')}
-            aria-label="Small icons"
-          >
-            {t.iconSmall}
-          </button>
-          <button
-            className={`icon-size-button ${iconSize === 'medium' ? 'active' : ''}`}
-            onClick={() => changeIconSize('medium')}
-            aria-label="Medium icons"
-          >
-            {t.iconMedium}
-          </button>
-          <button
-            className={`icon-size-button ${iconSize === 'large' ? 'active' : ''}`}
-            onClick={() => changeIconSize('large')}
-            aria-label="Large icons"
-          >
-            {t.iconLarge}
-          </button>
-        </div>
-      </div>
-
-      {/* Apple menu pop-up */}
-      {startMenuOpen && (
-        <div className="apple-menu" onClick={(e) => e.stopPropagation()}>
-          <button
-            className="apple-menu-item"
-            onClick={() => {
-              toggleTheme()
-              setStartMenuOpen(false)
-            }}
-            aria-label={t.startTheme}
-          >
-            {t.startTheme}
-          </button>
-          
-          <button
-            className="apple-menu-item"
-            onClick={() => {
-              setLang(lang === 'en' ? 'cy' : 'en')
-              setStartMenuOpen(false)
-            }}
-            aria-label={t.startLang}
-          >
-            {t.startLang}
-          </button>
-          
-          <div className="apple-menu-separator" aria-hidden="true"></div>
-          
-          <button
-            className="apple-menu-item"
-            onClick={() => {
-              toggleCursorTrail()
-              setStartMenuOpen(false)
-            }}
-            aria-label={t.startTrail}
-          >
-            {t.startTrail}
-          </button>
-        </div>
+      {/* Drag shadow */}
+      {iconDragShadow && draggingIcon && iconDragHasMoved && (
+        <div className="drag-shadow" style={{ left: `${iconDragShadow.x}px`, top: `${iconDragShadow.y}px` }} />
       )}
-
-      {/* Cursor trail dots */}
-      {trailDots.map(dot => (
-        <div
-          key={dot.id}
-          className="cursor-dot"
-          style={{
-            left: `${dot.x}px`,
-            top: `${dot.y}px`,
-          }}
-        />
-      ))}
 
       {/* Windows */}
-      {openWindow === 'about' && (
-        <div className="window" role="dialog" aria-labelledby="about-title">
-          <div className="window-titlebar">
-            <div className="window-title" id="about-title">{t.aboutTitle}</div>
-            <button 
-              className="window-close"
-              onClick={() => setOpenWindow(null)}
-              aria-label={t.closeButton}
-            >
-              ×
+      {(Object.keys(windows) as WindowId[]).map((id) => {
+        const win = windows[id]
+        if (!win.isOpen) return null
+        return (
+          <div
+            key={id} className="window"
+            style={{ left: `${win.position.x}px`, top: `${win.position.y}px`, zIndex: win.zIndex }}
+            onClick={() => bringToFront(id)}
+          >
+            <div className="window-titlebar" onMouseDown={(e) => handleWindowTitlebarMouseDown(e, id)}>
+              <div className="window-title">{windowTitles[lang][id]}</div>
+              <button className="window-close" onClick={(e) => { e.stopPropagation(); closeWindow(id) }} aria-label={t.close}>×</button>
+            </div>
+            <div className="window-content">{renderWindowContent(id)}</div>
+          </div>
+        )
+      })}
+
+      {/* Menubar */}
+      <div className="menubar">
+        <div className="menubar-left">
+          <button className={`menu-btn ${startMenuOpen ? 'open' : ''}`} onClick={(e) => { e.stopPropagation(); setStartMenuOpen(!startMenuOpen) }} aria-label="Menu" aria-expanded={startMenuOpen}>
+            {t.menu}
+          </button>
+        </div>
+        <div className="menubar-right">
+          <span style={{ fontSize: '11px', color: subtle, marginRight: '4px' }}>{t.iconsLabel}</span>
+          {(['small', 'medium', 'large'] as const).map((s) => (
+            <button key={s} className={`size-btn ${iconSize === s ? 'active' : ''}`} onClick={() => changeIconSize(s)} aria-label={`${s} icons`}>
+              {s[0].toUpperCase()}
             </button>
-          </div>
-          <div className="window-content">
-            <p>{t.aboutText1}</p>
+          ))}
+          <div className="clock">{clock}</div>
+        </div>
+      </div>
 
-            <h2>{t.aboutProblem}</h2>
-            <p>{t.aboutProblemText}</p>
-            <ul>
-              {t.aboutPowerTypes.map((type, i) => (
-                <li key={i}><strong>{type.split(':')[0]}:</strong> {type.split(':')[1]}</li>
-              ))}
-            </ul>
-            <p>{t.aboutMargin}</p>
-
-            <h3>{t.aboutCardiff}</h3>
-            <p>{t.aboutCardiffText}</p>
-
-            <h2>{t.aboutMethod}</h2>
-            <p>{t.aboutMethodText}</p>
-
-            <h2>{t.aboutQuestions}</h2>
-            <ul>
-              {t.aboutQuestionsList.map((q, i) => (
-                <li key={i}>{q}</li>
-              ))}
-            </ul>
-
-            <p style={{ marginTop: '24px', fontSize: '12px', color: theme === 'light' ? '#666666' : '#999999' }}>
-              {t.aboutStatus}
-            </p>
-          </div>
+      {/* Start menu */}
+      {startMenuOpen && (
+        <div className="apple-menu" onClick={(e) => e.stopPropagation()}>
+          <button className="apple-menu-item" onClick={() => { toggleTheme(); setStartMenuOpen(false) }}>
+            {isDark ? t.lightMode : t.darkMode}
+          </button>
+          <button className="apple-menu-item" onClick={() => { setLang(lang === 'en' ? 'cy' : 'en'); setStartMenuOpen(false) }}>
+            {t.langSwitch}
+          </button>
+          <div className="apple-menu-sep" />
+          <button className="apple-menu-item" onClick={() => { toggleCursorTrail(); setStartMenuOpen(false) }}>
+            {cursorTrailEnabled ? t.trailOn : t.trailOff}
+          </button>
         </div>
       )}
 
-      {openWindow === 'contact' && (
-        <div className="window" role="dialog" aria-labelledby="contact-title">
-          <div className="window-titlebar">
-            <div className="window-title" id="contact-title">{t.contactTitle}</div>
-            <button 
-              className="window-close"
-              onClick={() => setOpenWindow(null)}
-              aria-label={t.closeButton}
-            >
-              ×
-            </button>
-          </div>
-          <div className="window-content">
-            <p><strong>{t.contactName}</strong></p>
-            <p>{t.contactRole}</p>
-            <p>{t.contactInst}</p>
-            <p><a href={`mailto:${t.contactEmail}`} style={{ textDecoration: 'underline', color: 'inherit' }}>{t.contactEmail}</a></p>
-            <p style={{ marginTop: '16px' }}>{t.contactAvail}</p>
-          </div>
-        </div>
-      )}
-
-      {openWindow === 'why-web3' && (
-        <div className="window" role="dialog" aria-labelledby="why-title">
-          <div className="window-titlebar">
-            <div className="window-title" id="why-title">{t.whyTitle}</div>
-            <button 
-              className="window-close"
-              onClick={() => setOpenWindow(null)}
-              aria-label={t.closeButton}
-            >
-              ×
-            </button>
-          </div>
-          <div className="window-content">
-            <p>{t.whyIntro}</p>
-
-            <h2>{t.whyWeb2Problem}</h2>
-            <p>{t.whyWeb2Text}</p>
-
-            <h2>{t.whyWeb3Enables}</h2>
-            <ul>
-              {t.whyWeb3Points.map((point, i) => (
-                <li key={i}><strong>{point.split(':')[0]}:</strong> {point.split(':')[1]}</li>
-              ))}
-            </ul>
-
-            <h2>{t.whyMechanisms}</h2>
-            <ul>
-              {t.whyMechanismsList.map((mech, i) => (
-                <li key={i}><strong>{mech.split(':')[0]}:</strong> {mech.split(':')[1]}</li>
-              ))}
-            </ul>
-
-            <h2>{t.whyLimitations}</h2>
-            <p>{t.whyLimitationsText}</p>
-          </div>
-        </div>
-      )}
-
-      {openWindow === 'governance' && (
-        <div className="window" role="dialog" aria-labelledby="gov-title">
-          <div className="window-titlebar">
-            <div className="window-title" id="gov-title">{t.govTitle}</div>
-            <button 
-              className="window-close"
-              onClick={() => setOpenWindow(null)}
-              aria-label={t.closeButton}
-            >
-              ×
-            </button>
-          </div>
-          <div className="window-content">
-            <p>{t.govIntro}</p>
-
-            <h2>{t.govWebsiteData}</h2>
-            <p>{t.govWebsiteText}</p>
-
-            <h2>{t.govResearchData}</h2>
-            <p>{t.govResearchText}</p>
-
-            <h2>{t.govQuestions}</h2>
-            <ul>
-              {t.govQuestionsList.map((q, i) => (
-                <li key={i}>{q}</li>
-              ))}
-            </ul>
-
-            <h2>{t.govCommitments}</h2>
-            <ul>
-              {t.govCommitmentsList.map((c, i) => (
-                <li key={i}>{c}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {openWindow === 'privacy' && (
-        <div className="window" role="dialog" aria-labelledby="privacy-title">
-          <div className="window-titlebar">
-            <div className="window-title" id="privacy-title">{t.privacyTitle}</div>
-            <button 
-              className="window-close"
-              onClick={() => setOpenWindow(null)}
-              aria-label={t.closeButton}
-            >
-              ×
-            </button>
-          </div>
-          <div className="window-content">
-            <p style={{ fontSize: '11px', color: theme === 'light' ? '#666666' : '#999999', marginBottom: '16px' }}>{t.privacyUpdated}</p>
-
-            <h2>{t.privacyCollect}</h2>
-            <p>{t.privacyCollectText}</p>
-
-            <h2>{t.privacyWhy}</h2>
-            <p>{t.privacyWhyText}</p>
-
-            <h2>{t.privacyStorage}</h2>
-            <p>{t.privacyStorageText}</p>
-
-            <h2>{t.privacyFuture}</h2>
-            <p>{t.privacyFutureText}</p>
-
-            <h2>{t.privacyRights}</h2>
-            <ul>
-              {t.privacyRightsList.map((right, i) => (
-                <li key={i}>{right}</li>
-              ))}
-            </ul>
-
-            <p style={{ marginTop: '24px', fontSize: '12px' }}>{t.privacyContact}</p>
-          </div>
-        </div>
-      )}
+      {/* Cursor trail */}
+      {trailDots.map(dot => (
+        <div key={dot.id} className="cursor-dot" style={{ left: `${dot.x}px`, top: `${dot.y}px` }} />
+      ))}
     </>
   )
 }
