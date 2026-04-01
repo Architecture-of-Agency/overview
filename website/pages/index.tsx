@@ -2136,7 +2136,7 @@ export default function Home() {
               ))}
             </div>
             <div className="window-titlebar" onMouseDown={(e) => handleWindowTitlebarMouseDown(e, id)}>
-              <div className="window-title">{({
+              <div className="window-title">{(({
                 'about': lang==='cy'?'Ymchwil PhD · Caerdydd':'PhD Research · Cardiff',
                 'why-web3': lang==='cy'?'Pam technoleg ddosbarthedig?':'Why distributed technology?',
                 'governance': lang==='cy'?'Pwy sy'n berchen ar y data?':'Who owns the data?',
@@ -2145,7 +2145,7 @@ export default function Home() {
                 'phd-development': lang==='cy'?'Cofnod byw o'r ymchwil':'A living research record',
                 'literature': lang==='cy'?'Ffynonellau allweddol':'Key sources',
                 'splott': lang==='cy'?'Y safle peilot':'The pilot site',
-              } as Record<string,string>)[id]}</div>
+              } as Record<WindowId,string>)[id])}</div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button className="window-minimise" onClick={(e) => { e.stopPropagation(); minimiseWindow(id) }} aria-label="Minimise">−</button>
                 <button className="window-close" onClick={(e) => { e.stopPropagation(); closeWindow(id) }} aria-label={t.close}>×</button>
