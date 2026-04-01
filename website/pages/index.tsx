@@ -318,313 +318,193 @@ export default function Home() {
     { id: 'splott',          type: 'mappin'   },
   ]
 
-  // All icons drawn on a 16×16 pixel grid, rendered as SVG rects.
-  // Each cell is (size/16) px. No transforms, no border-radius, no clip-path.
+  // Pixel-art SVG icons. shapeRendering="crispEdges" keeps everything sharp.
+  // All shapes use rect, polygon, or simple path — no transforms, no blur, no radius.
   const renderIcon = (type: IconType, s: number) => {
-    const u = s / 16 // one pixel unit
     const K = isDark
-
-    // Helper: render a filled rectangle in grid coordinates
-    const px = (x: number, y: number, w: number, h: number, fill: string, key?: string | number) => (
-      <rect key={key ?? `${x}-${y}`} x={x * u} y={y * u} width={w * u} height={h * u} fill={fill} />
-    )
-
-    const BLACK  = K ? '#cccccc' : '#000000'
-    const WHITE  = K ? '#2a2a2a' : '#ffffff'
-    const SHADOW = K ? '#111111' : '#888888'
 
     switch (type) {
 
       // ── Document ──────────────────────────────────────────────────────────────
-      // White page, black border, folded top-right corner, four text lines
-      case 'document': {
-        const PAGE  = K ? '#dddddd' : '#ffffff'
-        const LINES = K ? '#888888' : '#aaaaaa'
+      case 'document':
         return (
-          <svg width={s} height={s} viewBox={`0 0 16 16`} shapeRendering="crispEdges">
-            {/* Page body */}
-            {px(1,0,10,1,BLACK)}{px(1,1,10,1,PAGE)}
-            {px(1,1,1,14,BLACK)}{px(11,0,1,1,BLACK)}
-            {/* Folded corner — step down */}
-            {px(9,0,1,1,BLACK)}{px(10,0,1,1,BLACK)}
-            {px(10,1,1,1,BLACK)}{px(11,1,1,1,BLACK)}
-            {px(11,2,3,1,BLACK)}
-            {/* Right edge */}
-            {px(13,2,1,12,BLACK)}
-            {/* Bottom */}
-            {px(1,14,13,1,BLACK)}
-            {/* Fill */}
-            {px(2,2,11,12,PAGE)}
-            {/* Fold fill */}
-            {px(10,0,1,2,SHADOW)}{px(11,2,2,1,SHADOW)}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Page — folded top-right corner */}
+            <polygon points="4,0 32,0 44,12 44,48 4,48" fill={K ? '#dddddd' : '#ffffff'} />
+            <polygon points="4,0 32,0 44,12 44,48 4,48" fill="none" stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Fold corner triangle */}
+            <polygon points="32,0 44,12 32,12" fill={K ? '#aaaaaa' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
             {/* Text lines */}
-            {[4,6,8,10].map(y => px(3,y,8,1,LINES,y))}
+            {[18, 24, 30, 36].map(y => (
+              <rect key={y} x="10" y={y} width="26" height="3" fill={K ? '#888888' : '#aaaaaa'} />
+            ))}
             {/* Drop shadow */}
-            {px(2,15,13,1,SHADOW)}{px(14,1,1,14,SHADOW)}
+            <rect x="6" y="50" width="40" height="3" fill={K ? '#111111' : '#999999'} />
+            <rect x="46" y="2" width="3" height="48" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Globe with 3 ─────────────────────────────────────────────────────────
-      // Round globe shape built from rects, latitude/longitude grid, bold 3
-      case 'globe3': {
-        const OCEAN = K ? '#1155aa' : '#2266cc'
-        const GRID  = K ? '#4488dd' : '#5599ee'
-        const NUM   = '#ffffff'
-        // Globe outline — approximate circle with rects
-        const globeRows: Array<[number,number,number]> = [
-          [5,0,6],[3,1,10],[2,2,12],[1,3,14],[1,4,14],
-          [1,5,14],[1,6,14],[1,7,14],[1,8,14],[1,9,14],
-          [1,10,14],[2,11,12],[3,12,10],[5,13,6],
-        ]
-        // Latitude lines at rows 4, 7, 10 (inside globe only)
-        const latRows = [4,7,10]
-        // Longitude cols at 5, 8, 11
-        const lonCols = [5,8,11]
+      case 'globe3':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
-            {/* Fill ocean */}
-            {globeRows.map(([x,y,w]) => px(x,y,w,1,OCEAN,`o${y}`))}
-            {/* Latitude grid lines */}
-            {globeRows.map(([x,y,w]) =>
-              latRows.includes(y) ? px(x,y,w,1,GRID,`lat${y}`) : null
-            )}
-            {/* Longitude grid lines — only inside globe rows */}
-            {globeRows.map(([x,y,w]) =>
-              lonCols.map(col =>
-                col >= x && col < x+w ? px(col,y,1,1,GRID,`lon${col}-${y}`) : null
-              )
-            )}
-            {/* Outline */}
-            {globeRows.map(([x,y,w]) => [
-              px(x,y,1,1,BLACK,`ol${y}`),
-              px(x+w-1,y,1,1,BLACK,`or${y}`),
-            ])}
-            {px(5,0,6,1,BLACK,'ot')}{px(5,13,6,1,BLACK,'ob')}
-            {/* Bold pixel "3" — centred, 4×6 grid at cols 5–8, rows 4–9 */}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Globe body — circle approximated as octagon for pixel feel */}
+            <polygon
+              points="16,2 32,2 46,16 46,32 32,46 16,46 2,32 2,16"
+              fill={K ? '#1144aa' : '#2255cc'}
+              stroke={K ? '#cccccc' : '#000000'}
+              strokeWidth="2"
+            />
+            {/* Latitude lines */}
+            <rect x="2"  y="16" width="44" height="3" fill={K ? '#3366cc' : '#4477dd'} />
+            <rect x="2"  y="28" width="44" height="3" fill={K ? '#3366cc' : '#4477dd'} />
+            {/* Longitude lines */}
+            <rect x="16" y="2"  width="3"  height="44" fill={K ? '#3366cc' : '#4477dd'} />
+            <rect x="28" y="2"  width="3"  height="44" fill={K ? '#3366cc' : '#4477dd'} />
+            {/* Bold "3" — pixel font style */}
             {/* Top bar */}
-            {px(5,4,4,1,NUM,'3a')}
-            {/* Middle right */}
-            {px(8,5,1,1,NUM,'3b')}
+            <rect x="17" y="13" width="14" height="4" fill="#ffffff" />
+            {/* Upper right stem */}
+            <rect x="27" y="17" width="4"  height="5"  fill="#ffffff" />
             {/* Middle bar */}
-            {px(6,6,3,1,NUM,'3c')}
-            {/* Lower right */}
-            {px(8,7,1,1,NUM,'3d')}{px(8,8,1,1,NUM,'3e')}
+            <rect x="19" y="22" width="12" height="4" fill="#ffffff" />
+            {/* Lower right stem */}
+            <rect x="27" y="26" width="4"  height="5"  fill="#ffffff" />
             {/* Bottom bar */}
-            {px(5,9,4,1,NUM,'3f')}
-            {/* Bottom-left corner pixel */}
-            {px(5,8,1,1,NUM,'3g')}
-            {/* Drop shadow row */}
-            {px(5,14,6,1,SHADOW,'gs')}
-            {px(15,0,1,14,SHADOW,'gsr')}
+            <rect x="17" y="31" width="14" height="4" fill="#ffffff" />
+            {/* Drop shadow */}
+            <rect x="4"  y="48" width="44" height="3" fill={K ? '#111111' : '#999999'} />
+            <rect x="48" y="4"  width="3"  height="44" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Filing cabinet ────────────────────────────────────────────────────────
-      // Tall rect body, three drawer bands, small handle rect centred in each
-      case 'cabinet': {
-        const BODY   = K ? '#777777' : '#aaaaaa'
-        const DRAWER = K ? '#999999' : '#cccccc'
-        const HANDLE = K ? '#bbbbbb' : '#888888'
+      case 'cabinet':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
-            {/* Body border */}
-            {px(1,0,14,1,BLACK)}{px(1,15,14,1,BLACK)}
-            {px(1,0,1,16,BLACK)}{px(14,0,1,16,BLACK)}
-            {/* Body fill */}
-            {px(2,1,12,14,BODY)}
-            {/* Drawer 1 — rows 1–4 */}
-            {px(3,2,10,3,DRAWER)}
-            {px(3,2,10,1,BLACK)}{px(3,4,10,1,BLACK)}
-            {px(3,2,1,3,BLACK)}{px(12,2,1,3,BLACK)}
-            {/* Handle 1 */}
-            {px(6,3,4,1,HANDLE)}
-            {/* Drawer 2 — rows 6–9 */}
-            {px(3,6,10,3,DRAWER)}
-            {px(3,6,10,1,BLACK)}{px(3,8,10,1,BLACK)}
-            {px(3,6,1,3,BLACK)}{px(12,6,1,3,BLACK)}
-            {/* Handle 2 */}
-            {px(6,7,4,1,HANDLE)}
-            {/* Drawer 3 — rows 10–13 */}
-            {px(3,10,10,3,DRAWER)}
-            {px(3,10,10,1,BLACK)}{px(3,12,10,1,BLACK)}
-            {px(3,10,1,3,BLACK)}{px(12,10,1,3,BLACK)}
-            {/* Handle 3 */}
-            {px(6,11,4,1,HANDLE)}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Cabinet body */}
+            <rect x="2" y="2" width="42" height="44" fill={K ? '#777777' : '#aaaaaa'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Drawer 1 */}
+            <rect x="6"  y="5"  width="34" height="11" fill={K ? '#999999' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
+            <rect x="17" y="9"  width="12" height="3"  fill={K ? '#bbbbbb' : '#888888'} />
+            {/* Drawer 2 */}
+            <rect x="6"  y="19" width="34" height="11" fill={K ? '#999999' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
+            <rect x="17" y="23" width="12" height="3"  fill={K ? '#bbbbbb' : '#888888'} />
+            {/* Drawer 3 */}
+            <rect x="6"  y="33" width="34" height="11" fill={K ? '#999999' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
+            <rect x="17" y="37" width="12" height="3"  fill={K ? '#bbbbbb' : '#888888'} />
             {/* Drop shadow */}
-            {px(2,16,14,1,SHADOW,'csh')}{px(15,1,1,15,SHADOW,'csv')}
+            <rect x="4"  y="48" width="42" height="3" fill={K ? '#111111' : '#999999'} />
+            <rect x="46" y="4"  width="3"  height="44" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Lock ──────────────────────────────────────────────────────────────────
-      // Pixel shackle (open U shape), gold body below
-      case 'lock': {
-        const GOLD   = K ? '#cc9900' : '#ffcc00'
-        const SHACKLE = K ? '#aaaaaa' : '#888888'
+      case 'lock':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
             {/* Shackle — left post */}
-            {px(4,1,2,1,BLACK)}{px(4,2,2,6,SHACKLE)}{px(4,8,2,1,BLACK)}
+            <rect x="10" y="4"  width="8" height="22" fill={K ? '#aaaaaa' : '#888888'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
             {/* Shackle — right post */}
-            {px(10,1,2,1,BLACK)}{px(10,2,2,6,SHACKLE)}{px(10,8,2,1,BLACK)}
+            <rect x="30" y="4"  width="8" height="22" fill={K ? '#aaaaaa' : '#888888'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
             {/* Shackle — top bar */}
-            {px(6,1,4,1,BLACK)}{px(6,2,4,1,SHACKLE)}{px(6,1,4,1,BLACK)}
-            {px(5,1,1,1,BLACK)}{px(5,2,1,1,SHACKLE)}
-            {px(10,1,1,1,BLACK)}{px(10,2,1,1,SHACKLE)}
-            {/* Lock body border */}
-            {px(2,8,12,1,BLACK)}{px(2,14,12,1,BLACK)}
-            {px(2,8,1,7,BLACK)}{px(13,8,1,7,BLACK)}
-            {/* Lock body fill */}
-            {px(3,9,10,5,GOLD)}
-            {/* Keyhole — dark circle then slot */}
-            {px(7,10,2,1,BLACK)}{px(6,11,4,1,BLACK)}{px(7,12,2,1,BLACK)}
-            {px(7,11,2,2,BLACK)}
+            <rect x="10" y="4"  width="28" height="8" fill={K ? '#aaaaaa' : '#888888'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Lock body */}
+            <rect x="4"  y="24" width="40" height="22" fill={K ? '#cc9900' : '#ffcc00'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Keyhole circle */}
+            <rect x="20" y="30" width="8" height="6" fill={K ? '#111111' : '#000000'} />
+            {/* Keyhole slot */}
+            <rect x="22" y="36" width="4" height="5" fill={K ? '#111111' : '#000000'} />
             {/* Drop shadow */}
-            {px(3,15,11,1,SHADOW)}{px(14,9,1,6,SHADOW)}
+            <rect x="6"  y="48" width="40" height="3" fill={K ? '#111111' : '#999999'} />
+            <rect x="46" y="26" width="3"  height="22" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Envelope ──────────────────────────────────────────────────────────────
-      // Rectangular body, V-flap on top in contrasting colour
-      case 'envelope': {
-        const BODY = K ? '#dddddd' : '#ffffff'
-        const FLAP = K ? '#cc4444' : '#dd4444'
-        const FOLD = K ? '#aa2222' : '#bb2222'
+      case 'envelope':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
-            {/* Body border */}
-            {px(0,4,16,1,BLACK)}{px(0,14,16,1,BLACK)}
-            {px(0,4,1,11,BLACK)}{px(15,4,1,11,BLACK)}
-            {/* Body fill */}
-            {px(1,5,14,9,BODY)}
-            {/* Flap — V shape built from rows */}
-            {px(0,4,16,1,FLAP)}
-            {px(1,5,1,1,FLAP)}{px(14,5,1,1,FLAP)}
-            {px(2,6,1,1,FLAP)}{px(13,6,1,1,FLAP)}
-            {px(3,7,1,1,FLAP)}{px(12,7,1,1,FLAP)}
-            {px(4,8,1,1,FLAP)}{px(11,8,1,1,FLAP)}
-            {px(5,9,1,1,FLAP)}{px(10,9,1,1,FLAP)}
-            {px(6,10,1,1,FLAP)}{px(9,10,1,1,FLAP)}
-            {px(7,11,2,1,FOLD)}
-            {/* Bottom fold lines */}
-            {px(1,13,6,1,BLACK,'bl')}{px(9,13,6,1,BLACK,'br')}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Body */}
+            <rect x="2" y="12" width="44" height="32" fill={K ? '#dddddd' : '#ffffff'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* V flap — two diagonal lines meeting at centre bottom */}
+            <polygon points="2,12 24,30 46,12" fill={K ? '#cc4444' : '#dd3333'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Bottom fold seam lines */}
+            <rect x="2"  y="38" width="18" height="2" fill={K ? '#aaaaaa' : '#cccccc'} />
+            <rect x="28" y="38" width="18" height="2" fill={K ? '#aaaaaa' : '#cccccc'} />
             {/* Drop shadow */}
-            {px(1,15,15,1,SHADOW)}{px(15,5,1,10,SHADOW)}
+            <rect x="4"  y="46" width="44" height="3" fill={K ? '#111111' : '#999999'} />
+            <rect x="48" y="14" width="3"  height="32" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Pencil ────────────────────────────────────────────────────────────────
-      // Vertical pencil: eraser top, metal band, yellow body, wood tip, dark nib
-      // All axis-aligned — no rotation, no transforms
-      case 'pencil': {
-        const ERASER = K ? '#dd8888' : '#ff9999'
-        const BAND   = K ? '#999999' : '#aaaaaa'
-        const BODY   = K ? '#ddaa00' : '#ffdd00'
-        const WOOD   = K ? '#cc8844' : '#ddaa66'
-        const NIB    = K ? '#555555' : '#333333'
+      // Vertical pencil — all axis-aligned, no rotation
+      case 'pencil':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
-            {/* Eraser — rows 0–1 */}
-            {px(5,0,6,1,BLACK)}{px(5,1,6,1,ERASER)}{px(5,2,6,1,ERASER)}
-            {px(5,0,1,3,BLACK)}{px(10,0,1,3,BLACK)}
-            {/* Metal band — rows 3–4 */}
-            {px(5,3,6,1,BAND)}{px(5,4,6,1,BAND)}
-            {px(5,3,1,2,BLACK)}{px(10,3,1,2,BLACK)}
-            {/* Body — rows 5–11 */}
-            {px(5,5,1,7,BLACK)}{px(10,5,1,7,BLACK)}
-            {px(6,5,4,7,BODY)}
-            {/* Highlight stripe on body */}
-            {px(9,5,1,7,K ? '#eecc44' : '#ffe040')}
-            {/* Wood taper — rows 12–13 */}
-            {px(5,12,6,1,BLACK)}
-            {px(6,12,4,1,WOOD)}
-            {px(6,13,1,1,BLACK)}{px(9,13,1,1,BLACK)}
-            {px(7,13,2,1,WOOD)}
-            {/* Nib — row 14 */}
-            {px(7,14,2,1,BLACK)}
-            {px(7,15,2,1,NIB)}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Eraser top */}
+            <rect x="14" y="2"  width="20" height="7"  fill={K ? '#dd8888' : '#ff9999'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Metal band */}
+            <rect x="14" y="9"  width="20" height="5"  fill={K ? '#aaaaaa' : '#bbbbbb'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1" />
+            {/* Body */}
+            <rect x="14" y="14" width="20" height="22" fill={K ? '#ddaa00' : '#ffdd00'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Highlight stripe */}
+            <rect x="28" y="14" width="4"  height="22" fill={K ? '#eebb22' : '#ffee44'} />
+            {/* Wood taper — trapezoid using polygon */}
+            <polygon points="14,36 34,36 30,44 18,44" fill={K ? '#cc8844' : '#ddaa66'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            {/* Nib */}
+            <polygon points="18,44 30,44 24,48" fill={K ? '#555555' : '#333333'} />
             {/* Drop shadow */}
-            {px(6,16,5,1,SHADOW)}{px(11,1,1,15,SHADOW)}
+            <rect x="16" y="48" width="20" height="2" fill={K ? '#111111' : '#999999'} />
+            <rect x="36" y="4"  width="3"  height="44" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Books ─────────────────────────────────────────────────────────────────
-      // Three books stacked flat, seen from above/side — each a different colour
-      // with a spine stripe on the left
-      case 'books': {
-        const B1 = { cover: K?'#4466aa':'#5577cc', spine: K?'#2244aa':'#3355bb', page: K?'#bbccff':'#ddeeff' }
-        const B2 = { cover: K?'#aa4444':'#cc5555', spine: K?'#882222':'#aa3333', page: K?'#ffbbbb':'#ffdddd' }
-        const B3 = { cover: K?'#448844':'#559955', spine: K?'#226622':'#337733', page: K?'#bbffbb':'#ddffdd' }
-        const books = [B1,B2,B3]
-        const tops = [1,6,11]
+      // Three books stacked, viewed from slight angle — different colours
+      case 'books':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
-            {books.map((b, i) => {
-              const y = tops[i]
-              return (
-                <g key={i}>
-                  {/* Top border */}
-                  {px(1,y,14,1,BLACK,`bt${i}`)}
-                  {/* Bottom border */}
-                  {px(1,y+3,14,1,BLACK,`bb${i}`)}
-                  {/* Left/right borders */}
-                  {px(1,y,1,4,BLACK,`bl${i}`)}{px(14,y,1,4,BLACK,`br${i}`)}
-                  {/* Spine */}
-                  {px(2,y+1,2,2,b.spine,`bs${i}`)}
-                  {/* Cover fill */}
-                  {px(4,y+1,10,2,b.cover,`bc${i}`)}
-                  {/* Page edge on right */}
-                  {px(13,y+1,1,2,b.page,`bp${i}`)}
-                  {/* Drop shadow */}
-                  {px(2,y+4,13,1,SHADOW,`bsh${i}`)}
-                </g>
-              )
-            })}
-            {/* Right-side shadow column */}
-            {px(15,2,1,13,SHADOW,'bsv')}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Book 3 — bottom */}
+            <rect x="4"  y="34" width="40" height="12" fill={K ? '#4466aa' : '#5577cc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            <rect x="4"  y="34" width="6"  height="12" fill={K ? '#2244aa' : '#3355bb'} />
+            <rect x="38" y="34" width="6"  height="12" fill={K ? '#8899ee' : '#aabbff'} />
+            {/* Book 2 — middle */}
+            <rect x="4"  y="20" width="40" height="12" fill={K ? '#aa4444' : '#cc5555'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            <rect x="4"  y="20" width="6"  height="12" fill={K ? '#882222' : '#aa3333'} />
+            <rect x="38" y="20" width="6"  height="12" fill={K ? '#ee8888' : '#ffaaaa'} />
+            {/* Book 1 — top */}
+            <rect x="4"  y="6"  width="40" height="12" fill={K ? '#448844' : '#559955'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            <rect x="4"  y="6"  width="6"  height="12" fill={K ? '#226622' : '#337733'} />
+            <rect x="38" y="6"  width="6"  height="12" fill={K ? '#88ee88' : '#aaffaa'} />
+            {/* Drop shadow */}
+            <rect x="6"  y="48" width="40" height="2" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
 
       // ── Map pin ───────────────────────────────────────────────────────────────
-      // Diamond head (wide rect + pointed bottom), stem, base dot
-      // All rects, no border-radius, no rotation
-      case 'mappin': {
-        const HEAD  = K ? '#cc2222' : '#ee3333'
-        const LIGHT = K ? '#ee6666' : '#ff8888'
+      // Round head, triangular point, thin stem — all clean shapes
+      case 'mappin':
         return (
-          <svg width={s} height={s} viewBox="0 0 16 16" shapeRendering="crispEdges">
-            {/* Pin head — wide oval approximated with rects */}
-            {px(5,0,6,1,BLACK,'ph0')}
-            {px(3,1,10,1,BLACK,'ph1')}{px(4,1,8,1,HEAD,'phf1')}{px(4,1,2,1,LIGHT,'phl1')}
-            {px(2,2,12,1,BLACK,'ph2')}{px(3,2,10,1,HEAD,'phf2')}{px(3,2,2,1,LIGHT,'phl2')}
-            {px(2,3,12,1,BLACK,'ph3')}{px(3,3,10,1,HEAD,'phf3')}
-            {px(2,4,12,1,BLACK,'ph4')}{px(3,4,10,1,HEAD,'phf4')}
-            {px(3,5,10,1,BLACK,'ph5')}{px(4,5,8,1,HEAD,'phf5')}
-            {px(4,6,8,1,BLACK,'ph6')}{px(5,6,6,1,HEAD,'phf6')}
-            {/* Taper to point */}
-            {px(5,7,6,1,BLACK,'pt0')}{px(6,7,4,1,HEAD,'ptf0')}
-            {px(6,8,4,1,BLACK,'pt1')}{px(7,8,2,1,HEAD,'ptf1')}
-            {px(7,9,2,1,BLACK,'pt2')}
-            {px(7,10,2,1,BLACK,'pt3')}
-            {/* Stem */}
-            {px(7,11,2,1,BLACK,'st0')}
-            {px(7,12,2,1,BLACK,'st1')}
-            {px(7,13,2,1,BLACK,'st2')}
-            {/* Base */}
-            {px(5,14,6,1,BLACK,'base')}{px(6,14,4,1,SHADOW,'basef')}
-            {/* White highlight dot on head */}
-            {px(5,2,2,1,'#ffffff','hl')}
+          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
+            {/* Pin head — circle as octagon for pixel feel */}
+            <polygon
+              points="16,2 32,2 42,10 42,26 32,34 16,34 6,26 6,10"
+              fill={K ? '#cc2222' : '#ee3333'}
+              stroke={K ? '#cccccc' : '#000000'}
+              strokeWidth="2"
+            />
+            {/* Highlight */}
+            <rect x="12" y="8" width="10" height="6" fill={K ? '#ee6666' : '#ff8888'} />
+            {/* White dot */}
+            <rect x="14" y="10" width="6" height="4" fill={K ? '#ffaaaa' : '#ffffff'} />
+            {/* Triangular point below head */}
+            <polygon points="16,34 32,34 24,46" fill={K ? '#cc2222' : '#ee3333'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
             {/* Drop shadow */}
-            {px(4,15,8,1,SHADOW,'mps')}
+            <rect x="16" y="46" width="16" height="3" fill={K ? '#111111' : '#999999'} />
           </svg>
         )
-      }
     }
   }
 
