@@ -1781,7 +1781,7 @@ export default function Home() {
               <rect x={x+4} y="103" width="1" height="11" fill={isDark?(litL?'#aa8833':'#111'):'#5577aa'}/>
               {isDark&&litU&&<rect x={x-3} y="83" width="15" height="16" fill="#ffcc44" opacity="0.16" filter="url(#glow-win)"/>}
               {isDark&&litL&&<rect x={x-3} y="100" width="15" height="16" fill="#ffaa33" opacity="0.16" filter="url(#glow-win)"/>}
-            </g>)}
+            </g>)
           })}
           {[695,725,755,780].map(x=>(
             <rect key={x} x={x} y="64" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
@@ -1869,7 +1869,7 @@ export default function Home() {
               <rect x={x+4} y="101" width="1" height="11" fill={isDark?(litL?'#aa8833':'#111'):'#5577aa'}/>
               {isDark&&litU&&<rect x={x-3} y="81" width="15" height="16" fill="#ffcc44" opacity="0.16" filter="url(#glow-win)"/>}
               {isDark&&litL&&<rect x={x-3} y="98" width="15" height="16" fill="#ffaa33" opacity="0.16" filter="url(#glow-win)"/>}
-            </g>)}
+            </g>)
           })}
           {[1120,1150,1178].map(x=>(
             <rect key={x} x={x} y="62" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
