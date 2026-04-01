@@ -1376,6 +1376,17 @@ export default function Home() {
     <rect x='5' y='14' width='6' height='1' fill='${MID}'/>
   </svg>`)}`
 
+  const windowSubtitles: Record<WindowId, string> = {
+    'about':           lang==='cy' ? 'Ymchwil PhD · Caerdydd'            : 'PhD Research · Cardiff',
+    'why-web3':        lang==='cy' ? 'Pam technoleg ddosbarthedig?'       : 'Why distributed technology?',
+    'governance':      lang==='cy' ? "Pwy sy'n berchen ar y data?"        : 'Who owns the data?',
+    'privacy':         lang==='cy' ? 'Beth rydym yn ei gasglu'            : 'What we collect',
+    'contact':         lang==='cy' ? "Cysylltu â'r ymchwilydd"            : 'Get in touch',
+    'phd-development': lang==='cy' ? "Cofnod byw o'r ymchwil"             : 'A living research record',
+    'literature':      lang==='cy' ? 'Ffynonellau allweddol'              : 'Key sources',
+    'splott':          lang==='cy' ? 'Y safle peilot'                     : 'The pilot site',
+  }
+
   const cursorCSS = {
     default:  `url("${cursorArrow}") 0 0, default`,
     pointer:  `url("${cursorPointer}") 4 0, pointer`,
@@ -2136,16 +2147,7 @@ export default function Home() {
               ))}
             </div>
             <div className="window-titlebar" onMouseDown={(e) => handleWindowTitlebarMouseDown(e, id)}>
-              <div className="window-title">{(({
-                'about': lang==='cy'?'Ymchwil PhD · Caerdydd':'PhD Research · Cardiff',
-                'why-web3': lang==='cy'?'Pam technoleg ddosbarthedig?':'Why distributed technology?',
-                'governance': lang==='cy'?'Pwy sy'n berchen ar y data?':'Who owns the data?',
-                'privacy': lang==='cy'?'Beth rydym yn ei gasglu':'What we collect',
-                'contact': lang==='cy'?'Cysylltu â'r ymchwilydd':'Get in touch',
-                'phd-development': lang==='cy'?'Cofnod byw o'r ymchwil':'A living research record',
-                'literature': lang==='cy'?'Ffynonellau allweddol':'Key sources',
-                'splott': lang==='cy'?'Y safle peilot':'The pilot site',
-              } as Record<WindowId,string>)[id])}</div>
+              <div className="window-title">{windowSubtitles[id]}</div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button className="window-minimise" onClick={(e) => { e.stopPropagation(); minimiseWindow(id) }} aria-label="Minimise">−</button>
                 <button className="window-close" onClick={(e) => { e.stopPropagation(); closeWindow(id) }} aria-label={t.close}>×</button>
