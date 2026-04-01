@@ -1906,12 +1906,8 @@ export default function Home() {
 
         {/* ── ANIMATED ELEMENTS — positioned over SVG ── */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          {/* Pedestrian layer — behind vehicles */}
+          {/* Vehicles — rendered first so pedestrians appear on top */}
           <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-
-          </div>{/* end pedestrian layer */}
-          {/* Vehicle layer — in front of pedestrians */}
-          <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
           {/* Cardiff Bus going RIGHT — red double decker */}
           <div className="bus-r" style={{ position: 'absolute', bottom: '42px', animationDuration: '26s', animationDelay: '0s' }}>
             <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
@@ -1972,6 +1968,11 @@ export default function Home() {
           </div>
 
           {/* Person 1 walking right — dog walker */}
+          </div>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
+          </div>
+          {/* Pedestrians — rendered on top of vehicles */}
+          <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
           <div className="walk-r" style={{ position: 'absolute', bottom: '50px', animationDuration: '35s', animationDelay: '-5s' }}>
             <svg width="40" height="28" viewBox="0 0 40 28" shapeRendering="crispEdges">
               <rect x="14" y="2"  width="5" height="5" fill="#ddbb88"/>
@@ -2098,7 +2099,7 @@ export default function Home() {
           </div>
 
           </div>{/* end vehicle layer */}
-
+          </div>
         </div>
       </div>
 
