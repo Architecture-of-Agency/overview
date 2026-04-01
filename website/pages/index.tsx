@@ -646,10 +646,7 @@ export default function Home() {
         </audio>
 
         <div className="loading-screen">
-          <img 
-            src="/leol-logo.png" 
-            alt="Leol Lab" 
-            className="loading-logo"
+        
           />
           <div className="loading-text">Starting up...</div>
         </div>
