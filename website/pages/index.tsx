@@ -647,7 +647,6 @@ export default function Home() {
 
         <div className="loading-screen">
         
-          />
           <div className="loading-text">Starting up...</div>
         </div>
       </>
