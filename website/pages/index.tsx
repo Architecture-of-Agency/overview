@@ -24,6 +24,7 @@ function snapToGrid(value: number): number {
 export default function Home() {
   const [hasEntered, setHasEntered] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [bootMessages, setBootMessages] = useState<string[]>([])
   const [lang, setLang] = useState('en')
   const [theme, setTheme] = useState('light')
   const [mounted, setMounted] = useState(false)
@@ -36,6 +37,7 @@ export default function Home() {
   const [clock, setClock] = useState('')
   const [cursorStyle, setCursorStyle] = useState<'default' | 'pointer' | 'grab' | 'grabbing'>('default')
   const [lastClickTime, setLastClickTime] = useState(0)
+  const [minimisedWindows, setMinimisedWindows] = useState<WindowId[]>([])
 
   const [windows, setWindows] = useState<Record<WindowId, WindowState>>({
     'about':          { id: 'about',          zIndex: 10, position: { x: 80,  y: 60  }, isOpen: false },
@@ -211,9 +213,20 @@ export default function Home() {
   const openWindow = (id: WindowId) => {
     const newZ = topZIndex + 1; setTopZIndex(newZ)
     setWindows(prev => ({ ...prev, [id]: { ...prev[id], isOpen: true, zIndex: newZ } }))
+    setMinimisedWindows(prev => prev.filter(w => w !== id))
   }
   const closeWindow = (id: WindowId) => {
     setWindows(prev => ({ ...prev, [id]: { ...prev[id], isOpen: false } }))
+    setMinimisedWindows(prev => prev.filter(w => w !== id))
+  }
+  const minimiseWindow = (id: WindowId) => {
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], isOpen: false } }))
+    setMinimisedWindows(prev => prev.includes(id) ? prev : [...prev, id])
+  }
+  const restoreWindow = (id: WindowId) => {
+    const newZ = topZIndex + 1; setTopZIndex(newZ)
+    setWindows(prev => ({ ...prev, [id]: { ...prev[id], isOpen: true, zIndex: newZ } }))
+    setMinimisedWindows(prev => prev.filter(w => w !== id))
   }
   const bringToFront = (id: WindowId) => {
     const newZ = topZIndex + 1; setTopZIndex(newZ)
@@ -242,8 +255,31 @@ export default function Home() {
     localStorage.setItem('analytics_consent', accepted ? 'accepted' : 'declined')
     localStorage.setItem('has_entered', 'true')
     setIsLoading(true)
+    setBootMessages([])
     if (audioRef.current) audioRef.current.play().catch(() => {})
-    setTimeout(() => { setHasEntered(true); setIsLoading(false) }, 3500)
+
+    const messages = [
+      'Architecture of Agency OS v1.0',
+      'Checking memory... OK',
+      'Loading extensions...',
+      'Mounting volumes... OK',
+      'Initialising community protocols...',
+      'Loading ZK credential layer...',
+      'Connecting to Cardiff Council... OK',
+      'Loading Splott community data...',
+      'Applying Design Justice framework...',
+      'Welcome.',
+    ]
+    messages.forEach((msg, i) => {
+      setTimeout(() => {
+        setBootMessages(prev => [...prev, msg])
+      }, i * 300)
+    })
+
+    setTimeout(() => {
+      setHasEntered(true)
+      setIsLoading(false)
+    }, 3500)
   }
   const toggleTheme = () => {
     const n = theme === 'light' ? 'dark' : 'light'; setTheme(n); localStorage.setItem('theme', n)
@@ -354,66 +390,61 @@ export default function Home() {
 
       // ── Globe with 3 ─────────────────────────────────────────────────────────
       case 'globe3': {
-        const O1=K?'#88aaff':'#aabbff', O2=K?'#2255cc':'#3366dd', O3=K?'#0033aa':'#1144bb', O4=K?'#001166':'#002288'
-        const G1=K?'#66aa66':'#88cc88', G2=K?'#336633':'#448844', G3=K?'#224422':'#335533'
+        // Proper stepped-shading globe — circle built from variable-width rows
+        const O1=K?'#aabbff':'#bbccff', O2=K?'#3366dd':'#4477ee'
+        const O3=K?'#1144bb':'#2255cc', O4=K?'#002288':'#0033aa'
+        const G1=K?'#88cc88':'#aaddaa', G2=K?'#448844':'#559955', G3=K?'#335533':'#224422'
         const BK=K?'#cccccc':'#000000'
+        // Each row: [x_start, width] approximating a circle on 32x32 grid
+        const rows:[number,number][]=[
+          [10,12],[7,18],[5,22],[3,26],[2,28],[1,30],[1,30],[1,30],[1,30],[1,30],
+          [1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],
+          [1,30],[1,30],[1,30],[1,30],[1,30],[2,28],[3,26],[5,22],[7,18],[10,12],
+        ]
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Circle outline */}
-            <rect x="8"  y="1"  width="16" height="1" fill={BK}/>
-            <rect x="5"  y="2"  width="22" height="1" fill={BK}/>
-            <rect x="3"  y="3"  width="26" height="1" fill={BK}/>
-            <rect x="2"  y="4"  width="28" height="1" fill={BK}/>
-            <rect x="1"  y="5"  width="30" height="1" fill={BK}/>
-            <rect x="1"  y="26" width="30" height="1" fill={BK}/>
-            <rect x="2"  y="27" width="28" height="1" fill={BK}/>
-            <rect x="3"  y="28" width="26" height="1" fill={BK}/>
-            <rect x="5"  y="29" width="22" height="1" fill={BK}/>
-            <rect x="8"  y="30" width="16" height="1" fill={BK}/>
-            <rect x="1"  y="5"  width="1"  height="22" fill={BK}/>
-            <rect x="30" y="5"  width="1"  height="22" fill={BK}/>
-            <rect x="2"  y="4"  width="1"  height="24" fill={BK}/>
-            <rect x="29" y="4"  width="1"  height="24" fill={BK}/>
             {/* Ocean fill */}
-            <rect x="3"  y="4"  width="26" height="24" fill={O2}/>
-            <rect x="2"  y="5"  width="28" height="22" fill={O2}/>
-            {/* Highlight — top left */}
-            <rect x="3"  y="4"  width="10" height="2"  fill={O1}/>
-            <rect x="3"  y="6"  width="8"  height="3"  fill={O1}/>
-            <rect x="2"  y="9"  width="6"  height="2"  fill={O1}/>
-            {/* Shadow — bottom right */}
-            <rect x="22" y="22" width="6"  height="4"  fill={O3}/>
-            <rect x="20" y="24" width="8"  height="4"  fill={O4}/>
-            <rect x="25" y="18" width="3"  height="6"  fill={O3}/>
+            {rows.map(([x,w],i)=><rect key={`f${i}`} x={x} y={i+1} width={w} height={1} fill={O2}/>)}
+            {/* Highlight — top-left arc */}
+            {rows.slice(0,10).map(([x,w],i)=><rect key={`h${i}`} x={x} y={i+1} width={Math.floor(w*0.4)} height={1} fill={O1}/>)}
+            {/* Shadow — bottom-right arc */}
+            {rows.slice(18).map(([x,w],i)=><rect key={`s${i}`} x={x+Math.floor(w*0.6)} y={i+19} width={Math.floor(w*0.4)} height={1} fill={O3}/>)}
+            {rows.slice(24).map(([x,w],i)=><rect key={`d${i}`} x={x+Math.floor(w*0.7)} y={i+25} width={Math.floor(w*0.3)} height={1} fill={O4}/>)}
+            {/* Outline */}
+            {rows.map(([x,w],i)=>[
+              <rect key={`ol${i}`} x={x} y={i+1} width={1} height={1} fill={BK}/>,
+              <rect key={`or${i}`} x={x+w-1} y={i+1} width={1} height={1} fill={BK}/>,
+            ])}
+            <rect x="8"  y="1"  width="16" height="1" fill={BK}/>
+            <rect x="8"  y="31" width="16" height="1" fill={BK}/>
             {/* Latitude lines */}
-            <rect x="2"  y="10" width="28" height="1"  fill={O3}/>
-            <rect x="1"  y="16" width="30" height="1"  fill={O3}/>
-            <rect x="2"  y="22" width="28" height="1"  fill={O3}/>
-            {/* Longitude lines — straight for legibility at small size */}
-            <rect x="10" y="2"  width="1"  height="27" fill={O3}/>
-            <rect x="21" y="2"  width="1"  height="27" fill={O3}/>
+            <rect x="2"  y="9"  width="28" height="1" fill={O3}/>
+            <rect x="1"  y="16" width="30" height="1" fill={O3}/>
+            <rect x="2"  y="23" width="28" height="1" fill={O3}/>
+            {/* Longitude lines */}
+            <rect x="9"  y="2"  width="1" height="28" fill={O3}/>
+            <rect x="22" y="2"  width="1" height="28" fill={O3}/>
             {/* Landmasses */}
-            <rect x="2"  y="6"  width="5"  height="7"  fill={G2}/> {/* N America */}
-            <rect x="2"  y="6"  width="2"  height="3"  fill={G1}/>
-            <rect x="6"  y="10" width="2"  height="3"  fill={G3}/>
-            <rect x="13" y="6"  width="4"  height="5"  fill={G2}/> {/* Europe */}
-            <rect x="13" y="6"  width="2"  height="2"  fill={G1}/>
-            <rect x="13" y="12" width="4"  height="10" fill={G2}/> {/* Africa */}
-            <rect x="13" y="12" width="2"  height="3"  fill={G1}/>
-            <rect x="15" y="19" width="2"  height="3"  fill={G3}/>
-            <rect x="18" y="5"  width="7"  height="7"  fill={G2}/> {/* Asia */}
-            <rect x="18" y="5"  width="3"  height="2"  fill={G1}/>
-            <rect x="23" y="9"  width="2"  height="3"  fill={G3}/>
-            <rect x="23" y="19" width="4"  height="3"  fill={G2}/> {/* Australia */}
-            {/* Pixel "3" — white, lower right */}
-            <rect x="18" y="18" width="8"  height="2"  fill="#ffffff"/>
-            <rect x="24" y="20" width="2"  height="2"  fill="#ffffff"/>
-            <rect x="20" y="22" width="6"  height="2"  fill="#ffffff"/>
-            <rect x="24" y="24" width="2"  height="2"  fill="#ffffff"/>
-            <rect x="18" y="26" width="8"  height="2"  fill="#ffffff"/>
+            <rect x="2"  y="6"  width="4" height="6"  fill={G2}/>
+            <rect x="2"  y="6"  width="2" height="2"  fill={G1}/>
+            <rect x="5"  y="10" width="2" height="2"  fill={G3}/>
+            <rect x="13" y="6"  width="4" height="4"  fill={G2}/>
+            <rect x="13" y="6"  width="2" height="2"  fill={G1}/>
+            <rect x="13" y="11" width="4" height="9"  fill={G2}/>
+            <rect x="13" y="11" width="2" height="3"  fill={G1}/>
+            <rect x="15" y="18" width="2" height="2"  fill={G3}/>
+            <rect x="18" y="5"  width="6" height="6"  fill={G2}/>
+            <rect x="18" y="5"  width="3" height="2"  fill={G1}/>
+            <rect x="22" y="9"  width="2" height="3"  fill={G3}/>
+            <rect x="22" y="19" width="4" height="3"  fill={G2}/>
+            {/* Pixel "3" white bottom-right */}
+            <rect x="18" y="19" width="8" height="2" fill="#ffffff"/>
+            <rect x="24" y="21" width="2" height="2" fill="#ffffff"/>
+            <rect x="20" y="23" width="6" height="2" fill="#ffffff"/>
+            <rect x="24" y="25" width="2" height="2" fill="#ffffff"/>
+            <rect x="18" y="27" width="8" height="2" fill="#ffffff"/>
             {/* Drop shadow */}
-            <rect x="8"  y="31" width="16" height="1"  fill={O4}/>
-            <rect x="6"  y="30" width="20" height="1"  fill={O4}/>
+            <rect x="8"  y="32" width="16" height="1" fill={O4}/>
           </svg>
         )
       }
@@ -589,91 +620,122 @@ export default function Home() {
       // ── Books ─────────────────────────────────────────────────────────────────
       // Three books standing upright, side by side, different heights
       case 'books': {
-        const B1H=K?'#88aaff':'#aabbff', B1M=K?'#4466cc':'#5577dd', B1S=K?'#223388':'#334499'
-        const B2H=K?'#ff8888':'#ffaaaa', B2M=K?'#cc3333':'#dd4444', B2S=K?'#881111':'#aa2222'
-        const B3H=K?'#88dd88':'#aaffaa', B3M=K?'#336633':'#448844', B3S=K?'#114411':'#225522'
-        const PG=K?'#cccccc':'#dddddd', BK=K?'#cccccc':'#000000'
+        // Horizontal isometric stack — 3 books, each with top face, spine, front face, page edge
+        const B1T=K?'#aabbff':'#ccddf0', B1H=K?'#6688ee':'#8899ff', B1M=K?'#4466cc':'#5577dd', B1S=K?'#223388':'#334499'
+        const B2T=K?'#ffbbbb':'#ffdddd', B2H=K?'#ee7777':'#ff9999', B2M=K?'#cc3333':'#dd4444', B2S=K?'#881111':'#aa2222'
+        const B3T=K?'#bbffbb':'#ddffdd', B3H=K?'#77ee77':'#99ff99', B3M=K?'#336633':'#448844', B3S=K?'#114411':'#225522'
+        const PG=K?'#dddddd':'#eeeeee', BK=K?'#cccccc':'#000000'
+        // Stack goes bottom-left to top-right. Each book: top parallelogram + spine + front + pages.
+        // Book height 7px, width 24px, isometric offset 4px per book
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Blue book */}
-            <rect x="2"  y="9"  width="8"  height="22" fill={B1M}/>
-            <rect x="2"  y="9"  width="2"  height="22" fill={B1S}/>
-            <rect x="4"  y="9"  width="4"  height="22" fill={B1H}/>
-            <rect x="8"  y="9"  width="2"  height="22" fill={B1S}/>
-            <rect x="9"  y="9"  width="1"  height="22" fill={PG}/>
-            <rect x="2"  y="9"  width="8"  height="1"  fill={BK}/>
-            <rect x="2"  y="30" width="8"  height="1"  fill={BK}/>
-            <rect x="2"  y="9"  width="1"  height="22" fill={BK}/>
-            <rect x="9"  y="9"  width="1"  height="22" fill={BK}/>
-            {/* Red book — taller */}
-            <rect x="12" y="5"  width="8"  height="26" fill={B2M}/>
-            <rect x="12" y="5"  width="2"  height="26" fill={B2S}/>
-            <rect x="14" y="5"  width="4"  height="26" fill={B2H}/>
-            <rect x="18" y="5"  width="2"  height="26" fill={B2S}/>
-            <rect x="19" y="5"  width="1"  height="26" fill={PG}/>
-            <rect x="12" y="5"  width="8"  height="1"  fill={BK}/>
-            <rect x="12" y="30" width="8"  height="1"  fill={BK}/>
-            <rect x="12" y="5"  width="1"  height="26" fill={BK}/>
-            <rect x="19" y="5"  width="1"  height="26" fill={BK}/>
-            {/* Green book — tallest */}
-            <rect x="22" y="2"  width="8"  height="29" fill={B3M}/>
-            <rect x="22" y="2"  width="2"  height="29" fill={B3S}/>
-            <rect x="24" y="2"  width="4"  height="29" fill={B3H}/>
-            <rect x="28" y="2"  width="2"  height="29" fill={B3S}/>
-            <rect x="29" y="2"  width="1"  height="29" fill={PG}/>
-            <rect x="22" y="2"  width="8"  height="1"  fill={BK}/>
-            <rect x="22" y="30" width="8"  height="1"  fill={BK}/>
-            <rect x="22" y="2"  width="1"  height="29" fill={BK}/>
-            <rect x="29" y="2"  width="1"  height="29" fill={BK}/>
-            {/* Shared shelf line */}
-            <rect x="2"  y="30" width="28" height="1"  fill={BK}/>
-            <rect x="3"  y="31" width="28" height="1"  fill={K?'#333333':'#999999'}/>
+            {/* ── Book 1 — bottom, blue ── */}
+            {/* Top face parallelogram: y=20 left to y=17 right */}
+            <rect x="1"  y="20" width="24" height="1" fill={B1T}/>
+            <rect x="2"  y="19" width="24" height="1" fill={B1T}/>
+            <rect x="3"  y="18" width="24" height="1" fill={B1H}/>
+            <rect x="4"  y="17" width="24" height="1" fill={B1H}/>
+            <rect x="1"  y="20" width="1"  height="1" fill={BK}/>
+            <rect x="28" y="17" width="1"  height="4" fill={BK}/>
+            <rect x="1"  y="17" width="27" height="1" fill={BK}/>
+            {/* Spine — left dark face */}
+            <rect x="1"  y="21" width="3"  height="8" fill={B1S}/>
+            <rect x="1"  y="21" width="1"  height="8" fill={BK}/>
+            <rect x="1"  y="28" width="3"  height="1" fill={BK}/>
+            {/* Front face */}
+            <rect x="4"  y="21" width="24" height="8" fill={B1M}/>
+            <rect x="4"  y="21" width="6"  height="8" fill={B1H}/>
+            <rect x="4"  y="21" width="24" height="1" fill={BK}/>
+            <rect x="4"  y="28" width="24" height="1" fill={BK}/>
+            <rect x="27" y="21" width="1"  height="8" fill={BK}/>
+            {/* Page edge */}
+            <rect x="28" y="17" width="1"  height="12" fill={PG}/>
+            <rect x="28" y="29" width="1"  height="1"  fill={BK}/>
+
+            {/* ── Book 2 — middle, red, offset 4px up ── */}
+            <rect x="5"  y="14" width="24" height="1" fill={B2T}/>
+            <rect x="6"  y="13" width="24" height="1" fill={B2T}/>
+            <rect x="7"  y="12" width="24" height="1" fill={B2H}/>
+            <rect x="8"  y="11" width="24" height="1" fill={B2H}/>
+            <rect x="5"  y="14" width="1"  height="1" fill={BK}/>
+            <rect x="32" y="11" width="1"  height="4" fill={BK}/>
+            <rect x="5"  y="11" width="27" height="1" fill={BK}/>
+            <rect x="5"  y="15" width="3"  height="7" fill={B2S}/>
+            <rect x="5"  y="15" width="1"  height="7" fill={BK}/>
+            <rect x="5"  y="21" width="3"  height="1" fill={BK}/>
+            <rect x="8"  y="15" width="23" height="7" fill={B2M}/>
+            <rect x="8"  y="15" width="6"  height="7" fill={B2H}/>
+            <rect x="8"  y="15" width="23" height="1" fill={BK}/>
+            <rect x="8"  y="21" width="23" height="1" fill={BK}/>
+            <rect x="30" y="15" width="1"  height="7" fill={BK}/>
+            <rect x="31" y="11" width="1"  height="11" fill={PG}/>
+            <rect x="31" y="22" width="1"  height="1"  fill={BK}/>
+
+            {/* ── Book 3 — top, green, offset 4px up again ── */}
+            <rect x="8"  y="8"  width="24" height="1" fill={B3T}/>
+            <rect x="9"  y="7"  width="24" height="1" fill={B3T}/>
+            <rect x="10" y="6"  width="22" height="1" fill={B3H}/>
+            <rect x="8"  y="8"  width="1"  height="1" fill={BK}/>
+            <rect x="8"  y="5"  width="24" height="1" fill={BK}/>
+            <rect x="8"  y="9"  width="3"  height="6" fill={B3S}/>
+            <rect x="8"  y="9"  width="1"  height="6" fill={BK}/>
+            <rect x="8"  y="14" width="3"  height="1" fill={BK}/>
+            <rect x="11" y="9"  width="20" height="6" fill={B3M}/>
+            <rect x="11" y="9"  width="6"  height="6" fill={B3H}/>
+            <rect x="11" y="9"  width="20" height="1" fill={BK}/>
+            <rect x="11" y="14" width="20" height="1" fill={BK}/>
+            <rect x="30" y="9"  width="1"  height="6" fill={BK}/>
+            <rect x="31" y="5"  width="1"  height="10" fill={PG}/>
+            <rect x="31" y="15" width="1"  height="1"  fill={BK}/>
           </svg>
         )
       }
 
-      // ── Map pin (notice board push pin) ───────────────────────────────────────
-      // Top disc → barrel → bottom disc → needle. All pixel rects, stepped shading.
+      // ── Map pin — slim notice board push pin ──────────────────────────────────
       case 'mappin': {
-        const PH=K?'#ff8888':'#ffaaaa', PM=K?'#cc2222':'#ee3333', PS=K?'#881111':'#aa1111', PK=K?'#440000':'#660000'
+        const PH=K?'#ff9999':'#ffbbbb', PM=K?'#dd2222':'#ee3333', PS=K?'#991111':'#bb2222'
         const NH=K?'#cccccc':'#dddddd', NM=K?'#888888':'#aaaaaa', NS=K?'#444444':'#666666'
         const BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Top disc */}
-            <rect x="7"  y="2"  width="18" height="1"  fill={BK}/>
-            <rect x="5"  y="3"  width="22" height="1"  fill={BK}/>
-            <rect x="5"  y="4"  width="22" height="4"  fill={PH}/>
-            <rect x="5"  y="4"  width="4"  height="4"  fill={PH}/>
-            <rect x="23" y="4"  width="4"  height="4"  fill={PS}/>
-            <rect x="5"  y="7"  width="22" height="1"  fill={PM}/>
-            <rect x="5"  y="8"  width="22" height="1"  fill={BK}/>
-            <rect x="5"  y="4"  width="1"  height="5"  fill={BK}/>
-            <rect x="26" y="4"  width="1"  height="5"  fill={BK}/>
-            {/* Barrel */}
-            <rect x="9"  y="9"  width="14" height="10" fill={PM}/>
-            <rect x="9"  y="9"  width="3"  height="10" fill={PH}/>
-            <rect x="20" y="9"  width="3"  height="10" fill={PS}/>
-            <rect x="9"  y="9"  width="1"  height="10" fill={BK}/>
-            <rect x="22" y="9"  width="1"  height="10" fill={BK}/>
-            <rect x="9"  y="11" width="14" height="1"  fill={PH}/>
-            <rect x="9"  y="16" width="14" height="1"  fill={PS}/>
-            {/* Bottom disc */}
-            <rect x="5"  y="19" width="22" height="1"  fill={BK}/>
-            <rect x="5"  y="20" width="22" height="4"  fill={PM}/>
-            <rect x="5"  y="20" width="4"  height="4"  fill={PH}/>
-            <rect x="23" y="20" width="4"  height="4"  fill={PS}/>
-            <rect x="5"  y="23" width="22" height="1"  fill={PK}/>
-            <rect x="5"  y="24" width="22" height="1"  fill={BK}/>
-            <rect x="5"  y="20" width="1"  height="5"  fill={BK}/>
-            <rect x="26" y="20" width="1"  height="5"  fill={BK}/>
-            {/* Needle */}
-            <rect x="15" y="25" width="2"  height="1"  fill={NH}/>
-            <rect x="15" y="26" width="2"  height="3"  fill={NM}/>
-            <rect x="16" y="26" width="1"  height="3"  fill={NS}/>
-            <rect x="15" y="29" width="2"  height="1"  fill={NS}/>
-            <rect x="15" y="25" width="1"  height="5"  fill={BK}/>
-            <rect x="16" y="29" width="1"  height="1"  fill={BK}/>
+            {/* Top disc — slim, 10px wide */}
+            <rect x="11" y="2"  width="10" height="1" fill={BK}/>
+            <rect x="10" y="3"  width="12" height="1" fill={BK}/>
+            <rect x="10" y="4"  width="12" height="3" fill={PH}/>
+            <rect x="15" y="4"  width="7"  height="3" fill={PM}/>
+            <rect x="19" y="4"  width="3"  height="3" fill={PS}/>
+            <rect x="10" y="6"  width="12" height="1" fill={PM}/>
+            <rect x="10" y="7"  width="12" height="1" fill={BK}/>
+            <rect x="10" y="4"  width="1"  height="4" fill={BK}/>
+            <rect x="21" y="4"  width="1"  height="4" fill={BK}/>
+            {/* Barrel — 6px wide, narrow */}
+            <rect x="13" y="8"  width="6"  height="10" fill={PM}/>
+            <rect x="13" y="8"  width="2"  height="10" fill={PH}/>
+            <rect x="17" y="8"  width="2"  height="10" fill={PS}/>
+            <rect x="13" y="8"  width="1"  height="10" fill={BK}/>
+            <rect x="18" y="8"  width="1"  height="10" fill={BK}/>
+            {/* Rim highlight and shadow lines */}
+            <rect x="13" y="10" width="6"  height="1"  fill={PH}/>
+            <rect x="13" y="15" width="6"  height="1"  fill={PS}/>
+            {/* Bottom disc — slim, 10px wide */}
+            <rect x="10" y="18" width="12" height="1" fill={BK}/>
+            <rect x="10" y="19" width="12" height="3" fill={PM}/>
+            <rect x="10" y="19" width="3"  height="3" fill={PH}/>
+            <rect x="19" y="19" width="3"  height="3" fill={PS}/>
+            <rect x="10" y="21" width="12" height="1" fill={PS}/>
+            <rect x="10" y="22" width="12" height="1" fill={BK}/>
+            <rect x="10" y="19" width="1"  height="4" fill={BK}/>
+            <rect x="21" y="19" width="1"  height="4" fill={BK}/>
+            {/* Needle — 2px wide, sharp */}
+            <rect x="15" y="23" width="2"  height="1" fill={NH}/>
+            <rect x="15" y="24" width="2"  height="5" fill={NM}/>
+            <rect x="16" y="24" width="1"  height="5" fill={NS}/>
+            <rect x="15" y="29" width="2"  height="1" fill={NS}/>
+            <rect x="15" y="23" width="1"  height="7" fill={BK}/>
+            <rect x="16" y="29" width="1"  height="1" fill={BK}/>
+            {/* Shadow spots either side of needle base */}
+            <rect x="12" y="23" width="2"  height="1" fill={PS}/>
+            <rect x="18" y="23" width="2"  height="1" fill={PS}/>
           </svg>
         )
       }
@@ -1148,28 +1210,47 @@ export default function Home() {
         </Head>
         <style jsx global>{`
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Space Mono', monospace; background: ${bg}; overflow: hidden; }
-          .loading-screen {
-            position: fixed; inset: 0; background: ${bg};
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+          body { font-family: 'Space Mono', monospace; background: #000000; overflow: hidden; }
+          .boot-screen {
+            position: fixed; inset: 0; background: #000000;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 60px; animation: fadeIn 0.2s ease-in;
           }
-          .loading-text { font-size: 14px; color: ${text}; opacity: 0.6; margin-bottom: 20px; }
-          .loading-bar-container {
-            width: 240px; height: 20px; background: ${surface};
-            border: 2px solid ${border};
-            box-shadow: inset 2px 2px 0 ${isDark ? '#000' : '#999'}, 2px 2px 0 rgba(0,0,0,0.3);
-            overflow: hidden;
+          .boot-line {
+            font-size: 13px; color: #00cc00; margin-bottom: 6px;
+            animation: blink-in 0.1s ease-in;
+            font-family: 'Space Mono', monospace;
           }
-          .loading-bar-fill {
-            height: 100%; background: ${isDark ? '#0066ff' : '#0000aa'};
+          .boot-line.welcome { color: #ffffff; font-weight: 700; font-size: 15px; margin-bottom: 20px; }
+          .boot-cursor {
+            display: inline-block; width: 8px; height: 14px;
+            background: #00cc00; animation: blink 0.8s step-end infinite;
+            vertical-align: middle; margin-left: 4px;
+          }
+          .boot-bar-container {
+            width: 300px; height: 16px; background: #111;
+            border: 1px solid #00cc00; overflow: hidden; margin-top: 30px;
+          }
+          .boot-bar-fill {
+            height: 100%; background: #00cc00;
             width: 0%; animation: loadingFill 3.5s linear forwards;
           }
           @keyframes loadingFill { 0% { width: 0% } 100% { width: 100% } }
+          @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+          @keyframes blink { 50% { opacity: 0 } }
+          @keyframes blink-in { from { opacity: 0 } to { opacity: 1 } }
         `}</style>
         <audio ref={audioRef} preload="auto"><source src="/audio/startup.mp3" type="audio/mpeg" /></audio>
-        <div className="loading-screen">
-          <div className="loading-text">Starting up...</div>
-          <div className="loading-bar-container"><div className="loading-bar-fill" /></div>
+        <div className="boot-screen">
+          {bootMessages.map((msg, i) => (
+            <div key={i} className={`boot-line${msg === 'Welcome.' ? ' welcome' : ''}`}>
+              {msg === 'Welcome.' ? '' : '> '}{msg}
+            </div>
+          ))}
+          {bootMessages.length > 0 && <span className="boot-cursor" />}
+          <div className="boot-bar-container">
+            <div className="boot-bar-fill" />
+          </div>
         </div>
       </>
     )
@@ -1376,6 +1457,31 @@ export default function Home() {
           font-size: 11px; color: #000; font-family: 'Space Mono', monospace; flex-shrink: 0;
         }
         .window-close:hover { background: #ff6666; }
+        .window-tabs {
+          display: flex; overflow-x: auto; background: var(--tab-bg);
+          border-bottom: 1px solid var(--border); scrollbar-width: none;
+        }
+        .window-tabs::-webkit-scrollbar { display: none; }
+        .window-tab {
+          padding: 4px 10px; font-family: 'Space Mono', monospace; font-size: 10px;
+          background: transparent; border: none; border-right: 1px solid var(--border);
+          color: var(--subtle); cursor: pointer; white-space: nowrap; flex-shrink: 0;
+        }
+        .window-tab:hover { color: var(--text); }
+        .window-tab.active { font-weight: 700; color: var(--text); }
+        .window-minimise {
+          background: #ffaa00; border: 1px solid #000; width: 16px; height: 16px;
+          cursor: pointer; display: flex; align-items: center; justify-content: center;
+          font-size: 14px; line-height: 1; color: #000; font-family: 'Space Mono', monospace;
+        }
+        .window-minimise:hover { background: #ffcc44; }
+        .minimised-slot {
+          padding: 2px 8px; font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700;
+          background: var(--surface); border: 1px solid var(--border);
+          color: var(--text); cursor: pointer; height: 22px;
+          max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .minimised-slot:hover { opacity: 0.8; }
         .window-content { padding: 20px 24px; overflow-y: auto; flex: 1; }
         .window-content::-webkit-scrollbar { width: 12px; }
         .window-content::-webkit-scrollbar-track { background: ${isDark ? '#1a1a1a' : '#ddd'}; border-left: 1px solid ${border}; }
@@ -1443,348 +1549,444 @@ export default function Home() {
 
       <audio ref={audioRef} preload="auto"><source src="/audio/startup.mp3" type="audio/mpeg" /></audio>
 
-      {/* Splott streetscape — pixel art banner along bottom of desktop */}
-      <div className="skyline" aria-hidden="true">
-        <svg
-          width="100%" height="180"
-          viewBox="0 0 1200 180"
-          preserveAspectRatio="xMidYMax meet"
-          shapeRendering="crispEdges"
-          style={{ display: 'block' }}
-        >
-          {/* ── Sky gradient — flat pixel bands ── */}
-          {isDark ? (
-            <>
-              <rect x="0" y="0" width="1200" height="60" fill="#0a0a1a"/>
-              <rect x="0" y="60" width="1200" height="40" fill="#0f0f2a"/>
-              <rect x="0" y="100" width="1200" height="80" fill="#141428"/>
-            </>
-          ) : (
-            <>
-              <rect x="0" y="0" width="1200" height="40" fill="#aec6d4"/>
-              <rect x="0" y="40" width="1200" height="40" fill="#c8dde8"/>
-              <rect x="0" y="80" width="1200" height="100" fill="#ddeef5"/>
-            </>
-          )}
+      {/* Splott streetscape — animated pixel art banner */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes walkR { from { transform: translateX(-80px) } to { transform: translateX(1280px) } }
+        @keyframes walkL { from { transform: translateX(1280px) } to { transform: translateX(-80px) } }
+        @keyframes busR  { from { transform: translateX(-200px) } to { transform: translateX(1400px) } }
+        @keyframes busL  { from { transform: translateX(1400px) } to { transform: translateX(-200px) } }
+        .walk-r { animation: walkR linear infinite; }
+        .walk-l { animation: walkL linear infinite; }
+        .bus-r   { animation: busR linear infinite; }
+        .bus-l   { animation: busL linear infinite; }
+      `}} />
+      <div className="skyline" aria-hidden="true" style={{ overflow: 'hidden' }}>
+        <svg width="100%" height="180" viewBox="0 0 1200 180"
+          preserveAspectRatio="xMidYMax meet" shapeRendering="crispEdges"
+          style={{ display: 'block', overflow: 'visible' }}>
 
-          {/* ── Cardiff city centre towers on horizon ── */}
-          {/* Tower 1 */}
-          <rect x="480" y="20" width="28" height="90" fill={isDark?'#2a3a4a':'#8aaabb'}/>
-          <rect x="480" y="20" width="28" height="4"  fill={isDark?'#3a4a5a':'#9abacb'}/>
-          {[28,36,44,52,60,68,76,84].map(y=>(
-            <g key={y}>
-              <rect x="483" y={y} width="5" height="5" fill={isDark?'#4a6a8a':'#6699aa'}/>
-              <rect x="492" y={y} width="5" height="5" fill={isDark?'#4a6a8a':'#6699aa'}/>
-              <rect x="501" y={y} width="5" height="5" fill={isDark?'#4a6a8a':'#6699aa'}/>
+          {/* ── Sky ── */}
+          <rect x="0" y="0"   width="1200" height="180" fill={isDark?'#0a0a1a':'#c8dde8'}/>
+          <rect x="0" y="0"   width="1200" height="60"  fill={isDark?'#080812':'#aec6d4'}/>
+          <rect x="0" y="60"  width="1200" height="40"  fill={isDark?'#0a0a1a':'#bcd5e2'}/>
+
+          {/* ── Ground plane — everything sits on y=130 ── */}
+          {/* Pavement */}
+          <rect x="0"   y="130" width="1200" height="6"  fill={isDark?'#2a2a2a':'#999999'}/>
+          <rect x="0"   y="136" width="1200" height="2"  fill={isDark?'#333':'#aaa'}/>
+          {/* Road */}
+          <rect x="0"   y="138" width="1200" height="28" fill={isDark?'#1a1a1a':'#555555'}/>
+          {/* Road centre line dashes */}
+          {Array.from({length:24},(_,i)=>(
+            <rect key={i} x={i*52} y="151" width="32" height="3" fill={isDark?'#444':'#777'}/>
+          ))}
+          {/* Kerb line */}
+          <rect x="0"   y="130" width="1200" height="2"  fill={isDark?'#555':'#bbbbbb'}/>
+          <rect x="0"   y="136" width="1200" height="2"  fill={isDark?'#222':'#888'}/>
+
+          {/* ── FAR LEFT: Park / green space ── */}
+          {/* Grass */}
+          <rect x="0"   y="100" width="90"  height="30" fill={isDark?'#1a2a1a':'#559955'}/>
+          <rect x="0"   y="96"  width="90"  height="4"  fill={isDark?'#2a3a2a':'#66aa66'}/>
+          {/* Park fence */}
+          {Array.from({length:9},(_,i)=>(
+            <g key={i}>
+              <rect x={i*10+2} y="116" width="2" height="14" fill={isDark?'#4a3a2a':'#886644'}/>
+              <rect x={i*10+2} y="115" width="8" height="2"  fill={isDark?'#6a5a3a':'#aa8855'}/>
             </g>
           ))}
-          {/* Tower 2 */}
-          <rect x="520" y="35" width="22" height="75" fill={isDark?'#223344':'#7a9aaa'}/>
-          {[43,51,59,67,75,83,91].map(y=>(
-            <g key={y}>
-              <rect x="523" y={y} width="4" height="5" fill={isDark?'#3a5a7a':'#5588aa'}/>
-              <rect x="531" y={y} width="4" height="5" fill={isDark?'#3a5a7a':'#5588aa'}/>
-            </g>
-          ))}
-          {/* Tower 3 — taller */}
-          <rect x="550" y="10" width="18" height="100" fill={isDark?'#2a3a2a':'#7a9a8a'}/>
-          {[18,26,34,42,50,58,66,74,82,90].map(y=>(
-            <g key={y}>
-              <rect x="553" y={y} width="4" height="5" fill={isDark?'#3a5a3a':'#5a8a6a'}/>
-              <rect x="561" y={y} width="4" height="5" fill={isDark?'#3a5a3a':'#5a8a6a'}/>
-            </g>
-          ))}
-          {/* Tower 4 */}
-          <rect x="575" y="30" width="20" height="80" fill={isDark?'#3a3a2a':'#8a9a7a'}/>
-          {[38,46,54,62,70,78,86,94].map(y=>(
-            <rect key={y} x="578" y={y} width="14" height="5" fill={isDark?'#5a5a3a':'#6a8a5a'}/>
-          ))}
-          {/* Crane */}
-          <rect x="610" y="15" width="3"  height="95" fill={isDark?'#555':'#888'}/>
-          <rect x="580" y="15" width="33" height="3"  fill={isDark?'#555':'#888'}/>
-          <rect x="610" y="18" width="3"  height="3"  fill={isDark?'#444':'#777'}/>
-          <rect x="608" y="48" width="7"  height="60" fill={isDark?'#444':'#666'}/>
-          {/* Cable */}
-          <rect x="612" y="18" width="1"  height="30" fill={isDark?'#666':'#999'}/>
+          {/* Park trees */}
+          <rect x="10"  y="88"  width="18" height="28" fill={isDark?'#1a3a1a':'#4a8a4a'}/>
+          <rect x="10"  y="88"  width="8"  height="14" fill={isDark?'#2a4a2a':'#5a9a5a'}/>
+          <rect x="8"   y="115" width="5"  height="15" fill={isDark?'#3a2a1a':'#664422'}/>
+          <rect x="50"  y="92"  width="22" height="24" fill={isDark?'#1a3a1a':'#4a8a4a'}/>
+          <rect x="50"  y="92"  width="10" height="12" fill={isDark?'#2a4a2a':'#5a9a5a'}/>
+          <rect x="57"  y="115" width="5"  height="15" fill={isDark?'#3a2a1a':'#664422'}/>
+          {/* Park bench */}
+          <rect x="30"  y="120" width="18" height="3"  fill={isDark?'#6a5a3a':'#aa8855'}/>
+          <rect x="31"  y="123" width="2"  height="7"  fill={isDark?'#4a3a2a':'#886644'}/>
+          <rect x="45"  y="123" width="2"  height="7"  fill={isDark?'#4a3a2a':'#886644'}/>
 
-          {/* ── Trees — dark silhouettes ── */}
-          {[60,120,200,350,430,700,780,900,1050,1130,1170].map((x,i)=>{
-            const h=[35,28,32,30,36,34,29,33,31,28,35][i]
-            const w=[22,18,20,22,24,20,18,22,20,18,22][i]
-            const c=isDark?'#1a2a1a':'#4a7a4a'
-            const cd=isDark?'#0a1a0a':'#3a6a3a'
-            return (
-              <g key={x}>
-                <rect x={x} y={130-h} width={w} height={h} fill={c}/>
-                <rect x={x} y={130-h} width={w/2} height={h/2} fill={cd}/>
-                <rect x={x+w/2} y={130-h+h/2} width={w/2} height={h/2} fill={cd}/>
-                <rect x={x+4} y={130} width={w-8} height={8} fill={isDark?'#2a1a0a':'#5a3a1a'}/>
-              </g>
-            )
-          })}
-
-          {/* ── Ground / pavement ── */}
-          <rect x="0"   y="130" width="1200" height="4"  fill={isDark?'#222':'#888'}/>
-          <rect x="0"   y="134" width="1200" height="30" fill={isDark?'#1a1a1a':'#777'}/>
-          <rect x="0"   y="164" width="1200" height="16" fill={isDark?'#111':'#555'}/>
-          {/* Pavement edge */}
-          <rect x="0"   y="130" width="1200" height="1"  fill={isDark?'#444':'#aaa'}/>
-          {/* Road markings */}
-          {[100,200,300,400,500,600,700,800,900,1000,1100].map(x=>(
-            <rect key={x} x={x} y="148" width="40" height="4" fill={isDark?'#333':'#666'}/>
-          ))}
-
-          {/* ── LEFT SECTION: Victorian terraces + SCV shop ── */}
-          {/* Terrace block 1 */}
-          <rect x="0"   y="72" width="55"  height="58" fill={isDark?'#3a2a1a':'#aa8866'}/>
-          <rect x="0"   y="72" width="55"  height="4"  fill={isDark?'#2a1a0a':'#886644'}/>
-          {/* Windows */}
-          {[5,18,31,44].map(x=>(
+          {/* ── LEFT TERRACES ── */}
+          {/* Terrace row 1 */}
+          <rect x="90"  y="72"  width="120" height="58" fill={isDark?'#3a2a1a':'#bb9977'}/>
+          <rect x="90"  y="72"  width="120" height="4"  fill={isDark?'#2a1a0a':'#997755'}/>
+          {/* Bay windows */}
+          {[95,109,123,137,151,165,179,193].map(x=>(
             <g key={x}>
-              <rect x={x} y="84" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="100" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="84" width="1" height="10" fill={isDark?'#111':'#668899'}/>
-              <rect x={x+4} y="100" width="1" height="10" fill={isDark?'#111':'#668899'}/>
+              <rect x={x} y="82" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
+              <rect x={x} y="99" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
+              <rect x={x+4} y="82" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
+              <rect x={x+4} y="99" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
+              <rect x={x}   y="92" width="9" height="1"  fill={isDark?'#111':'#5577aa'}/>
+              <rect x={x}   y="109" width="9" height="1" fill={isDark?'#111':'#5577aa'}/>
             </g>
           ))}
-          {/* Chimney */}
-          <rect x="8"   y="60" width="8"   height="12" fill={isDark?'#3a2a1a':'#996644'}/>
-          <rect x="35"  y="64" width="8"   height="8"  fill={isDark?'#3a2a1a':'#996644'}/>
-
-          {/* Terrace block 2 */}
-          <rect x="55"  y="78" width="55"  height="52" fill={isDark?'#3a2818':'#bb9977'}/>
-          <rect x="55"  y="78" width="55"  height="4"  fill={isDark?'#2a1808':'#997755'}/>
-          {[60,73,86,99].map(x=>(
+          {/* Chimneys */}
+          {[95,130,165,198].map(x=>(
+            <rect key={x} x={x} y="60" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
+          ))}
+          {/* Chimney pots */}
+          {[95,130,165,198].map(x=>(
+            <rect key={x} x={x+2} y="57" width="4" height="4" fill={isDark?'#555':'#777'}/>
+          ))}
+          {/* Party walls */}
+          {[104,119,134,149,164,179,194].map(x=>(
+            <rect key={x} x={x} y="72" width="2" height="58" fill={isDark?'#2a1a0a':'#997755'}/>
+          ))}
+          {/* Doors */}
+          {[97,127,157,187].map(x=>(
             <g key={x}>
-              <rect x={x} y="88" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="104" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="88" width="1" height="10" fill={isDark?'#111':'#668899'}/>
-              <rect x={x+4} y="104" width="1" height="10" fill={isDark?'#111':'#668899'}/>
+              <rect x={x}   y="112" width="10" height="18" fill={isDark?'#3355aa':'#4466bb'}/>
+              <rect x={x+2} y="114" width="3"  height="5"  fill={isDark?'#4477cc':'#6688dd'}/>
+              <rect x={x+6} y="114" width="3"  height="5"  fill={isDark?'#4477cc':'#6688dd'}/>
             </g>
           ))}
-          <rect x="62"  y="66" width="8"   height="12" fill={isDark?'#3a2818':'#996644'}/>
 
-          {/* ── SCV Charity Shop ── */}
-          <rect x="110" y="82" width="80"  height="48" fill={isDark?'#2a2a3a':'#cc4444'}/>
-          <rect x="110" y="82" width="80"  height="5"  fill={isDark?'#1a1a2a':'#aa2222'}/>
-          {/* Awning */}
-          <rect x="108" y="110" width="84" height="8"  fill={isDark?'#4a3a1a':'#ffcc00'}/>
-          {/* Awning stripes */}
-          {[108,116,124,132,140,148,156,164,172,180].map(x=>(
-            <rect key={x} x={x} y="110" width="4" height="8" fill={isDark?'#3a2a0a':'#cc9900'}/>
+          {/* ── SCV CHARITY SHOP ── */}
+          <rect x="210" y="78"  width="85"  height="52" fill={isDark?'#2a2a3a':'#cc4444'}/>
+          <rect x="210" y="78"  width="85"  height="6"  fill={isDark?'#1a1a2a':'#aa2222'}/>
+          {/* Awning — sits at pavement level y=114 */}
+          <rect x="208" y="114" width="89"  height="10" fill={isDark?'#4a3a1a':'#ffcc00'}/>
+          {Array.from({length:11},(_,i)=>(
+            <rect key={i} x={208+i*8} y="114" width="4" height="10" fill={isDark?'#3a2a0a':'#cc9900'}/>
           ))}
           {/* Shop window */}
-          <rect x="118" y="90" width="60"  height="18" fill={isDark?'#334455':'#aaccdd'}/>
-          <rect x="138" y="90" width="2"   height="18" fill={isDark?'#223':'#889'}/>
-          <rect x="158" y="90" width="2"   height="18" fill={isDark?'#223':'#889'}/>
-          {/* Shop sign */}
-          <rect x="115" y="84" width="70"  height="8"  fill={isDark?'#ffffff':'#ffffff'}/>
-          <text x="118" y="91" fontFamily="Space Mono, monospace" fontSize="6" fontWeight="700" fill="#cc4444">SCV CHARITY SHOP</text>
+          <rect x="218" y="90"  width="65"  height="22" fill={isDark?'#334455':'#aaccee'}/>
+          <rect x="238" y="90"  width="2"   height="22" fill={isDark?'#223':'#7799bb'}/>
+          <rect x="258" y="90"  width="2"   height="22" fill={isDark?'#223':'#7799bb'}/>
+          {/* Sign */}
+          <rect x="212" y="80"  width="81"  height="10" fill={isDark?'#ffffff':'#ffffff'}/>
+          <text x="215" y="89" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700" fill="#cc4444">SCV CHARITY SHOP</text>
+          {/* Door at ground y=114 */}
+          <rect x="245" y="114" width="14"  height="16" fill={isDark?'#334455':'#6688aa'}/>
+          <rect x="247" y="116" width="4"   height="6"  fill={isDark?'#445566':'#88aacc'}/>
+          <rect x="253" y="116" width="4"   height="6"  fill={isDark?'#445566':'#88aacc'}/>
+          {/* Chimney */}
+          <rect x="245" y="66"  width="8"   height="12" fill={isDark?'#3a2a1a':'#997755'}/>
+
+          {/* ── CORNER SHOP ── */}
+          <rect x="295" y="82"  width="65"  height="48" fill={isDark?'#1a3a1a':'#559944'}/>
+          <rect x="295" y="82"  width="65"  height="5"  fill={isDark?'#0a2a0a':'#336633'}/>
+          {/* Awning at y=114 */}
+          <rect x="293" y="114" width="69"  height="8"  fill={isDark?'#3a5a3a':'#66aa44'}/>
+          {/* Window */}
+          <rect x="300" y="90"  width="55"  height="22" fill={isDark?'#334455':'#aaccee'}/>
+          <rect x="325" y="90"  width="2"   height="22" fill={isDark?'#223':'#7799bb'}/>
+          {/* Sign */}
+          <rect x="297" y="84"  width="61"  height="8"  fill="#fff"}/>
+          <text x="300" y="91" fontFamily="Space Mono, monospace" fontSize="6" fontWeight="700" fill="#336633">CORNER SHOP</text>
           {/* Door */}
-          <rect x="145" y="112" width="14" height="18" fill={isDark?'#223344':'#6688aa'}/>
-          <rect x="148" y="115" width="4"  height="6"  fill={isDark?'#334455':'#88aacc'}/>
-          <rect x="153" y="115" width="4"  height="6"  fill={isDark?'#334455':'#88aacc'}/>
+          <rect x="315" y="114" width="12"  height="16" fill={isDark?'#334455':'#6688aa'}/>
 
-          {/* ── Corner shop ── */}
-          <rect x="190" y="86" width="60"  height="44" fill={isDark?'#2a3a2a':'#559955'}/>
-          <rect x="190" y="86" width="60"  height="4"  fill={isDark?'#1a2a1a':'#336633'}/>
-          <rect x="190" y="112" width="60" height="8"  fill={isDark?'#3a5a3a':'#66aa66'}/>
-          <rect x="196" y="92" width="48"  height="18" fill={isDark?'#223344':'#aaccdd'}/>
-          <rect x="216" y="92" width="2"   height="18" fill={isDark?'#111':'#889'}/>
-          <rect x="228" y="92" width="2"   height="18" fill={isDark?'#111':'#889'}/>
-          <rect x="192" y="88" width="56"  height="7"  fill={isDark?'#eee':'#fff'}/>
-          <text x="195" y="94" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#336633">CORNER SHOP</text>
-          <rect x="212" y="113" width="12" height="17" fill={isDark?'#334455':'#6688aa'}/>
+          {/* ── STREET LAMP 1 — base on y=130 ── */}
+          <rect x="375" y="70"  width="4"   height="60" fill={isDark?'#555':'#888'}/>
+          <rect x="369" y="70"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
+          <rect x="369" y="66"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
+          <rect x="373" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
 
-          {/* ── Street lamp left ── */}
-          <rect x="260" y="80" width="4"   height="50" fill={isDark?'#555':'#888'}/>
-          <rect x="254" y="80" width="16"  height="4"  fill={isDark?'#555':'#888'}/>
-          <rect x="254" y="76" width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffeeaa'}/>
-
-          {/* ── Splott Magic Roundabout — CENTREPIECE ── */}
-          {/* Road surface */}
-          <rect x="330" y="130" width="260" height="40" fill={isDark?'#222':'#666'}/>
-          {/* Roundabout island — green circle approximated */}
-          <rect x="390" y="100" width="140" height="4"  fill={isDark?'#1a2a1a':'#4a8a4a'}/>
-          <rect x="372" y="104" width="176" height="4"  fill={isDark?'#1a2a1a':'#4a8a4a'}/>
-          <rect x="362" y="108" width="196" height="22" fill={isDark?'#1a3a1a':'#5a9a5a'}/>
-          <rect x="362" y="108" width="196" height="6"  fill={isDark?'#2a4a2a':'#6aaa6a'}/>
-          <rect x="372" y="130" width="176" height="2"  fill={isDark?'#1a2a1a':'#4a8a4a'}/>
-          <rect x="390" y="132" width="140" height="2"  fill={isDark?'#1a2a1a':'#4a8a4a'}/>
-          {/* Kerb ring */}
-          <rect x="388" y="98"  width="144" height="4"  fill={isDark?'#444':'#aaa'}/>
-          <rect x="370" y="102" width="180" height="2"  fill={isDark?'#444':'#aaa'}/>
-          <rect x="360" y="130" width="200" height="2"  fill={isDark?'#444':'#aaa'}/>
-
-          {/* Sculpture 1 — chevron cylinder */}
-          <rect x="400" y="92" width="20"  height="24" fill={isDark?'#cc2222':'#cc2222'}/>
-          {[92,96,100,104,108,112].map((y,i)=>(
-            <rect key={y} x="400" y={y} width="20" height="3"
-              fill={i%2===0?(isDark?'#cc2222':'#cc2222'):(isDark?'#111':'#111')}/>
+          {/* ── SPLOTT MAGIC ROUNDABOUT — centrepiece ── */}
+          {/* Road around roundabout */}
+          <rect x="390" y="130" width="290" height="36" fill={isDark?'#1a1a1a':'#555555'}/>
+          {/* Island — green oval, fully above ground */}
+          <rect x="440" y="94"  width="180" height="4"  fill={isDark?'#1a3a1a':'#4a8a4a'}/>
+          <rect x="426" y="98"  width="208" height="4"  fill={isDark?'#1a3a1a':'#4a8a4a'}/>
+          <rect x="416" y="102" width="228" height="28" fill={isDark?'#1a3a1a':'#5a9a5a'}/>
+          <rect x="416" y="102" width="228" height="6"  fill={isDark?'#2a4a2a':'#6aaa6a'}/>
+          <rect x="416" y="128" width="228" height="2"  fill={isDark?'#1a3a1a':'#4a8a4a'}/>
+          <rect x="426" y="130" width="208" height="2"  fill={isDark?'#1a2a1a':'#3a7a3a'}/>
+          {/* Kerb */}
+          <rect x="438" y="92"  width="184" height="4"  fill={isDark?'#444':'#aaa'}/>
+          <rect x="414" y="130" width="232" height="2"  fill={isDark?'#444':'#aaa'}/>
+          {/* Roundabout sculptures */}
+          {/* 1 — chevron cylinder */}
+          <rect x="455" y="96"  width="22"  height="22" fill="#cc2222"/>
+          {[96,99,102,105,108,111,114].map((y,i)=>(
+            <rect key={y} x="455" y={y} width="22" height="2" fill={i%2===0?'#cc2222':'#111111'}/>
           ))}
-          <rect x="398" y="92" width="24" height="2"   fill={isDark?'#888':'#888'}/>
-
-          {/* Sculpture 2 — tilted warning sign */}
-          <rect x="432" y="88" width="24"  height="24" fill={isDark?'#ffcc00':'#ffcc00'}/>
-          <rect x="432" y="88" width="24"  height="3"  fill={isDark?'#cc9900':'#cc9900'}/>
-          <rect x="432" y="88" width="3"   height="24" fill={isDark?'#cc9900':'#cc9900'}/>
-          {/* Exclamation */}
-          <rect x="443" y="93" width="3"   height="10" fill="#000"/>
-          <rect x="443" y="105" width="3"  height="3"  fill="#000"/>
-
-          {/* Sculpture 3 — triangle */}
-          <rect x="466" y="100" width="28" height="4"  fill={isDark?'#dd4444':'#dd4444'}/>
-          <rect x="470" y="96" width="20"  height="4"  fill={isDark?'#cc3333':'#cc3333'}/>
-          <rect x="474" y="92" width="12"  height="4"  fill={isDark?'#bb2222':'#bb2222'}/>
-          <rect x="478" y="88" width="4"   height="4"  fill={isDark?'#aa1111':'#aa1111'}/>
-          {/* Pink/white pattern */}
-          {[466,470,474].map(x=>(
-            <rect key={x} x={x+2} y="100" width="3" height="4" fill="#ffffff"/>
+          <rect x="453" y="96"  width="26"  height="2"  fill={isDark?'#888':'#aaa'}/>
+          {/* 2 — tilted warning sign */}
+          <rect x="490" y="91"  width="26"  height="26" fill="#ffcc00"/>
+          <rect x="490" y="91"  width="26"  height="3"  fill="#cc9900"/>
+          <rect x="490" y="91"  width="3"   height="26" fill="#cc9900"/>
+          <rect x="500" y="95"  width="4"   height="12" fill="#000"/>
+          <rect x="500" y="109" width="4"   height="4"  fill="#000"/>
+          {/* 3 — triangle stack */}
+          <rect x="528" y="110" width="30"  height="4"  fill="#dd4444"/>
+          <rect x="532" y="106" width="22"  height="4"  fill="#cc3333"/>
+          <rect x="536" y="102" width="14"  height="4"  fill="#bb2222"/>
+          <rect x="540" y="98"  width="6"   height="4"  fill="#aa1111"/>
+          {[528,532,536].map(x=>(
+            <rect key={x} x={x+2} y="110" width="4" height="4" fill="#ffffff"/>
           ))}
-
-          {/* Sculpture 4 — sphere of road signs */}
-          <rect x="500" y="92" width="28" height="28" fill={isDark?'#3355aa':'#3355aa'}/>
-          <rect x="500" y="92" width="28" height="5"  fill={isDark?'#5577cc':'#5577cc'}/>
-          <rect x="500" y="92" width="5"  height="28" fill={isDark?'#5577cc':'#5577cc'}/>
-          {/* Sign patches */}
-          <rect x="504" y="96" width="6"  height="6"  fill="#cc2222"/>
-          <rect x="512" y="96" width="6"  height="6"  fill="#22aa22"/>
-          <rect x="520" y="96" width="6"  height="6"  fill="#ffcc00"/>
-          <rect x="504" y="104" width="6" height="6"  fill="#22aa22"/>
-          <rect x="512" y="104" width="6" height="6"  fill="#3355aa"/>
-          <rect x="520" y="104" width="6" height="6"  fill="#cc2222"/>
-          <rect x="504" y="112" width="6" height="6"  fill="#ffcc00"/>
-          <rect x="512" y="112" width="6" height="6"  fill="#cc2222"/>
-          <rect x="520" y="112" width="6" height="6"  fill="#22aa22"/>
-
-          {/* Lorry passing left */}
-          <rect x="330" y="110" width="55" height="22" fill={isDark?'#2244aa':'#3355bb'}/>
-          <rect x="330" y="108" width="55" height="4"  fill={isDark?'#1133aa':'#2244cc'}/>
-          <rect x="362" y="105" width="23" height="7"  fill={isDark?'#334466':'#4466aa'}/>
-          <rect x="333" y="113" width="18" height="8"  fill={isDark?'#223355':'#aaccdd'}/>
-          <rect x="333" y="113" width="8"  height="8"  fill={isDark?'#113':'#88aacc'}/>
-          {/* Wheels */}
-          <rect x="338" y="130" width="10" height="4"  fill="#222"/>
-          <rect x="366" y="130" width="10" height="4"  fill="#222"/>
-
-          {/* ── AoA Billboard / hoarding ── */}
-          {/* Hoarding structure */}
-          <rect x="640" y="70" width="110" height="65" fill={isDark?'#2a2a1a':'#ccbb88'}/>
-          <rect x="640" y="70" width="110" height="4"  fill={isDark?'#1a1a0a':'#aa9966'}/>
-          <rect x="640" y="70" width="4"   height="65" fill={isDark?'#1a1a0a':'#aa9966'}/>
-          <rect x="746" y="70" width="4"   height="65" fill={isDark?'#111':'#998855'}/>
-          {/* Billboard face */}
-          <rect x="644" y="74" width="102" height="57" fill={isDark?'#111122':'#f5f0e8'}/>
-          {/* AoA text on billboard */}
-          <text x="655" y="102" fontFamily="Space Mono, monospace" fontSize="9" fontWeight="700"
-            fill={isDark?'#ffffff':'#000000'} letterSpacing="1">Architecture</text>
-          <text x="661" y="114" fontFamily="Space Mono, monospace" fontSize="9" fontWeight="700"
-            fill={isDark?'#ffffff':'#000000'} letterSpacing="1">of Agency</text>
-          {/* Hoarding legs */}
-          <rect x="660" y="135" width="6"  height="30" fill={isDark?'#444':'#997733'}/>
-          <rect x="720" y="135" width="6"  height="30" fill={isDark?'#444':'#997733'}/>
-
-          {/* ── Street lamp centre ── */}
-          <rect x="770" y="75" width="4"   height="55" fill={isDark?'#555':'#888'}/>
-          <rect x="764" y="75" width="16"  height="4"  fill={isDark?'#555':'#888'}/>
-          <rect x="764" y="71" width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffeeaa'}/>
-
-          {/* ── STAR Centre ── */}
-          {/* Main block — large brick building */}
-          <rect x="800" y="60" width="180" height="70" fill={isDark?'#3a2a1a':'#bb8855'}/>
-          <rect x="800" y="60" width="180" height="6"  fill={isDark?'#2a1a0a':'#996633'}/>
-          {/* Angled metal cladding over windows */}
-          <rect x="840" y="68" width="100" height="25" fill={isDark?'#334455':'#667788'}/>
-          <rect x="840" y="68" width="100" height="3"  fill={isDark?'#445566':'#7788aa'}/>
-          {/* Window grid */}
-          {[843,858,873,888,903,918,928].map(x=>(
+          {/* 4 — sphere of signs */}
+          <rect x="568" y="96"  width="30"  height="30" fill="#3355aa"/>
+          <rect x="568" y="96"  width="30"  height="5"  fill="#5577cc"/>
+          <rect x="568" y="96"  width="5"   height="30" fill="#5577cc"/>
+          {[[572,100,'#cc2222'],[580,100,'#22aa22'],[588,100,'#ffcc00'],
+            [572,108,'#22aa22'],[580,108,'#3355aa'],[588,108,'#cc2222'],
+            [572,116,'#ffcc00'],[580,116,'#cc2222'],[588,116,'#22aa22']].map(([x,y,c],i)=>(
+            <rect key={i} x={x as number} y={y as number} width="6" height="6" fill={c as string}/>
+          ))}
+          {/* Small bush shapes on island */}
+          {[430,610].map(x=>(
             <g key={x}>
-              <rect x={x} y="72" width="12" height="18" fill={isDark?'#223344':'#88aabb'}/>
-              <rect x={x+6} y="72" width="1" height="18" fill={isDark?'#111':'#667788'}/>
+              <rect x={x}   y="114" width="14" height="14" fill={isDark?'#1a3a1a':'#4a7a4a'}/>
+              <rect x={x}   y="114" width="6"  height="7"  fill={isDark?'#2a4a2a':'#5a8a5a'}/>
+              <rect x={x+3} y="127" width="6"  height="3"  fill={isDark?'#3a2a1a':'#664422'}/>
+            </g>
+          ))}
+
+          {/* ── TERRACE ROW 2 — right of roundabout ── */}
+          <rect x="690" y="76"  width="100" height="54" fill={isDark?'#3a2a1a':'#bb9977'}/>
+          <rect x="690" y="76"  width="100" height="4"  fill={isDark?'#2a1a0a':'#997755'}/>
+          {[695,709,723,737,751,765,779].map(x=>(
+            <g key={x}>
+              <rect x={x} y="86" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
+              <rect x={x} y="103" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
+              <rect x={x+4} y="86" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
+              <rect x={x+4} y="103" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
+            </g>
+          ))}
+          {[695,725,755,780].map(x=>(
+            <rect key={x} x={x} y="64" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
+          ))}
+          {[704,719,734,749,764,779].map(x=>(
+            <rect key={x} x={x} y="76" width="2" height="54" fill={isDark?'#2a1a0a':'#997755'}/>
+          ))}
+          {[697,727,757].map(x=>(
+            <g key={x}>
+              <rect x={x}   y="114" width="10" height="16" fill={isDark?'#3355aa':'#4466bb'}/>
+              <rect x={x+2} y="116" width="3"  height="5"  fill={isDark?'#4477cc':'#6688dd'}/>
+              <rect x={x+6} y="116" width="3"  height="5"  fill={isDark?'#4477cc':'#6688dd'}/>
+            </g>
+          ))}
+
+          {/* ── AoA BILLBOARD — sits on ground with legs ── */}
+          {/* Legs from y=130 up */}
+          <rect x="810" y="100" width="5"   height="30" fill={isDark?'#555':'#886633'}/>
+          <rect x="855" y="100" width="5"   height="30" fill={isDark?'#444':'#775522'}/>
+          {/* Hoarding frame */}
+          <rect x="802" y="66"  width="66"  height="36" fill={isDark?'#3a3a1a':'#ccbb88'}/>
+          <rect x="802" y="66"  width="66"  height="3"  fill={isDark?'#2a2a0a':'#aa9966'}/>
+          <rect x="802" y="66"  width="3"   height="36" fill={isDark?'#2a2a0a':'#aa9966'}/>
+          <rect x="865" y="66"  width="3"   height="36" fill={isDark?'#111':'#998855'}/>
+          {/* Billboard face */}
+          <rect x="805" y="69"  width="60"  height="30" fill={isDark?'#111122':'#f5f0e8'}/>
+          <text x="810" y="82" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700"
+            fill={isDark?'#ffffff':'#000000'}>Architecture</text>
+          <text x="816" y="93" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700"
+            fill={isDark?'#ffffff':'#000000'}>of Agency</text>
+
+          {/* ── STREET LAMP 2 — base on y=130 ── */}
+          <rect x="880" y="70"  width="4"   height="60" fill={isDark?'#555':'#888'}/>
+          <rect x="874" y="70"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
+          <rect x="874" y="66"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
+          <rect x="878" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
+
+          {/* ── STAR CENTRE ── */}
+          {/* Main brick block */}
+          <rect x="920" y="58"  width="190" height="72" fill={isDark?'#3a2a1a':'#bb8855'}/>
+          <rect x="920" y="58"  width="190" height="6"  fill={isDark?'#2a1a0a':'#996633'}/>
+          {/* Brick courses */}
+          {[110,116,122].map(y=>(
+            <rect key={y} x="920" y={y} width="190" height="1" fill={isDark?'#2a1a0a':'#996633'}/>
+          ))}
+          {/* Metal cladding over large windows */}
+          <rect x="960" y="66"  width="110" height="28" fill={isDark?'#334455':'#667788'}/>
+          <rect x="960" y="66"  width="110" height="3"  fill={isDark?'#445566':'#7788aa'}/>
+          {/* Window grid */}
+          {[963,978,993,1008,1023,1038,1053].map(x=>(
+            <g key={x}>
+              <rect x={x} y="70" width="12" height="20" fill={isDark?'#223344':'#88aabb'}/>
+              <rect x={x+6} y="70" width="1" height="20" fill={isDark?'#111':'#667788'}/>
               <rect x={x} y="80" width="12" height="1"   fill={isDark?'#111':'#667788'}/>
             </g>
           ))}
-          {/* STAR lettering on brick */}
-          <text x="806" y="102" fontFamily="Space Mono, monospace" fontSize="16" fontWeight="700"
-            fill={isDark?'#888':'#ccaa88'} letterSpacing="3">STAR</text>
-          {/* Brick texture rows */}
-          {[112,118,124].map(y=>(
-            <rect key={y} x="800" y={y} width="180" height="1" fill={isDark?'#2a1a0a':'#996633'}/>
-          ))}
-          {/* Canopy entrance right */}
-          <rect x="950" y="88" width="50"  height="6"  fill={isDark?'#445566':'#7799aa'}/>
-          <rect x="950" y="88" width="50"  height="2"  fill={isDark?'#556677':'#88aacc'}/>
-          <rect x="952" y="94" width="6"   height="30" fill={isDark?'#334455':'#5577aa'}/>
-          <rect x="990" y="94" width="6"   height="30" fill={isDark?'#334455':'#5577aa'}/>
-          {/* STAR entrance sign */}
-          <rect x="953" y="78" width="44"  height="10" fill={isDark?'#eee':'#fff'}/>
-          <text x="956" y="87" fontFamily="Space Mono, monospace" fontSize="6" fontWeight="700"
-            fill="#bb3333">Splott STAR Centre</text>
+          {/* STAR lettering */}
+          <text x="926" y="108" fontFamily="Space Mono, monospace" fontSize="18" fontWeight="700"
+            fill={isDark?'#888':'#ccaa88'} letterSpacing="4">STAR</text>
+          {/* Canopy entrance — base on y=130 */}
+          <rect x="1072" y="100" width="38"  height="6"  fill={isDark?'#445566':'#7799aa'}/>
+          <rect x="1072" y="100" width="38"  height="2"  fill={isDark?'#556677':'#88aacc'}/>
+          <rect x="1074" y="106" width="5"   height="24" fill={isDark?'#334455':'#5577aa'}/>
+          <rect x="1102" y="106" width="5"   height="24" fill={isDark?'#334455':'#5577aa'}/>
+          {/* Entrance sign */}
+          <rect x="1074" y="90"  width="36"  height="10" fill="#fff"/>
+          <text x="1076" y="99" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#bb3333">Splott STAR Centre</text>
           {/* Entrance door */}
-          <rect x="970" y="110" width="18" height="20" fill={isDark?'#334455':'#aaccdd'}/>
-          <rect x="972" y="112" width="6"  height="8"  fill={isDark?'#556677':'#88aacc'}/>
-          <rect x="980" y="112" width="6"  height="8"  fill={isDark?'#556677':'#88aacc'}/>
+          <rect x="1082" y="114" width="16"  height="16" fill={isDark?'#334455':'#aaccdd'}/>
+          <rect x="1084" y="116" width="5"   height="7"  fill={isDark?'#556677':'#88aacc'}/>
+          <rect x="1091" y="116" width="5"   height="7"  fill={isDark?'#556677':'#88aacc'}/>
 
-          {/* Right terraces */}
-          <rect x="1010" y="72" width="55" height="58" fill={isDark?'#3a2a1a':'#aa8866'}/>
-          <rect x="1010" y="72" width="55" height="4"  fill={isDark?'#2a1a0a':'#886644'}/>
-          {[1015,1028,1041,1054].map(x=>(
+          {/* ── RIGHT TERRACES ── */}
+          <rect x="1115" y="74"  width="85"  height="56" fill={isDark?'#3a2a1a':'#aa8866'}/>
+          <rect x="1115" y="74"  width="85"  height="4"  fill={isDark?'#2a1a0a':'#886644'}/>
+          {[1120,1134,1148,1162,1176].map(x=>(
             <g key={x}>
-              <rect x={x} y="84" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="100" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="84" width="1" height="10" fill={isDark?'#111':'#668899'}/>
-              <rect x={x+4} y="100" width="1" height="10" fill={isDark?'#111':'#668899'}/>
+              <rect x={x} y="84" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
+              <rect x={x} y="101" width="9" height="11" fill={isDark?'#223344':'#88aacc'}/>
+              <rect x={x+4} y="84" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
+              <rect x={x+4} y="101" width="1" height="11" fill={isDark?'#111':'#5577aa'}/>
             </g>
           ))}
-          <rect x="1018" y="60" width="8"  height="12" fill={isDark?'#3a2a1a':'#996644'}/>
-          <rect x="1045" y="64" width="8"  height="8"  fill={isDark?'#3a2a1a':'#996644'}/>
-
-          <rect x="1065" y="78" width="55" height="52" fill={isDark?'#3a2818':'#bb9977'}/>
-          <rect x="1065" y="78" width="55" height="4"  fill={isDark?'#2a1808':'#997755'}/>
-          {[1070,1083,1096,1109].map(x=>(
+          {[1120,1150,1178].map(x=>(
+            <rect key={x} x={x} y="62" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
+          ))}
+          {[1133,1147,1161,1175].map(x=>(
+            <rect key={x} x={x} y="74" width="2" height="56" fill={isDark?'#2a1a0a':'#886644'}/>
+          ))}
+          {[1122,1152].map(x=>(
             <g key={x}>
-              <rect x={x} y="88" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x} y="104" width="8" height="10" fill={isDark?'#223344':'#88aacc'}/>
-              <rect x={x+4} y="88" width="1" height="10" fill={isDark?'#111':'#668899'}/>
-              <rect x={x+4} y="104" width="1" height="10" fill={isDark?'#111':'#668899'}/>
+              <rect x={x}   y="115" width="10" height="15" fill={isDark?'#3355aa':'#4466bb'}/>
+              <rect x={x+2} y="117" width="3"  height="5"  fill={isDark?'#4477cc':'#6688dd'}/>
+              <rect x={x+6} y="117" width="3"  height="5"  fill={isDark?'#4477cc':'#6688dd'}/>
             </g>
           ))}
-          <rect x="1072" y="66" width="8"  height="12" fill={isDark?'#3a2818':'#996644'}/>
 
-          {/* Right street lamp */}
-          <rect x="1140" y="78" width="4"  height="52" fill={isDark?'#555':'#888'}/>
-          <rect x="1134" y="78" width="16" height="4"  fill={isDark?'#555':'#888'}/>
-          <rect x="1134" y="74" width="16" height="4"  fill={isDark?'#ffeeaa':'#ffeeaa'}/>
-
-          {/* ── People ── */}
-          {/* Person 1 — left pavement */}
-          <rect x="155" y="118" width="6"  height="12" fill={isDark?'#aa6622':'#cc8844'}/>
-          <rect x="156" y="115" width="4"  height="4"  fill={isDark?'#ddbb88':'#eeccaa'}/>
-          <rect x="155" y="128" width="2"  height="4"  fill={isDark?'#226688':'#3377aa'}/>
-          <rect x="158" y="128" width="2"  height="4"  fill={isDark?'#226688':'#3377aa'}/>
-          {/* Dog on lead */}
-          <rect x="142" y="126" width="8"  height="5"  fill={isDark?'#884422':'#aa6633'}/>
-          <rect x="140" y="124" width="5"  height="3"  fill={isDark?'#884422':'#aa6633'}/>
-          <rect x="149" y="125" width="1"  height="4"  fill={isDark?'#555':'#888'}/>
-          <rect x="150" y="124" width="5"  height="1"  fill={isDark?'#555':'#888'}/>
-
-          {/* Person 2 — near roundabout */}
-          <rect x="310" y="116" width="6"  height="14" fill={isDark?'#4466aa':'#5577bb'}/>
-          <rect x="311" y="113" width="4"  height="4"  fill={isDark?'#ddbb88':'#eeccaa'}/>
-
-          {/* Cyclist */}
-          <rect x="740" y="120" width="18" height="2"  fill={isDark?'#555':'#888'}/>
-          <rect x="740" y="120" width="4"  height="8"  fill={isDark?'#555':'#888'}/>
-          <rect x="754" y="120" width="4"  height="8"  fill={isDark?'#555':'#888'}/>
-          <rect x="748" y="112" width="6"  height="8"  fill={isDark?'#cc4444':'#dd5555'}/>
-          <rect x="749" y="109" width="4"  height="4"  fill={isDark?'#ddbb88':'#eeccaa'}/>
-          <rect x="742" y="126" width="6"  height="4"  fill="#111"/>
-          <rect x="754" y="126" width="6"  height="4"  fill="#111"/>
-
-          {/* Person 3 — STAR entrance */}
-          <rect x="968" y="116" width="6"  height="14" fill={isDark?'#664422':'#996633'}/>
-          <rect x="969" y="113" width="4"  height="4"  fill={isDark?'#ddbb88':'#eeccaa'}/>
+          {/* ── STREET LAMP 3 ── */}
+          <rect x="1105" y="72"  width="4"   height="58" fill={isDark?'#555':'#888'}/>
+          <rect x="1099" y="72"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
+          <rect x="1099" y="68"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
+          <rect x="1103" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
         </svg>
+
+        {/* ── ANIMATED ELEMENTS — positioned over SVG ── */}
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+
+          {/* Cardiff Bus going RIGHT — red double decker */}
+          <div className="bus-r" style={{ position: 'absolute', bottom: '10px', animationDuration: '22s', animationDelay: '0s' }}>
+            <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
+              {/* Body */}
+              <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
+              <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
+              <rect x="2"  y="38" width="112" height="4"  fill="#aa1111"/>
+              <rect x="2"  y="4"  width="4"   height="38" fill="#dd3333"/>
+              <rect x="110" y="4" width="4"   height="38" fill="#aa1111"/>
+              {/* Destination board */}
+              <rect x="8"  y="6"  width="80"  height="8"  fill="#ffffff"/>
+              <text x="12" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">SPLOTT  Cardiff Bus</text>
+              {/* Upper deck windows */}
+              {[8,28,48,68,88].map(x=>(
+                <rect key={x} x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>
+              ))}
+              {/* Lower deck windows */}
+              {[8,28,48,68,88].map(x=>(
+                <rect key={x+1} x={x} y="28" width="16" height="8" fill={isDark?'#334455':'#aaccee'}/>
+              ))}
+              {/* Headlights — glow in dark mode */}
+              <rect x="106" y="30" width="8" height="6" fill={isDark?'#ffff88':'#ffff44'}/>
+              {isDark && <rect x="108" y="29" width="6" height="8" fill="#ffff88" opacity="0.5"/>}
+              {/* Rear light */}
+              <rect x="2"  y="30" width="6"  height="6"  fill="#ff4444"/>
+              {/* Wheels */}
+              <rect x="12"  y="42" width="20" height="10" fill="#222"/>
+              <rect x="16"  y="44" width="12" height="6"  fill="#444"/>
+              <rect x="85"  y="42" width="20" height="10" fill="#222"/>
+              <rect x="89"  y="44" width="12" height="6"  fill="#444"/>
+            </svg>
+          </div>
+
+          {/* Cardiff Bus going LEFT */}
+          <div className="bus-l" style={{ position: 'absolute', bottom: '10px', animationDuration: '28s', animationDelay: '-14s' }}>
+            <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges" style={{ transform: 'scaleX(-1)' }}>
+              <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
+              <rect x="2"  y="4"  width="112" height="6"  fill="#dd3333"/>
+              <rect x="2"  y="38" width="112" height="4"  fill="#aa1111"/>
+              <rect x="2"  y="4"  width="4"   height="38" fill="#dd3333"/>
+              <rect x="110" y="4" width="4"   height="38" fill="#aa1111"/>
+              <rect x="8"  y="6"  width="80"  height="8"  fill="#ffffff"/>
+              <text x="12" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">CARDIFF BAY  Bus</text>
+              {[8,28,48,68,88].map(x=>(
+                <rect key={x} x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>
+              ))}
+              {[8,28,48,68,88].map(x=>(
+                <rect key={x+1} x={x} y="28" width="16" height="8" fill={isDark?'#334455':'#aaccee'}/>
+              ))}
+              <rect x="106" y="30" width="8" height="6" fill={isDark?'#ffff88':'#ffff44'}/>
+              {isDark && <rect x="108" y="29" width="6" height="8" fill="#ffff88" opacity="0.5"/>}
+              <rect x="2"  y="30" width="6"  height="6"  fill="#ff4444"/>
+              <rect x="12"  y="42" width="20" height="10" fill="#222"/>
+              <rect x="16"  y="44" width="12" height="6"  fill="#444"/>
+              <rect x="85"  y="42" width="20" height="10" fill="#222"/>
+              <rect x="89"  y="44" width="12" height="6"  fill="#444"/>
+            </svg>
+          </div>
+
+          {/* Person 1 walking right — dog walker */}
+          <div className="walk-r" style={{ position: 'absolute', bottom: '52px', animationDuration: '35s', animationDelay: '-5s' }}>
+            <svg width="40" height="28" viewBox="0 0 40 28" shapeRendering="crispEdges">
+              <rect x="14" y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="13" y="7"  width="7" height="10" fill={isDark?'#4466aa':'#5577bb'}/>
+              <rect x="13" y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
+              <rect x="17" y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
+              <rect x="9"  y="18" width="7" height="4"  fill={isDark?'#884422':'#aa6633'}/>
+              <rect x="7"  y="16" width="5" height="3"  fill={isDark?'#884422':'#aa6633'}/>
+              <rect x="15" y="11" width="1" height="7"  fill={isDark?'#555':'#888'}/>
+              <rect x="9"  y="11" width="7" height="1"  fill={isDark?'#555':'#888'}/>
+            </svg>
+          </div>
+
+          {/* Person 2 walking right */}
+          <div className="walk-r" style={{ position: 'absolute', bottom: '52px', animationDuration: '40s', animationDelay: '-20s' }}>
+            <svg width="20" height="28" viewBox="0 0 20 28" shapeRendering="crispEdges">
+              <rect x="7"  y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="6"  y="7"  width="7" height="10" fill={isDark?'#cc4422':'#dd5533'}/>
+              <rect x="6"  y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
+              <rect x="10" y="17" width="3" height="7"  fill={isDark?'#226688':'#3377aa'}/>
+            </svg>
+          </div>
+
+          {/* Person 3 walking left */}
+          <div className="walk-l" style={{ position: 'absolute', bottom: '52px', animationDuration: '38s', animationDelay: '-10s' }}>
+            <svg width="20" height="28" viewBox="0 0 20 28" shapeRendering="crispEdges">
+              <rect x="7"  y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="6"  y="7"  width="7" height="10" fill={isDark?'#448844':'#559955'}/>
+              <rect x="6"  y="17" width="3" height="7"  fill={isDark?'#334':'#445'}/>
+              <rect x="10" y="17" width="3" height="7"  fill={isDark?'#334':'#445'}/>
+            </svg>
+          </div>
+
+          {/* Wheelchair user going right */}
+          <div className="walk-r" style={{ position: 'absolute', bottom: '52px', animationDuration: '45s', animationDelay: '-30s' }}>
+            <svg width="36" height="28" viewBox="0 0 36 28" shapeRendering="crispEdges">
+              {/* Person */}
+              <rect x="6"  y="2"  width="5" height="5" fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="5"  y="7"  width="7" height="8"  fill={isDark?'#4466cc':'#5577dd'}/>
+              {/* Wheelchair frame */}
+              <rect x="4"  y="15" width="18" height="2"  fill={isDark?'#888':'#aaa'}/>
+              <rect x="4"  y="12" width="2"  height="5"  fill={isDark?'#888':'#aaa'}/>
+              <rect x="20" y="12" width="2"  height="5"  fill={isDark?'#888':'#aaa'}/>
+              {/* Wheels */}
+              <rect x="2"  y="17" width="10" height="10" fill="none"/>
+              <rect x="3"  y="18" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
+              <rect x="4"  y="19" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
+              <rect x="18" y="18" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
+              <rect x="19" y="19" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
+              {/* Small front wheel */}
+              <rect x="22" y="22" width="4"  height="4"  fill={isDark?'#555':'#777'}/>
+            </svg>
+          </div>
+
+          {/* Cyclist going left */}
+          <div className="walk-l" style={{ position: 'absolute', bottom: '52px', animationDuration: '18s', animationDelay: '-8s' }}>
+            <svg width="36" height="32" viewBox="0 0 36 32" shapeRendering="crispEdges">
+              <rect x="12" y="2"  width="5" height="5"  fill={isDark?'#ddbb88':'#eeccaa'}/>
+              <rect x="11" y="7"  width="7" height="8"  fill={isDark?'#cc4444':'#dd5555'}/>
+              <rect x="6"  y="16" width="18" height="2"  fill={isDark?'#888':'#666'}/>
+              <rect x="6"  y="12" width="2"  height="6"  fill={isDark?'#888':'#666'}/>
+              <rect x="22" y="12" width="2"  height="6"  fill={isDark?'#888':'#666'}/>
+              <rect x="14" y="14" width="2"  height="4"  fill={isDark?'#888':'#666'}/>
+              <rect x="2"  y="18" width="10" height="10" fill="none"/>
+              <rect x="3"  y="19" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
+              <rect x="4"  y="20" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
+              <rect x="22" y="18" width="10" height="10" fill="none"/>
+              <rect x="23" y="19" width="8"  height="8"  fill={isDark?'#555':'#777'}/>
+              <rect x="24" y="20" width="6"  height="6"  fill={isDark?'#333':'#aaa'}/>
+            </svg>
+          </div>
+
+        </div>
       </div>
 
       <div className="desktop desktop-fade-in" onClick={() => { setSelectedIcon(null); setStartMenuOpen(false) }}>
@@ -1824,9 +2026,24 @@ export default function Home() {
             style={{ left: `${win.position.x}px`, top: `${win.position.y}px`, zIndex: win.zIndex }}
             onClick={() => bringToFront(id)}
           >
+            {/* Tab bar — horizontal navigation */}
+            <div className="window-tabs">
+              {(Object.keys(windows) as WindowId[]).filter(w => windows[w].isOpen || minimisedWindows.includes(w)).map(wid => (
+                <button
+                  key={wid}
+                  className={`window-tab ${wid === id ? 'active' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); if (wid !== id) { bringToFront(wid); openWindow(wid) } }}
+                >
+                  {t[wid]}
+                </button>
+              ))}
+            </div>
             <div className="window-titlebar" onMouseDown={(e) => handleWindowTitlebarMouseDown(e, id)}>
               <div className="window-title">{windowTitles[lang][id]}</div>
-              <button className="window-close" onClick={(e) => { e.stopPropagation(); closeWindow(id) }} aria-label={t.close}>×</button>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button className="window-minimise" onClick={(e) => { e.stopPropagation(); minimiseWindow(id) }} aria-label="Minimise">−</button>
+                <button className="window-close" onClick={(e) => { e.stopPropagation(); closeWindow(id) }} aria-label={t.close}>×</button>
+              </div>
             </div>
             <div className="window-content">{renderWindowContent(id)}</div>
           </div>
@@ -1839,6 +2056,17 @@ export default function Home() {
           <button className={`menu-btn ${startMenuOpen ? 'open' : ''}`} onClick={(e) => { e.stopPropagation(); setStartMenuOpen(!startMenuOpen) }} aria-label="Menu" aria-expanded={startMenuOpen}>
             {t.menu}
           </button>
+          {/* Minimised window slots */}
+          {minimisedWindows.map(id => (
+            <button
+              key={id}
+              className="minimised-slot"
+              onClick={() => restoreWindow(id)}
+              title={windowTitles[lang][id]}
+            >
+              {t[id]}
+            </button>
+          ))}
         </div>
         <div className="menubar-right">
           <span style={{ fontSize: '11px', color: subtle, marginRight: '4px' }}>{t.iconsLabel}</span>
