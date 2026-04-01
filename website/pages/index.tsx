@@ -256,8 +256,7 @@ export default function Home() {
   const content = {
     en: {
       // Landing page
-      landingTitle: 'Leol Lab',
-      landingSubtitle: 'Web3 Governance Research',
+      landingTitle: 'Architecture of Agency',
       landingText1: 'This site collects anonymised usage data for research purposes:',
       landingBullets: [
         'Which pages you visit',
@@ -293,7 +292,7 @@ export default function Home() {
       iconLarge: 'L',
       
       // About window
-      aboutTitle: 'About Leol Lab',
+      aboutTitle: 'About Architecture of Agency',
       aboutText1: 'Researching Web3-enabled governance systems that centre marginalised voices in shaping the built environment.',
       aboutProblem: 'The problem',
       aboutProblemText: 'Multiple types of power exclude communities from decisions about place:',
@@ -401,8 +400,7 @@ export default function Home() {
     },
     cy: {
       // Landing page
-      landingTitle: 'Leol Lab',
-      landingSubtitle: 'Ymchwil Llywodraethiant Gwe3',
+      landingTitle: 'Architecture of Agency',
       landingText1: 'Mae\'r wefan hon yn casglu data defnydd dienw at ddibenion ymchwil:',
       landingBullets: [
         'Pa dudalennau rydych chi\'n ymweld â nhw',
@@ -438,7 +436,7 @@ export default function Home() {
       iconLarge: 'M',
       
       // About window
-      aboutTitle: 'Ynghylch Leol Lab',
+      aboutTitle: 'Ynghylch Architecture of Agency',
       aboutText1: 'Ymchwilio i systemau llywodraethiant Gwe3-alluog sy\'n canoli lleisiau ymylol wrth lunio\'r amgylchedd adeiledig.',
       aboutProblem: 'Y broblem',
       aboutProblemText: 'Mae mathau lluosog o bŵer yn eithrio cymunedau o benderfyniadau am le:',
@@ -555,7 +553,7 @@ export default function Home() {
     return (
       <>
         <Head>
-          <title>Leol Lab | Loading...</title>
+          <title>Architecture of Agency | Loading...</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -658,8 +656,8 @@ export default function Home() {
     return (
       <>
         <Head>
-          <title>Leol Lab | Web3 Governance Research</title>
-          <meta name="description" content="Research investigating Web3-enabled governance systems that centre marginalised voices" />
+          <title>Architecture of Agency </title>
+          <meta name="description" content="Community Governance Research" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -845,7 +843,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Leol Lab | Web3 Governance Research</title>
+        <title>Architecture of Agency</title>
         <meta name="description" content="Research investigating Web3-enabled governance systems that centre marginalised voices" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
