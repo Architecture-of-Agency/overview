@@ -1931,7 +1931,7 @@ export default function Home() {
           <rect x="1030" y="110" width="2"   height="20" fill={isDark?'#445566':'#7799aa'}/>
           <rect x="1060" y="110" width="2"   height="20" fill={isDark?'#445566':'#7799aa'}/>
 
-          {/* ── STREET LAMP 3 ── */}}
+          {/* ── STREET LAMP 3 ── */}
           <rect x="1105" y="72"  width="4"   height="58" fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="72"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="68"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
