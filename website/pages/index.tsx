@@ -318,282 +318,368 @@ export default function Home() {
     { id: 'splott',          type: 'mappin'   },
   ]
 
-  // Pixel-art SVG icons. shapeRendering="crispEdges" keeps everything sharp.
-  // All shapes use rect, polygon, or simple path — no transforms, no blur, no radius.
+  // Icons on 32×32 grid, stepped shading (highlight/mid/shadow), no gradients, no curves.
   const renderIcon = (type: IconType, s: number) => {
     const K = isDark
 
     switch (type) {
 
       // ── Document ──────────────────────────────────────────────────────────────
-      case 'document':
+      case 'document': {
+        const PH=K?'#eeeeee':'#ffffff', PM=K?'#bbbbbb':'#dddddd', PS=K?'#888888':'#aaaaaa'
+        const LN=K?'#666666':'#999999', FK=K?'#666666':'#bbbbbb', BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
-            {/* Page — folded top-right corner */}
-            <polygon points="4,0 32,0 44,12 44,48 4,48" fill={K ? '#dddddd' : '#ffffff'} />
-            <polygon points="4,0 32,0 44,12 44,48 4,48" fill="none" stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* Fold corner triangle */}
-            <polygon points="32,0 44,12 32,12" fill={K ? '#aaaaaa' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            {/* Page body */}
+            <rect x="2" y="0" width="27" height="32" fill={PM}/>
+            <rect x="2" y="0" width="17" height="32" fill={PH}/>
+            {/* Folded top-right corner — step shape */}
+            <rect x="19" y="0" width="10" height="8" fill={FK}/>
+            <rect x="19" y="0" width="1"  height="7" fill={PS}/>
+            <rect x="19" y="7" width="10" height="1" fill={BK}/>
+            <rect x="29" y="0" width="1"  height="32" fill={BK}/>
+            {/* Outline */}
+            <rect x="2"  y="0"  width="1"  height="32" fill={BK}/>
+            <rect x="2"  y="0"  width="28" height="1"  fill={BK}/>
+            <rect x="2"  y="31" width="28" height="1"  fill={BK}/>
             {/* Text lines */}
-            {[18, 24, 30, 36].map(y => (
-              <rect key={y} x="10" y={y} width="26" height="3" fill={K ? '#888888' : '#aaaaaa'} />
-            ))}
-            {/* Drop shadow */}
-            <rect x="6" y="50" width="40" height="3" fill={K ? '#111111' : '#999999'} />
-            <rect x="46" y="2" width="3" height="48" fill={K ? '#111111' : '#999999'} />
+            {[8,12,16,20,24].map(y=><rect key={y} x="5" y={y} width="20" height="2" fill={LN}/>)}
+            <rect x="5" y="28" width="12" height="2" fill={LN}/>
+            {/* Shadow */}
+            <rect x="3"  y="32" width="28" height="1" fill={PS}/>
+            <rect x="30" y="1"  width="1"  height="31" fill={PS}/>
           </svg>
         )
+      }
 
-      // ── Globe with 3 — old school WWW globe ──────────────────────────────────
-      // Proper sphere: curved longitude lines, latitude lines, landmasses, shading
-      case 'globe3':
+      // ── Globe with 3 ─────────────────────────────────────────────────────────
+      case 'globe3': {
+        const O1=K?'#88aaff':'#aabbff', O2=K?'#2255cc':'#3366dd', O3=K?'#0033aa':'#1144bb', O4=K?'#001166':'#002288'
+        const G1=K?'#66aa66':'#88cc88', G2=K?'#336633':'#448844', G3=K?'#224422':'#335533'
+        const BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48">
-            <defs>
-              <clipPath id="gc">
-                <circle cx="24" cy="24" r="21" />
-              </clipPath>
-              {/* Radial gradient for spherical shading */}
-              <radialGradient id="gs" cx="35%" cy="30%" r="65%">
-                <stop offset="0%"   stopColor={K ? '#4488ff' : '#66aaff'} stopOpacity="0.7" />
-                <stop offset="60%"  stopColor={K ? '#1144aa' : '#2266cc'} stopOpacity="0" />
-                <stop offset="100%" stopColor={K ? '#001133' : '#003399'} stopOpacity="0.5" />
-              </radialGradient>
-              <radialGradient id="gd" cx="50%" cy="50%" r="50%">
-                <stop offset="70%"  stopColor="transparent" />
-                <stop offset="100%" stopColor={K ? '#000022' : '#001155'} stopOpacity="0.4" />
-              </radialGradient>
-            </defs>
-
-            {/* Ocean base */}
-            <circle cx="24" cy="24" r="21" fill={K ? '#1144aa' : '#2266cc'} />
-
-            <g clipPath="url(#gc)">
-              {/* ── Latitude lines (horizontal, straight) ── */}
-              {[10, 17, 24, 31, 38].map(y => (
-                <line key={y} x1="3" y1={y} x2="45" y2={y}
-                  stroke={K ? '#2255bb' : '#3377dd'} strokeWidth="0.8" />
-              ))}
-
-              {/* ── Longitude lines (curved paths bowing outward at equator) ── */}
-              {/* Far left — very compressed */}
-              <path d="M24,3 Q10,24 24,45" fill="none" stroke={K?'#2255bb':'#3377dd'} strokeWidth="0.8" />
-              {/* Left of centre */}
-              <path d="M24,3 Q15,24 24,45" fill="none" stroke={K?'#2255bb':'#3377dd'} strokeWidth="0.8" />
-              {/* Centre — straight vertical */}
-              <line x1="24" y1="3" x2="24" y2="45" stroke={K?'#2255bb':'#3377dd'} strokeWidth="0.8" />
-              {/* Right of centre */}
-              <path d="M24,3 Q33,24 24,45" fill="none" stroke={K?'#2255bb':'#3377dd'} strokeWidth="0.8" />
-              {/* Far right — very compressed */}
-              <path d="M24,3 Q38,24 24,45" fill="none" stroke={K?'#2255bb':'#3377dd'} strokeWidth="0.8" />
-
-              {/* ── Stylised landmasses ── */}
-              {/* North America */}
-              <path d="M6,12 L14,10 L16,14 L13,18 L10,20 L7,22 L5,18 Z"
-                fill={K?'#336633':'#448844'} stroke={K?'#224422':'#336633'} strokeWidth="0.5" />
-              {/* Greenland blob */}
-              <ellipse cx="20" cy="9" rx="3" ry="2.5"
-                fill={K?'#336633':'#448844'} />
-              {/* Europe / partial */}
-              <path d="M26,12 L30,11 L32,14 L30,17 L27,16 Z"
-                fill={K?'#336633':'#448844'} stroke={K?'#224422':'#336633'} strokeWidth="0.5" />
-              {/* Africa */}
-              <path d="M26,18 L31,17 L33,22 L32,30 L28,33 L25,30 L24,24 L26,20 Z"
-                fill={K?'#336633':'#448844'} stroke={K?'#224422':'#336633'} strokeWidth="0.5" />
-              {/* Asia blob */}
-              <path d="M30,12 L40,11 L42,16 L38,20 L34,19 L31,16 Z"
-                fill={K?'#336633':'#448844'} stroke={K?'#224422':'#336633'} strokeWidth="0.5" />
-              {/* South America */}
-              <path d="M12,26 L16,24 L18,28 L17,34 L14,36 L11,32 L10,28 Z"
-                fill={K?'#336633':'#448844'} stroke={K?'#224422':'#336633'} strokeWidth="0.5" />
-              {/* Australia */}
-              <ellipse cx="38" cy="32" rx="4" ry="3"
-                fill={K?'#336633':'#448844'} />
-
-              {/* Spherical shading overlays */}
-              <circle cx="24" cy="24" r="21" fill="url(#gs)" />
-              <circle cx="24" cy="24" r="21" fill="url(#gd)" />
-            </g>
-
-            {/* Globe outline */}
-            <circle cx="24" cy="24" r="21" fill="none"
-              stroke={K?'#aaaacc':'#000000'} strokeWidth="1.5" />
-
-            {/* ── Pixel "3" — white, bottom right quadrant ── */}
-            <g shapeRendering="crispEdges" opacity="0.95">
-              <rect x="27" y="27" width="10" height="2" fill="#ffffff" />
-              <rect x="35" y="29" width="2"  height="4" fill="#ffffff" />
-              <rect x="29" y="33" width="8"  height="2" fill="#ffffff" />
-              <rect x="35" y="35" width="2"  height="4" fill="#ffffff" />
-              <rect x="27" y="39" width="10" height="2" fill="#ffffff" />
-            </g>
-
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            {/* Circle outline */}
+            <rect x="8"  y="1"  width="16" height="1" fill={BK}/>
+            <rect x="5"  y="2"  width="22" height="1" fill={BK}/>
+            <rect x="3"  y="3"  width="26" height="1" fill={BK}/>
+            <rect x="2"  y="4"  width="28" height="1" fill={BK}/>
+            <rect x="1"  y="5"  width="30" height="1" fill={BK}/>
+            <rect x="1"  y="26" width="30" height="1" fill={BK}/>
+            <rect x="2"  y="27" width="28" height="1" fill={BK}/>
+            <rect x="3"  y="28" width="26" height="1" fill={BK}/>
+            <rect x="5"  y="29" width="22" height="1" fill={BK}/>
+            <rect x="8"  y="30" width="16" height="1" fill={BK}/>
+            <rect x="1"  y="5"  width="1"  height="22" fill={BK}/>
+            <rect x="30" y="5"  width="1"  height="22" fill={BK}/>
+            <rect x="2"  y="4"  width="1"  height="24" fill={BK}/>
+            <rect x="29" y="4"  width="1"  height="24" fill={BK}/>
+            {/* Ocean fill */}
+            <rect x="3"  y="4"  width="26" height="24" fill={O2}/>
+            <rect x="2"  y="5"  width="28" height="22" fill={O2}/>
+            {/* Highlight — top left */}
+            <rect x="3"  y="4"  width="10" height="2"  fill={O1}/>
+            <rect x="3"  y="6"  width="8"  height="3"  fill={O1}/>
+            <rect x="2"  y="9"  width="6"  height="2"  fill={O1}/>
+            {/* Shadow — bottom right */}
+            <rect x="22" y="22" width="6"  height="4"  fill={O3}/>
+            <rect x="20" y="24" width="8"  height="4"  fill={O4}/>
+            <rect x="25" y="18" width="3"  height="6"  fill={O3}/>
+            {/* Latitude lines */}
+            <rect x="2"  y="10" width="28" height="1"  fill={O3}/>
+            <rect x="1"  y="16" width="30" height="1"  fill={O3}/>
+            <rect x="2"  y="22" width="28" height="1"  fill={O3}/>
+            {/* Longitude lines — straight for legibility at small size */}
+            <rect x="10" y="2"  width="1"  height="27" fill={O3}/>
+            <rect x="21" y="2"  width="1"  height="27" fill={O3}/>
+            {/* Landmasses */}
+            <rect x="2"  y="6"  width="5"  height="7"  fill={G2}/> {/* N America */}
+            <rect x="2"  y="6"  width="2"  height="3"  fill={G1}/>
+            <rect x="6"  y="10" width="2"  height="3"  fill={G3}/>
+            <rect x="13" y="6"  width="4"  height="5"  fill={G2}/> {/* Europe */}
+            <rect x="13" y="6"  width="2"  height="2"  fill={G1}/>
+            <rect x="13" y="12" width="4"  height="10" fill={G2}/> {/* Africa */}
+            <rect x="13" y="12" width="2"  height="3"  fill={G1}/>
+            <rect x="15" y="19" width="2"  height="3"  fill={G3}/>
+            <rect x="18" y="5"  width="7"  height="7"  fill={G2}/> {/* Asia */}
+            <rect x="18" y="5"  width="3"  height="2"  fill={G1}/>
+            <rect x="23" y="9"  width="2"  height="3"  fill={G3}/>
+            <rect x="23" y="19" width="4"  height="3"  fill={G2}/> {/* Australia */}
+            {/* Pixel "3" — white, lower right */}
+            <rect x="18" y="18" width="8"  height="2"  fill="#ffffff"/>
+            <rect x="24" y="20" width="2"  height="2"  fill="#ffffff"/>
+            <rect x="20" y="22" width="6"  height="2"  fill="#ffffff"/>
+            <rect x="24" y="24" width="2"  height="2"  fill="#ffffff"/>
+            <rect x="18" y="26" width="8"  height="2"  fill="#ffffff"/>
             {/* Drop shadow */}
-            <ellipse cx="25" cy="47" rx="18" ry="2"
-              fill={K?'#111111':'#555555'} opacity="0.35" />
+            <rect x="8"  y="31" width="16" height="1"  fill={O4}/>
+            <rect x="6"  y="30" width="20" height="1"  fill={O4}/>
           </svg>
         )
+      }
 
       // ── Filing cabinet ────────────────────────────────────────────────────────
-      case 'cabinet':
+      case 'cabinet': {
+        const BH=K?'#bbbbbb':'#dddddd', BM=K?'#888888':'#aaaaaa', BS=K?'#555555':'#777777'
+        const DH=K?'#cccccc':'#eeeeee', DM=K?'#999999':'#cccccc', DS=K?'#666666':'#999999'
+        const HH=K?'#dddddd':'#ffffff', HS=K?'#444444':'#888888'
+        const BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
-            {/* Cabinet body */}
-            <rect x="2" y="2" width="42" height="44" fill={K ? '#777777' : '#aaaaaa'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* Drawer 1 */}
-            <rect x="6"  y="5"  width="34" height="11" fill={K ? '#999999' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
-            <rect x="17" y="9"  width="12" height="3"  fill={K ? '#bbbbbb' : '#888888'} />
-            {/* Drawer 2 */}
-            <rect x="6"  y="19" width="34" height="11" fill={K ? '#999999' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
-            <rect x="17" y="23" width="12" height="3"  fill={K ? '#bbbbbb' : '#888888'} />
-            {/* Drawer 3 */}
-            <rect x="6"  y="33" width="34" height="11" fill={K ? '#999999' : '#cccccc'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
-            <rect x="17" y="37" width="12" height="3"  fill={K ? '#bbbbbb' : '#888888'} />
-            {/* Drop shadow */}
-            <rect x="4"  y="48" width="42" height="3" fill={K ? '#111111' : '#999999'} />
-            <rect x="46" y="4"  width="3"  height="44" fill={K ? '#111111' : '#999999'} />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            <rect x="2"  y="1"  width="28" height="30" fill={BM}/>
+            <rect x="2"  y="1"  width="3"  height="30" fill={BH}/>
+            <rect x="27" y="1"  width="3"  height="30" fill={BS}/>
+            <rect x="2"  y="1"  width="28" height="1"  fill={BK}/>
+            <rect x="2"  y="31" width="28" height="1"  fill={BK}/>
+            <rect x="2"  y="1"  width="1"  height="31" fill={BK}/>
+            <rect x="29" y="1"  width="1"  height="31" fill={BK}/>
+            {[3,12,21].map(y=>(
+              <g key={y}>
+                <rect x="4"  y={y}   width="24" height="8"  fill={DM}/>
+                <rect x="4"  y={y}   width="24" height="2"  fill={DH}/>
+                <rect x="4"  y={y+6} width="24" height="2"  fill={DS}/>
+                <rect x="4"  y={y}   width="1"  height="8"  fill={DH}/>
+                <rect x="27" y={y}   width="1"  height="8"  fill={DS}/>
+                <rect x="4"  y={y}   width="24" height="1"  fill={BK}/>
+                <rect x="4"  y={y+8} width="24" height="1"  fill={BK}/>
+                <rect x="11" y={y+3} width="10" height="3"  fill={HS}/>
+                <rect x="11" y={y+3} width="10" height="1"  fill={HH}/>
+                <rect x="11" y={y+3} width="1"  height="3"  fill={HH}/>
+                <rect x="11" y={y+2} width="10" height="1"  fill={BK}/>
+                <rect x="11" y={y+5} width="10" height="1"  fill={BK}/>
+                <rect x="11" y={y+2} width="1"  height="4"  fill={BK}/>
+                <rect x="20" y={y+2} width="1"  height="4"  fill={BK}/>
+              </g>
+            ))}
+            <rect x="3"  y="32" width="28" height="1"  fill={BS}/>
+            <rect x="30" y="2"  width="1"  height="30" fill={BS}/>
           </svg>
         )
+      }
 
       // ── Lock ──────────────────────────────────────────────────────────────────
-      case 'lock':
+      case 'lock': {
+        const GH=K?'#ffee66':'#ffff99', GM=K?'#ddaa00':'#ffcc00', GS=K?'#996600':'#cc9900'
+        const SH=K?'#bbbbbb':'#dddddd', SM=K?'#888888':'#aaaaaa', SS=K?'#555555':'#777777'
+        const BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
-            {/* Shackle — thin U, clearly separated from body */}
-            <rect x="14" y="4"  width="4"  height="20" fill={K ? '#999999' : '#666666'} />
-            <rect x="30" y="4"  width="4"  height="20" fill={K ? '#999999' : '#666666'} />
-            <rect x="14" y="4"  width="20" height="4"  fill={K ? '#999999' : '#666666'} />
-            {/* Shackle outline */}
-            <rect x="13" y="3"  width="6"  height="22" fill="none" stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
-            <rect x="29" y="3"  width="6"  height="22" fill="none" stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
-            <rect x="13" y="3"  width="22" height="6"  fill="none" stroke={K ? '#cccccc' : '#000000'} strokeWidth="1.5" />
-            {/* Body — squat wide rectangle */}
-            <rect x="4"  y="22" width="40" height="22" fill={K ? '#cc9900' : '#ffcc00'} />
-            <rect x="4"  y="22" width="40" height="22" fill="none" stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* Body top highlight */}
-            <rect x="5"  y="23" width="38" height="4"  fill={K ? '#ddbb00' : '#ffee55'} />
-            {/* Keyhole — teardrop shape: circle top, narrow slot below */}
-            <rect x="21" y="29" width="6"  height="5"  fill={K ? '#333333' : '#111111'} />
-            <rect x="22" y="27" width="4"  height="4"  fill={K ? '#333333' : '#111111'} />
-            <rect x="23" y="26" width="2"  height="3"  fill={K ? '#333333' : '#111111'} />
-            <rect x="22" y="34" width="4"  height="5"  fill={K ? '#333333' : '#111111'} />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            {/* Left post */}
+            <rect x="8"  y="3"  width="4"  height="14" fill={SM}/>
+            <rect x="8"  y="3"  width="1"  height="14" fill={SH}/>
+            <rect x="11" y="3"  width="1"  height="14" fill={SS}/>
+            <rect x="8"  y="3"  width="1"  height="14" fill={BK}/>
+            <rect x="11" y="3"  width="1"  height="14" fill={BK}/>
+            {/* Right post */}
+            <rect x="20" y="3"  width="4"  height="14" fill={SM}/>
+            <rect x="20" y="3"  width="1"  height="14" fill={SH}/>
+            <rect x="23" y="3"  width="1"  height="14" fill={SS}/>
+            <rect x="20" y="3"  width="1"  height="14" fill={BK}/>
+            <rect x="23" y="3"  width="1"  height="14" fill={BK}/>
+            {/* Top bar */}
+            <rect x="8"  y="3"  width="16" height="4"  fill={SM}/>
+            <rect x="8"  y="3"  width="16" height="1"  fill={SH}/>
+            <rect x="8"  y="3"  width="16" height="1"  fill={BK}/>
+            {/* Body */}
+            <rect x="3"  y="15" width="26" height="16" fill={GM}/>
+            <rect x="3"  y="15" width="26" height="3"  fill={GH}/>
+            <rect x="3"  y="27" width="26" height="4"  fill={GS}/>
+            <rect x="3"  y="15" width="2"  height="16" fill={GH}/>
+            <rect x="27" y="15" width="2"  height="16" fill={GS}/>
+            <rect x="3"  y="15" width="26" height="1"  fill={BK}/>
+            <rect x="3"  y="30" width="26" height="1"  fill={BK}/>
+            <rect x="3"  y="15" width="1"  height="16" fill={BK}/>
+            <rect x="28" y="15" width="1"  height="16" fill={BK}/>
+            {/* Keyhole — round top + slot */}
+            <rect x="14" y="19" width="4"  height="1"  fill={BK}/>
+            <rect x="13" y="20" width="6"  height="4"  fill={BK}/>
+            <rect x="14" y="24" width="4"  height="1"  fill={BK}/>
+            <rect x="15" y="25" width="2"  height="3"  fill={BK}/>
             {/* Drop shadow */}
-            <rect x="6"  y="45" width="40" height="3"  fill={K ? '#111111' : '#999999'} />
-            <rect x="46" y="24" width="3"  height="21" fill={K ? '#111111' : '#999999'} />
+            <rect x="4"  y="31" width="26" height="1"  fill={GS}/>
+            <rect x="29" y="16" width="1"  height="15" fill={GS}/>
           </svg>
         )
+      }
 
       // ── Envelope ──────────────────────────────────────────────────────────────
-      case 'envelope':
+      case 'envelope': {
+        const EH=K?'#eeeeee':'#ffffff', EM=K?'#cccccc':'#eeeeee', ES=K?'#888888':'#cccccc'
+        const FH=K?'#ff8888':'#ff6666', FM=K?'#cc3333':'#dd3333', FS=K?'#881111':'#aa1111'
+        const BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
-            {/* Body */}
-            <rect x="2" y="12" width="44" height="32" fill={K ? '#dddddd' : '#ffffff'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* V flap — two diagonal lines meeting at centre bottom */}
-            <polygon points="2,12 24,30 46,12" fill={K ? '#cc4444' : '#dd3333'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* Bottom fold seam lines */}
-            <rect x="2"  y="38" width="18" height="2" fill={K ? '#aaaaaa' : '#cccccc'} />
-            <rect x="28" y="38" width="18" height="2" fill={K ? '#aaaaaa' : '#cccccc'} />
-            {/* Drop shadow */}
-            <rect x="4"  y="46" width="44" height="3" fill={K ? '#111111' : '#999999'} />
-            <rect x="48" y="14" width="3"  height="32" fill={K ? '#111111' : '#999999'} />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            <rect x="1"  y="8"  width="30" height="20" fill={EM}/>
+            <rect x="1"  y="8"  width="2"  height="20" fill={EH}/>
+            <rect x="29" y="8"  width="2"  height="20" fill={ES}/>
+            <rect x="1"  y="26" width="30" height="2"  fill={ES}/>
+            <rect x="1"  y="8"  width="30" height="1"  fill={BK}/>
+            <rect x="1"  y="27" width="30" height="1"  fill={BK}/>
+            <rect x="1"  y="8"  width="1"  height="20" fill={BK}/>
+            <rect x="30" y="8"  width="1"  height="20" fill={BK}/>
+            {/* V flap row by row */}
+            {[[1,2],[3,2],[5,2],[7,2],[9,2],[11,2],[13,2],[15,2]].map(([x,w],i)=>(
+              <g key={i}>
+                <rect x={x}    y={8+i} width={w}   height="1" fill={i===0?FH:FM}/>
+                <rect x={30-x-w+2} y={8+i} width={w} height="1" fill={i===0?FM:i>5?FS:FM}/>
+              </g>
+            ))}
+            <rect x="15" y="16" width="2"  height="1"  fill={FS}/>
+            <rect x="2"  y="24" width="10" height="1"  fill={ES}/>
+            <rect x="20" y="24" width="10" height="1"  fill={ES}/>
+            <rect x="2"  y="28" width="30" height="1"  fill={ES}/>
+            <rect x="31" y="9"  width="1"  height="19" fill={ES}/>
           </svg>
         )
+      }
 
       // ── Pencil ────────────────────────────────────────────────────────────────
-      // Vertical pencil — all axis-aligned, no rotation
-      case 'pencil':
+      case 'pencil': {
+        const EH=K?'#ffaaaa':'#ffcccc', EM=K?'#dd6666':'#ff9999', ES=K?'#aa3333':'#cc6666'
+        const BN=K?'#bbbbbb':'#cccccc', BS=K?'#777777':'#999999'
+        const YH=K?'#ffee44':'#ffff88', YM=K?'#ddaa00':'#ffdd00', YS=K?'#996600':'#cc9900'
+        const WH=K?'#ddaa88':'#eebb99', WS=K?'#885522':'#aa7733'
+        const NK=K?'#555555':'#222222', BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
-            {/* Eraser top */}
-            <rect x="14" y="2"  width="20" height="7"  fill={K ? '#dd8888' : '#ff9999'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* Metal band */}
-            <rect x="14" y="9"  width="20" height="5"  fill={K ? '#aaaaaa' : '#bbbbbb'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="1" />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            {/* Eraser */}
+            <rect x="11" y="1"  width="10" height="5"  fill={EM}/>
+            <rect x="11" y="1"  width="10" height="1"  fill={EH}/>
+            <rect x="11" y="4"  width="10" height="2"  fill={ES}/>
+            <rect x="11" y="1"  width="1"  height="5"  fill={EH}/>
+            <rect x="20" y="1"  width="1"  height="5"  fill={ES}/>
+            <rect x="11" y="1"  width="10" height="1"  fill={BK}/>
+            <rect x="11" y="5"  width="10" height="1"  fill={BK}/>
+            <rect x="11" y="1"  width="1"  height="5"  fill={BK}/>
+            <rect x="20" y="1"  width="1"  height="5"  fill={BK}/>
+            {/* Band */}
+            <rect x="11" y="6"  width="10" height="3"  fill={BS}/>
+            <rect x="11" y="6"  width="10" height="1"  fill={BN}/>
+            <rect x="11" y="6"  width="1"  height="3"  fill={BN}/>
+            <rect x="11" y="5"  width="10" height="1"  fill={BK}/>
+            <rect x="11" y="8"  width="10" height="1"  fill={BK}/>
             {/* Body */}
-            <rect x="14" y="14" width="20" height="22" fill={K ? '#ddaa00' : '#ffdd00'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
-            {/* Highlight stripe */}
-            <rect x="28" y="14" width="4"  height="22" fill={K ? '#eebb22' : '#ffee44'} />
-            {/* Wood taper — trapezoid using polygon */}
-            <polygon points="14,36 34,36 30,44 18,44" fill={K ? '#cc8844' : '#ddaa66'} stroke={K ? '#cccccc' : '#000000'} strokeWidth="2" />
+            <rect x="11" y="9"  width="10" height="16" fill={YM}/>
+            <rect x="11" y="9"  width="2"  height="16" fill={YH}/>
+            <rect x="19" y="9"  width="2"  height="16" fill={YS}/>
+            <rect x="11" y="9"  width="1"  height="16" fill={BK}/>
+            <rect x="20" y="9"  width="1"  height="16" fill={BK}/>
+            {/* Wood taper */}
+            <rect x="11" y="25" width="10" height="1"  fill={BK}/>
+            <rect x="12" y="26" width="8"  height="1"  fill={WH}/>
+            <rect x="13" y="27" width="6"  height="1"  fill={WH}/>
+            <rect x="14" y="28" width="4"  height="1"  fill={WS}/>
+            <rect x="12" y="26" width="1"  height="3"  fill={BK}/>
+            <rect x="19" y="26" width="1"  height="3"  fill={BK}/>
+            <rect x="13" y="27" width="1"  height="2"  fill={BK}/>
+            <rect x="18" y="27" width="1"  height="2"  fill={BK}/>
             {/* Nib */}
-            <polygon points="18,44 30,44 24,48" fill={K ? '#555555' : '#333333'} />
-            {/* Drop shadow */}
-            <rect x="16" y="48" width="20" height="2" fill={K ? '#111111' : '#999999'} />
-            <rect x="36" y="4"  width="3"  height="44" fill={K ? '#111111' : '#999999'} />
+            <rect x="14" y="28" width="4"  height="1"  fill={BK}/>
+            <rect x="15" y="29" width="2"  height="2"  fill={NK}/>
+            <rect x="15" y="29" width="1"  height="2"  fill={BK}/>
+            <rect x="16" y="29" width="1"  height="2"  fill={BK}/>
+            <rect x="15" y="31" width="2"  height="1"  fill={BK}/>
+            {/* Shadow */}
+            <rect x="12" y="32" width="10" height="1"  fill={YS}/>
+            <rect x="21" y="2"  width="1"  height="30" fill={YS}/>
           </svg>
         )
+      }
 
       // ── Books ─────────────────────────────────────────────────────────────────
-      // Three books stacked isometrically — top face, spine, and front face visible
-      case 'books':
+      // Three books standing upright, side by side, different heights
+      case 'books': {
+        const B1H=K?'#88aaff':'#aabbff', B1M=K?'#4466cc':'#5577dd', B1S=K?'#223388':'#334499'
+        const B2H=K?'#ff8888':'#ffaaaa', B2M=K?'#cc3333':'#dd4444', B2S=K?'#881111':'#aa2222'
+        const B3H=K?'#88dd88':'#aaffaa', B3M=K?'#336633':'#448844', B3S=K?'#114411':'#225522'
+        const PG=K?'#cccccc':'#dddddd', BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48" shapeRendering="crispEdges">
-            {/* ── Book 1 — bottom, blue ── */}
-            {/* Top face */}
-            <polygon points="4,32 22,24 46,24 28,32" fill={K?'#6688ee':'#8899ff'} />
-            <polygon points="4,32 22,24 46,24 28,32" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            {/* Spine — left dark face */}
-            <polygon points="4,32 22,24 22,40 4,48" fill={K?'#2244aa':'#3355cc'} />
-            <polygon points="4,32 22,24 22,40 4,48" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            {/* Front face */}
-            <polygon points="22,24 46,24 46,40 22,40" fill={K?'#4466cc':'#5577dd'} />
-            <polygon points="22,24 46,24 46,40 22,40" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            {/* Page edge — white strip on front right */}
-            <polygon points="44,24 46,24 46,40 44,40" fill={K?'#aabbdd':'#ccddf0'} />
-
-            {/* ── Book 2 — middle, red, offset up ── */}
-            <polygon points="4,20 22,12 46,12 28,20" fill={K?'#ee8888':'#ffaaaa'} />
-            <polygon points="4,20 22,12 46,12 28,20" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            <polygon points="4,20 22,12 22,28 4,36" fill={K?'#882222':'#aa3333'} />
-            <polygon points="4,20 22,12 22,28 4,36" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            <polygon points="22,12 46,12 46,28 22,28" fill={K?'#cc4444':'#dd5555'} />
-            <polygon points="22,12 46,12 46,28 22,28" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            <polygon points="44,12 46,12 46,28 44,28" fill={K?'#ddaaaa':'#ffcccc'} />
-
-            {/* ── Book 3 — top, green, offset up ── */}
-            <polygon points="4,8 22,0 46,0 28,8" fill={K?'#88ee88':'#aaffaa'} />
-            <polygon points="4,8 22,0 46,0 28,8" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            <polygon points="4,8 22,0 22,16 4,24" fill={K?'#226622':'#337733'} />
-            <polygon points="4,8 22,0 22,16 4,24" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            <polygon points="22,0 46,0 46,16 22,16" fill={K?'#448844':'#559955'} />
-            <polygon points="22,0 46,0 46,16 22,16" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            <polygon points="44,0 46,0 46,16 44,16" fill={K?'#aaddaa':'#cceecc'} />
-
-            {/* Drop shadow */}
-            <ellipse cx="25" cy="48" rx="20" ry="2" fill={K?'#111111':'#999999'} opacity="0.4" />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            {/* Blue book */}
+            <rect x="2"  y="9"  width="8"  height="22" fill={B1M}/>
+            <rect x="2"  y="9"  width="2"  height="22" fill={B1S}/>
+            <rect x="4"  y="9"  width="4"  height="22" fill={B1H}/>
+            <rect x="8"  y="9"  width="2"  height="22" fill={B1S}/>
+            <rect x="9"  y="9"  width="1"  height="22" fill={PG}/>
+            <rect x="2"  y="9"  width="8"  height="1"  fill={BK}/>
+            <rect x="2"  y="30" width="8"  height="1"  fill={BK}/>
+            <rect x="2"  y="9"  width="1"  height="22" fill={BK}/>
+            <rect x="9"  y="9"  width="1"  height="22" fill={BK}/>
+            {/* Red book — taller */}
+            <rect x="12" y="5"  width="8"  height="26" fill={B2M}/>
+            <rect x="12" y="5"  width="2"  height="26" fill={B2S}/>
+            <rect x="14" y="5"  width="4"  height="26" fill={B2H}/>
+            <rect x="18" y="5"  width="2"  height="26" fill={B2S}/>
+            <rect x="19" y="5"  width="1"  height="26" fill={PG}/>
+            <rect x="12" y="5"  width="8"  height="1"  fill={BK}/>
+            <rect x="12" y="30" width="8"  height="1"  fill={BK}/>
+            <rect x="12" y="5"  width="1"  height="26" fill={BK}/>
+            <rect x="19" y="5"  width="1"  height="26" fill={BK}/>
+            {/* Green book — tallest */}
+            <rect x="22" y="2"  width="8"  height="29" fill={B3M}/>
+            <rect x="22" y="2"  width="2"  height="29" fill={B3S}/>
+            <rect x="24" y="2"  width="4"  height="29" fill={B3H}/>
+            <rect x="28" y="2"  width="2"  height="29" fill={B3S}/>
+            <rect x="29" y="2"  width="1"  height="29" fill={PG}/>
+            <rect x="22" y="2"  width="8"  height="1"  fill={BK}/>
+            <rect x="22" y="30" width="8"  height="1"  fill={BK}/>
+            <rect x="22" y="2"  width="1"  height="29" fill={BK}/>
+            <rect x="29" y="2"  width="1"  height="29" fill={BK}/>
+            {/* Shared shelf line */}
+            <rect x="2"  y="30" width="28" height="1"  fill={BK}/>
+            <rect x="3"  y="31" width="28" height="1"  fill={K?'#333333':'#999999'}/>
           </svg>
         )
+      }
 
       // ── Map pin (notice board push pin) ───────────────────────────────────────
-      // Cylindrical head — wider top disc, narrower barrel, flared base disc
-      // Sharp point dropping straight down from centre
-      case 'mappin':
+      // Top disc → barrel → bottom disc → needle. All pixel rects, stepped shading.
+      case 'mappin': {
+        const PH=K?'#ff8888':'#ffaaaa', PM=K?'#cc2222':'#ee3333', PS=K?'#881111':'#aa1111', PK=K?'#440000':'#660000'
+        const NH=K?'#cccccc':'#dddddd', NM=K?'#888888':'#aaaaaa', NS=K?'#444444':'#666666'
+        const BK=K?'#cccccc':'#000000'
         return (
-          <svg width={s} height={s} viewBox="0 0 48 48">
-            {/* Top disc — widest part, viewed slightly from above */}
-            <ellipse cx="24" cy="10" rx="14" ry="5" fill={K?'#ee4444':'#ff3333'} />
-            <ellipse cx="24" cy="10" rx="14" ry="5" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1.5" />
-            {/* Highlight on top disc */}
-            <ellipse cx="20" cy="9" rx="5" ry="2" fill={K?'#ff8888':'#ff8888'} opacity="0.6" />
-            {/* Barrel — cylinder body */}
-            <rect x="10" y="10" width="28" height="14" fill={K?'#cc2222':'#ee3333'} />
-            <rect x="10" y="10" width="28" height="14" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1.5" />
-            {/* Barrel shading — right side darker */}
-            <rect x="34" y="10" width="4"  height="14" fill={K?'#991111':'#cc1111'} />
-            {/* Base disc — slightly wider than barrel, flared */}
-            <ellipse cx="24" cy="24" rx="16" ry="6" fill={K?'#aa1111':'#cc2222'} />
-            <ellipse cx="24" cy="24" rx="16" ry="6" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1.5" />
-            {/* Pin point — narrow, straight down */}
-            <polygon points="20,28 28,28 24,46" fill={K?'#888888':'#aaaaaa'} />
-            <polygon points="20,28 28,28 24,46" fill="none" stroke={K?'#cccccc':'#000000'} strokeWidth="1" />
-            {/* Point tip highlight */}
-            <polygon points="23,38 25,38 24,46" fill={K?'#cccccc':'#dddddd'} />
-            {/* Drop shadow */}
-            <ellipse cx="26" cy="47" rx="10" ry="2" fill={K?'#111111':'#999999'} opacity="0.4" />
+          <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
+            {/* Top disc */}
+            <rect x="7"  y="2"  width="18" height="1"  fill={BK}/>
+            <rect x="5"  y="3"  width="22" height="1"  fill={BK}/>
+            <rect x="5"  y="4"  width="22" height="4"  fill={PH}/>
+            <rect x="5"  y="4"  width="4"  height="4"  fill={PH}/>
+            <rect x="23" y="4"  width="4"  height="4"  fill={PS}/>
+            <rect x="5"  y="7"  width="22" height="1"  fill={PM}/>
+            <rect x="5"  y="8"  width="22" height="1"  fill={BK}/>
+            <rect x="5"  y="4"  width="1"  height="5"  fill={BK}/>
+            <rect x="26" y="4"  width="1"  height="5"  fill={BK}/>
+            {/* Barrel */}
+            <rect x="9"  y="9"  width="14" height="10" fill={PM}/>
+            <rect x="9"  y="9"  width="3"  height="10" fill={PH}/>
+            <rect x="20" y="9"  width="3"  height="10" fill={PS}/>
+            <rect x="9"  y="9"  width="1"  height="10" fill={BK}/>
+            <rect x="22" y="9"  width="1"  height="10" fill={BK}/>
+            <rect x="9"  y="11" width="14" height="1"  fill={PH}/>
+            <rect x="9"  y="16" width="14" height="1"  fill={PS}/>
+            {/* Bottom disc */}
+            <rect x="5"  y="19" width="22" height="1"  fill={BK}/>
+            <rect x="5"  y="20" width="22" height="4"  fill={PM}/>
+            <rect x="5"  y="20" width="4"  height="4"  fill={PH}/>
+            <rect x="23" y="20" width="4"  height="4"  fill={PS}/>
+            <rect x="5"  y="23" width="22" height="1"  fill={PK}/>
+            <rect x="5"  y="24" width="22" height="1"  fill={BK}/>
+            <rect x="5"  y="20" width="1"  height="5"  fill={BK}/>
+            <rect x="26" y="20" width="1"  height="5"  fill={BK}/>
+            {/* Needle */}
+            <rect x="15" y="25" width="2"  height="1"  fill={NH}/>
+            <rect x="15" y="26" width="2"  height="3"  fill={NM}/>
+            <rect x="16" y="26" width="1"  height="3"  fill={NS}/>
+            <rect x="15" y="29" width="2"  height="1"  fill={NS}/>
+            <rect x="15" y="25" width="1"  height="5"  fill={BK}/>
+            <rect x="16" y="29" width="1"  height="1"  fill={BK}/>
           </svg>
         )
+      }
     }
   }
+
 
   // ─── Window content ───────────────────────────────────────────────────────────
 
@@ -1129,7 +1215,87 @@ export default function Home() {
     )
   }
 
-  const cursorCSS = { default: 'default', pointer: 'pointer', grab: 'grab', grabbing: 'grabbing' }
+  // Pixel art cursors as SVG data URIs — match the theme
+  const C = isDark  // shorthand
+  const FILL  = C ? '#e0e0e0' : '#ffffff'
+  const MID   = C ? '#aaaaaa' : '#cccccc'
+  const DARK  = C ? '#333333' : '#000000'
+
+  // Arrow cursor — classic pixel art arrow pointing top-left
+  const cursorArrow = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
+    <rect x='0' y='0' width='2' height='12' fill='${DARK}'/>
+    <rect x='2' y='2' width='2' height='8' fill='${DARK}'/>
+    <rect x='4' y='4' width='2' height='6' fill='${DARK}'/>
+    <rect x='6' y='6' width='2' height='4' fill='${DARK}'/>
+    <rect x='8' y='8' width='2' height='2' fill='${DARK}'/>
+    <rect x='1' y='1' width='1' height='10' fill='${FILL}'/>
+    <rect x='3' y='3' width='1' height='6' fill='${FILL}'/>
+    <rect x='5' y='5' width='1' height='4' fill='${FILL}'/>
+    <rect x='7' y='7' width='1' height='2' fill='${FILL}'/>
+    <rect x='2' y='9' width='2' height='2' fill='${FILL}'/>
+    <rect x='4' y='7' width='2' height='2' fill='${FILL}'/>
+    <rect x='3' y='10' width='1' height='2' fill='${MID}'/>
+    <rect x='5' y='8' width='1' height='1' fill='${MID}'/>
+  </svg>`)}`
+
+  // Pointer cursor — pointing finger hand
+  const cursorPointer = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
+    <rect x='4' y='0' width='2' height='8' fill='${DARK}'/>
+    <rect x='6' y='0' width='2' height='1' fill='${DARK}'/>
+    <rect x='2' y='6' width='2' height='1' fill='${DARK}'/>
+    <rect x='8' y='1' width='2' height='7' fill='${DARK}'/>
+    <rect x='10' y='3' width='2' height='6' fill='${DARK}'/>
+    <rect x='2' y='7' width='10' height='5' fill='${DARK}'/>
+    <rect x='2' y='12' width='12' height='2' fill='${DARK}'/>
+    <rect x='4' y='14' width='8' height='2' fill='${DARK}'/>
+    <rect x='5' y='1' width='1' height='6' fill='${FILL}'/>
+    <rect x='7' y='2' width='1' height='5' fill='${FILL}'/>
+    <rect x='9' y='4' width='1' height='4' fill='${FILL}'/>
+    <rect x='3' y='8' width='8' height='3' fill='${FILL}'/>
+    <rect x='3' y='11' width='10' height='1' fill='${MID}'/>
+    <rect x='5' y='13' width='6' height='1' fill='${MID}'/>
+  </svg>`)}`
+
+  // Grab cursor — open hand
+  const cursorGrab = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
+    <rect x='2' y='4' width='2' height='6' fill='${DARK}'/>
+    <rect x='4' y='2' width='2' height='8' fill='${DARK}'/>
+    <rect x='6' y='2' width='2' height='8' fill='${DARK}'/>
+    <rect x='8' y='3' width='2' height='7' fill='${DARK}'/>
+    <rect x='10' y='4' width='2' height='6' fill='${DARK}'/>
+    <rect x='2' y='10' width='12' height='4' fill='${DARK}'/>
+    <rect x='2' y='14' width='12' height='1' fill='${DARK}'/>
+    <rect x='3' y='5' width='1' height='4' fill='${FILL}'/>
+    <rect x='5' y='3' width='1' height='6' fill='${FILL}'/>
+    <rect x='7' y='3' width='1' height='6' fill='${FILL}'/>
+    <rect x='9' y='4' width='1' height='5' fill='${FILL}'/>
+    <rect x='11' y='5' width='1' height='4' fill='${FILL}'/>
+    <rect x='3' y='11' width='10' height='2' fill='${FILL}'/>
+    <rect x='3' y='13' width='10' height='1' fill='${MID}'/>
+  </svg>`)}`
+
+  // Grabbing cursor — closed fist
+  const cursorGrabbing = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
+    <rect x='2' y='6' width='12' height='6' fill='${DARK}'/>
+    <rect x='2' y='5' width='2' height='1' fill='${DARK}'/>
+    <rect x='4' y='4' width='6' height='1' fill='${DARK}'/>
+    <rect x='10' y='5' width='2' height='1' fill='${DARK}'/>
+    <rect x='12' y='6' width='2' height='2' fill='${DARK}'/>
+    <rect x='2' y='12' width='12' height='2' fill='${DARK}'/>
+    <rect x='4' y='14' width='8' height='1' fill='${DARK}'/>
+    <rect x='3' y='7' width='10' height='4' fill='${FILL}'/>
+    <rect x='3' y='6' width='9' height='1' fill='${MID}'/>
+    <rect x='3' y='11' width='10' height='1' fill='${MID}'/>
+    <rect x='3' y='13' width='10' height='1' fill='${MID}'/>
+    <rect x='5' y='14' width='6' height='1' fill='${MID}'/>
+  </svg>`)}`
+
+  const cursorCSS = {
+    default:  `url("${cursorArrow}") 0 0, default`,
+    pointer:  `url("${cursorPointer}") 4 0, pointer`,
+    grab:     `url("${cursorGrab}") 6 0, grab`,
+    grabbing: `url("${cursorGrabbing}") 6 0, grabbing`,
+  }
 
   return (
     <>
@@ -1165,7 +1331,7 @@ export default function Home() {
 
         .desktop-icon {
           position: absolute; display: flex; flex-direction: column;
-          align-items: center; gap: 6px; cursor: pointer;
+          align-items: center; gap: 6px; cursor: ${cursorCSS.pointer};
           padding: 8px; width: ${cs.width}px;
         }
         .desktop-icon.selected {
@@ -1190,9 +1356,9 @@ export default function Home() {
         .window-titlebar {
           background: ${isDark ? '#1a1a1a' : '#000000'}; color: #ffffff;
           padding: 7px 10px; display: flex; justify-content: space-between; align-items: center;
-          border-bottom: 2px solid ${border}; cursor: grab; user-select: none;
+          border-bottom: 2px solid ${border}; cursor: ${cursorCSS.grab}; user-select: none;
         }
-        .window-titlebar:active { cursor: grabbing; }
+        .window-titlebar:active { cursor: ${cursorCSS.grabbing}; }
         .window-title { font-size: 13px; font-weight: 700; }
         .window-close {
           background: #ff4444; border: 1px solid #000; width: 16px; height: 16px;
