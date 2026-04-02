@@ -4,7 +4,7 @@ Research repository — Welsh School of Architecture, Cardiff University
 
 ---
 
-This repository supports PhD research investigating how spatial, institutional, and technical conditions exclude disabled people from meaningful agency in urban planning, and whether decentralised digital technologies can genuinely redistribute planning power or risk encoding new exclusions through design.
+This repository supports PhD research investigating how spatial, institutional, and technical conditions exclude people from meaningful agency in urban planning, and whether decentralised digital technologies can genuinely redistribute planning power or risk encoding new exclusions through design.
 
 The overarching theoretical contribution of the research is a framework termed **Architecture of Agency**: the proposition that spatial, institutional, and technical conditions together produce or foreclose community agency, and that redesigning any of those three tiers changes who can act, contribute, and be present.
 
