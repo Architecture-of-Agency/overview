@@ -390,12 +390,10 @@ export default function Home() {
 
       // ── Globe with 3 ─────────────────────────────────────────────────────────
       case 'globe3': {
-        // Proper stepped-shading globe — circle built from variable-width rows
         const O1=K?'#aabbff':'#bbccff', O2=K?'#3366dd':'#4477ee'
         const O3=K?'#1144bb':'#2255cc', O4=K?'#002288':'#0033aa'
         const G1=K?'#88cc88':'#aaddaa', G2=K?'#448844':'#559955', G3=K?'#335533':'#224422'
         const BK=K?'#cccccc':'#000000'
-        // Each row: [x_start, width] approximating a circle on 32x32 grid
         const rows:[number,number][]=[
           [10,12],[7,18],[5,22],[3,26],[2,28],[1,30],[1,30],[1,30],[1,30],[1,30],
           [1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],[1,30],
@@ -403,28 +401,21 @@ export default function Home() {
         ]
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Ocean fill */}
             {rows.map(([x,w],i)=><rect key={`f${i}`} x={x} y={i+1} width={w} height={1} fill={O2}/>)}
-            {/* Highlight — top-left arc */}
             {rows.slice(0,10).map(([x,w],i)=><rect key={`h${i}`} x={x} y={i+1} width={Math.floor(w*0.4)} height={1} fill={O1}/>)}
-            {/* Shadow — bottom-right arc */}
             {rows.slice(18).map(([x,w],i)=><rect key={`s${i}`} x={x+Math.floor(w*0.6)} y={i+19} width={Math.floor(w*0.4)} height={1} fill={O3}/>)}
             {rows.slice(24).map(([x,w],i)=><rect key={`d${i}`} x={x+Math.floor(w*0.7)} y={i+25} width={Math.floor(w*0.3)} height={1} fill={O4}/>)}
-            {/* Outline */}
             {rows.map(([x,w],i)=>[
               <rect key={`ol${i}`} x={x} y={i+1} width={1} height={1} fill={BK}/>,
               <rect key={`or${i}`} x={x+w-1} y={i+1} width={1} height={1} fill={BK}/>,
             ])}
             <rect x="8"  y="1"  width="16" height="1" fill={BK}/>
             <rect x="8"  y="31" width="16" height="1" fill={BK}/>
-            {/* Latitude lines */}
             <rect x="2"  y="9"  width="28" height="1" fill={O3}/>
             <rect x="1"  y="16" width="30" height="1" fill={O3}/>
             <rect x="2"  y="23" width="28" height="1" fill={O3}/>
-            {/* Longitude lines */}
             <rect x="9"  y="2"  width="1" height="28" fill={O3}/>
             <rect x="22" y="2"  width="1" height="28" fill={O3}/>
-            {/* Landmasses */}
             <rect x="2"  y="6"  width="4" height="6"  fill={G2}/>
             <rect x="2"  y="6"  width="2" height="2"  fill={G1}/>
             <rect x="5"  y="10" width="2" height="2"  fill={G3}/>
@@ -437,13 +428,11 @@ export default function Home() {
             <rect x="18" y="5"  width="3" height="2"  fill={G1}/>
             <rect x="22" y="9"  width="2" height="3"  fill={G3}/>
             <rect x="22" y="19" width="4" height="3"  fill={G2}/>
-            {/* Pixel "3" white bottom-right */}
             <rect x="18" y="19" width="8" height="2" fill="#ffffff"/>
             <rect x="24" y="21" width="2" height="2" fill="#ffffff"/>
             <rect x="20" y="23" width="6" height="2" fill="#ffffff"/>
             <rect x="24" y="25" width="2" height="2" fill="#ffffff"/>
             <rect x="18" y="27" width="8" height="2" fill="#ffffff"/>
-            {/* Drop shadow */}
             <rect x="8"  y="32" width="16" height="1" fill={O4}/>
           </svg>
         )
@@ -495,23 +484,19 @@ export default function Home() {
         const BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Left post */}
             <rect x="8"  y="3"  width="4"  height="14" fill={SM}/>
             <rect x="8"  y="3"  width="1"  height="14" fill={SH}/>
             <rect x="11" y="3"  width="1"  height="14" fill={SS}/>
             <rect x="8"  y="3"  width="1"  height="14" fill={BK}/>
             <rect x="11" y="3"  width="1"  height="14" fill={BK}/>
-            {/* Right post */}
             <rect x="20" y="3"  width="4"  height="14" fill={SM}/>
             <rect x="20" y="3"  width="1"  height="14" fill={SH}/>
             <rect x="23" y="3"  width="1"  height="14" fill={SS}/>
             <rect x="20" y="3"  width="1"  height="14" fill={BK}/>
             <rect x="23" y="3"  width="1"  height="14" fill={BK}/>
-            {/* Top bar */}
             <rect x="8"  y="3"  width="16" height="4"  fill={SM}/>
             <rect x="8"  y="3"  width="16" height="1"  fill={SH}/>
             <rect x="8"  y="3"  width="16" height="1"  fill={BK}/>
-            {/* Body */}
             <rect x="3"  y="15" width="26" height="16" fill={GM}/>
             <rect x="3"  y="15" width="26" height="3"  fill={GH}/>
             <rect x="3"  y="27" width="26" height="4"  fill={GS}/>
@@ -521,12 +506,10 @@ export default function Home() {
             <rect x="3"  y="30" width="26" height="1"  fill={BK}/>
             <rect x="3"  y="15" width="1"  height="16" fill={BK}/>
             <rect x="28" y="15" width="1"  height="16" fill={BK}/>
-            {/* Keyhole — round top + slot */}
             <rect x="14" y="19" width="4"  height="1"  fill={BK}/>
             <rect x="13" y="20" width="6"  height="4"  fill={BK}/>
             <rect x="14" y="24" width="4"  height="1"  fill={BK}/>
             <rect x="15" y="25" width="2"  height="3"  fill={BK}/>
-            {/* Drop shadow */}
             <rect x="4"  y="31" width="26" height="1"  fill={GS}/>
             <rect x="29" y="16" width="1"  height="15" fill={GS}/>
           </svg>
@@ -540,17 +523,14 @@ export default function Home() {
         const BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Body */}
             <rect x="1"  y="9"  width="30" height="20" fill={EM}/>
             <rect x="1"  y="9"  width="2"  height="20" fill={EH}/>
             <rect x="29" y="9"  width="2"  height="20" fill={ES}/>
             <rect x="1"  y="27" width="30" height="2"  fill={ES}/>
-            {/* Outline */}
             <rect x="1"  y="9"  width="30" height="1"  fill={BK}/>
             <rect x="1"  y="28" width="30" height="1"  fill={BK}/>
             <rect x="1"  y="9"  width="1"  height="20" fill={BK}/>
             <rect x="30" y="9"  width="1"  height="20" fill={BK}/>
-            {/* V-flap — clean diagonal steps from corners to centre */}
             <rect x="1"  y="9"  width="4"  height="1"  fill={FM}/>
             <rect x="27" y="9"  width="4"  height="1"  fill={FM}/>
             <rect x="1"  y="10" width="2"  height="1"  fill={FM}/>
@@ -566,10 +546,8 @@ export default function Home() {
             <rect x="11" y="14" width="4"  height="1"  fill={FM}/>
             <rect x="17" y="14" width="4"  height="1"  fill={FM}/>
             <rect x="13" y="15" width="6"  height="1"  fill={FS}/>
-            {/* Bottom fold */}
             <rect x="2"  y="25" width="12" height="1"  fill={ES}/>
             <rect x="18" y="25" width="12" height="1"  fill={ES}/>
-            {/* Shadow */}
             <rect x="2"  y="29" width="30" height="1"  fill={ES}/>
             <rect x="31" y="10" width="1"  height="19" fill={ES}/>
           </svg>
@@ -583,7 +561,6 @@ export default function Home() {
         const NK=K?'#555555':'#222222', BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Eraser — top, 10px wide centred */}
             <rect x="11" y="1"  width="10" height="5"  fill={EM}/>
             <rect x="11" y="1"  width="10" height="1"  fill={EH}/>
             <rect x="11" y="4"  width="10" height="2"  fill={ES}/>
@@ -593,18 +570,15 @@ export default function Home() {
             <rect x="11" y="5"  width="10" height="1"  fill={BK}/>
             <rect x="11" y="1"  width="1"  height="5"  fill={BK}/>
             <rect x="20" y="1"  width="1"  height="5"  fill={BK}/>
-            {/* Metal band */}
             <rect x="11" y="6"  width="10" height="3"  fill={BS}/>
             <rect x="11" y="6"  width="10" height="1"  fill={BN}/>
             <rect x="11" y="6"  width="1"  height="3"  fill={BN}/>
             <rect x="11" y="8"  width="10" height="1"  fill={BK}/>
-            {/* Body */}
             <rect x="11" y="9"  width="10" height="16" fill={YM}/>
             <rect x="11" y="9"  width="2"  height="16" fill={YH}/>
             <rect x="19" y="9"  width="2"  height="16" fill={YS}/>
             <rect x="11" y="9"  width="1"  height="16" fill={BK}/>
             <rect x="20" y="9"  width="1"  height="16" fill={BK}/>
-            {/* Wood taper — symmetric steps */}
             <rect x="11" y="25" width="10" height="1"  fill={BK}/>
             <rect x="12" y="26" width="8"  height="2"  fill={WH}/>
             <rect x="14" y="28" width="4"  height="1"  fill={WS}/>
@@ -612,30 +586,22 @@ export default function Home() {
             <rect x="19" y="26" width="1"  height="3"  fill={BK}/>
             <rect x="13" y="28" width="1"  height="1"  fill={BK}/>
             <rect x="18" y="28" width="1"  height="1"  fill={BK}/>
-            {/* Nib — 2px wide, centred at x=15 */}
             <rect x="15" y="29" width="2"  height="3"  fill={NK}/>
             <rect x="15" y="29" width="1"  height="3"  fill={BK}/>
             <rect x="16" y="31" width="1"  height="1"  fill={BK}/>
-            {/* Shadow */}
             <rect x="12" y="32" width="9"  height="1"  fill={YS}/>
             <rect x="21" y="2"  width="1"  height="29" fill={YS}/>
           </svg>
         )
       }
       // ── Books ─────────────────────────────────────────────────────────────────
-      // Three books standing upright, side by side, different heights
       case 'books': {
-        // Horizontal isometric stack — 3 books, each with top face, spine, front face, page edge
         const B1T=K?'#aabbff':'#ccddf0', B1H=K?'#6688ee':'#8899ff', B1M=K?'#4466cc':'#5577dd', B1S=K?'#223388':'#334499'
         const B2T=K?'#ffbbbb':'#ffdddd', B2H=K?'#ee7777':'#ff9999', B2M=K?'#cc3333':'#dd4444', B2S=K?'#881111':'#aa2222'
         const B3T=K?'#bbffbb':'#ddffdd', B3H=K?'#77ee77':'#99ff99', B3M=K?'#336633':'#448844', B3S=K?'#114411':'#225522'
         const PG=K?'#dddddd':'#eeeeee', BK=K?'#cccccc':'#000000'
-        // Stack goes bottom-left to top-right. Each book: top parallelogram + spine + front + pages.
-        // Book height 7px, width 24px, isometric offset 4px per book
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* ── Book 1 — bottom, blue ── */}
-            {/* Top face parallelogram: y=20 left to y=17 right */}
             <rect x="1"  y="20" width="24" height="1" fill={B1T}/>
             <rect x="2"  y="19" width="24" height="1" fill={B1T}/>
             <rect x="3"  y="18" width="24" height="1" fill={B1H}/>
@@ -643,21 +609,16 @@ export default function Home() {
             <rect x="1"  y="20" width="1"  height="1" fill={BK}/>
             <rect x="28" y="17" width="1"  height="4" fill={BK}/>
             <rect x="1"  y="17" width="27" height="1" fill={BK}/>
-            {/* Spine — left dark face */}
             <rect x="1"  y="21" width="3"  height="8" fill={B1S}/>
             <rect x="1"  y="21" width="1"  height="8" fill={BK}/>
             <rect x="1"  y="28" width="3"  height="1" fill={BK}/>
-            {/* Front face */}
             <rect x="4"  y="21" width="24" height="8" fill={B1M}/>
             <rect x="4"  y="21" width="6"  height="8" fill={B1H}/>
             <rect x="4"  y="21" width="24" height="1" fill={BK}/>
             <rect x="4"  y="28" width="24" height="1" fill={BK}/>
             <rect x="27" y="21" width="1"  height="8" fill={BK}/>
-            {/* Page edge */}
             <rect x="28" y="17" width="1"  height="12" fill={PG}/>
             <rect x="28" y="29" width="1"  height="1"  fill={BK}/>
-
-            {/* ── Book 2 — middle, red, offset 4px up ── */}
             <rect x="5"  y="14" width="24" height="1" fill={B2T}/>
             <rect x="6"  y="13" width="24" height="1" fill={B2T}/>
             <rect x="7"  y="12" width="24" height="1" fill={B2H}/>
@@ -675,8 +636,6 @@ export default function Home() {
             <rect x="30" y="15" width="1"  height="7" fill={BK}/>
             <rect x="31" y="11" width="1"  height="11" fill={PG}/>
             <rect x="31" y="22" width="1"  height="1"  fill={BK}/>
-
-            {/* ── Book 3 — top, green, offset 4px up again ── */}
             <rect x="8"  y="8"  width="24" height="1" fill={B3T}/>
             <rect x="9"  y="7"  width="24" height="1" fill={B3T}/>
             <rect x="10" y="6"  width="22" height="1" fill={B3H}/>
@@ -696,14 +655,13 @@ export default function Home() {
         )
       }
 
-      // ── Map pin — slim notice board push pin ──────────────────────────────────
+      // ── Map pin ──────────────────────────────────────────────────────────────
       case 'mappin': {
         const PH=K?'#ff9999':'#ffbbbb', PM=K?'#dd2222':'#ee3333', PS=K?'#991111':'#bb2222'
         const NH=K?'#cccccc':'#dddddd', NM=K?'#888888':'#aaaaaa', NS=K?'#444444':'#666666'
         const BK=K?'#cccccc':'#000000'
         return (
           <svg width={s} height={s} viewBox="0 0 32 32" shapeRendering="crispEdges">
-            {/* Top disc — slim, 10px wide */}
             <rect x="11" y="2"  width="10" height="1" fill={BK}/>
             <rect x="10" y="3"  width="12" height="1" fill={BK}/>
             <rect x="10" y="4"  width="12" height="3" fill={PH}/>
@@ -713,16 +671,13 @@ export default function Home() {
             <rect x="10" y="7"  width="12" height="1" fill={BK}/>
             <rect x="10" y="4"  width="1"  height="4" fill={BK}/>
             <rect x="21" y="4"  width="1"  height="4" fill={BK}/>
-            {/* Barrel — 6px wide, narrow */}
             <rect x="13" y="8"  width="6"  height="10" fill={PM}/>
             <rect x="13" y="8"  width="2"  height="10" fill={PH}/>
             <rect x="17" y="8"  width="2"  height="10" fill={PS}/>
             <rect x="13" y="8"  width="1"  height="10" fill={BK}/>
             <rect x="18" y="8"  width="1"  height="10" fill={BK}/>
-            {/* Rim highlight and shadow lines */}
             <rect x="13" y="10" width="6"  height="1"  fill={PH}/>
             <rect x="13" y="15" width="6"  height="1"  fill={PS}/>
-            {/* Bottom disc — slim, 10px wide */}
             <rect x="10" y="18" width="12" height="1" fill={BK}/>
             <rect x="10" y="19" width="12" height="3" fill={PM}/>
             <rect x="10" y="19" width="3"  height="3" fill={PH}/>
@@ -731,14 +686,12 @@ export default function Home() {
             <rect x="10" y="22" width="12" height="1" fill={BK}/>
             <rect x="10" y="19" width="1"  height="4" fill={BK}/>
             <rect x="21" y="19" width="1"  height="4" fill={BK}/>
-            {/* Needle — 2px wide, sharp */}
             <rect x="15" y="23" width="2"  height="1" fill={NH}/>
             <rect x="15" y="24" width="2"  height="5" fill={NM}/>
             <rect x="16" y="24" width="1"  height="5" fill={NS}/>
             <rect x="15" y="29" width="2"  height="1" fill={NS}/>
             <rect x="15" y="23" width="1"  height="7" fill={BK}/>
             <rect x="16" y="29" width="1"  height="1" fill={BK}/>
-            {/* Shadow spots either side of needle base */}
             <rect x="12" y="23" width="2"  height="1" fill={PS}/>
             <rect x="18" y="23" width="2"  height="1" fill={PS}/>
           </svg>
@@ -782,7 +735,7 @@ export default function Home() {
               </ul>
               <p style={p}>O fewn cymunedau sydd eisoes wedi'u heithrio, mae deinameg fwyafrifol yn distewi pobl anabl, rhentwyr, a lleiafrifoedd ymhellach.</p>
               <h2 style={h2}>Cyd-destun Caerdydd</h2>
-              <p style={p}>Mae gan Gaerdydd 28 ward. Mae gan 6 ohonynt Gyngor Cymuned — ond hyd yn oed y rhain yn aml yn cynnig ymgynghori tocenistig yn unig, heb bŵer gwneud penderfyniadau go iawn. Mae gan 22 ward arall ddim strwythur ffurfiol o gwbl.</p>
+              <p style={p}>Mae gan Gaerdydd 28 ward. Mae gan 6 ohonynt Gyngor Cymuned, sy'n darparu ffurf o gynrychiolaeth gymunedol ffurfiol. Mae ymchwil presennol — gan gynnwys canfyddiadau Swyddfa Archwilio Cymru ar ymgynghori cynllunio — yn codi cwestiynau am ddyfnder y cyfranogiad hwn mewn ymarfer, ac mae'r ymchwil hwn yn ceisio archwilio'r materion hynny yn benodol yng nghyd-destun Caerdydd. Mae gan yr 22 ward sy'n weddill ddim strwythur cymunedol cyfatebol ffurfiol.</p>
               <p style={p}>Nid yw absenoldeb Cyngor Cymuned yn atal cymuned rhag paratoi Cynllun Lle yn gyfreithiol — ond mae'n gadael y cwestiwn o gynrychiolaeth heb ei ateb: sut all awdurdod lleol fodloni ei hun bod grŵp yn cynrychioli'r gymdogaeth, heb sefydlu sefydliad newydd canolog?</p>
               <h2 style={h2}>Architecture of Agency</h2>
               <p style={p}>Cyfraniad damcaniaethol canolog y PhD yw'r cynnig bod amodau gofodol, sefydliadol, a thechnegol gyda'i gilydd yn cynhyrchu neu'n cau allan asiantaeth gymunedol — ac y gall ailddylunio unrhyw un o'r tri haen newid pwy sy'n gallu gweithredu, cyfrannu, a bod yn bresennol.</p>
@@ -913,7 +866,7 @@ export default function Home() {
                   entries: [
                     { ref: 'Arnstein (1969)', note: 'Fframwaith sylfaenol ar gyfer cyfranogiad. Yn sefydlu bod ymgysylltiad cymunedol yn aml yn lawrlwytho cyfrifoldeb heb ailddosbarthu pŵer.' },
                     { ref: 'Rydin (2007)', note: 'Mae gwybodaeth mewn cynllunio yn adnodd cystadleuol y mae ei gyfreithlondeb yn cael ei bennu\'n gymdeithasol — nid mewnbwn niwtral.' },
-                    { ref: 'Miessen (2016)', note: 'Cynulliad agweddol fel dewis arall i gyfranogiad consensws. Sail ddamcaniaethol ar gyfer pensaernïaeth luosogol, anghytgord y sylfaen wybodaeth.' },
+                    { ref: 'Miessen (2016)', note: 'Cynulliad agweddol fel dewis arall i gyfraniad consensws. Sail ddamcaniaethol ar gyfer pensaernïaeth luosogol, anghytgord y sylfaen wybodaeth.' },
                     { ref: 'Parvin (2021)', note: 'Cynllunio cymunedol fel problem seilwaith heb ei datrys.' },
                   ]
                 },
@@ -969,9 +922,9 @@ export default function Home() {
         case 'splott':
           return (
             <>
-              <p style={p}>Mae Splott yn gymdogaeth yng nghanol dinas Caerdydd heb Gyngor Cymuned. Mae wedi'i ddewis fel safle peilot ar gyfer yr ymchwil hwn oherwydd ei fod yn cynrychioli'r union fwlch sefydliadol y mae'r ymchwil yn ceisio mynd i'r afael ag ef.</p>
+              <p style={p}>Mae Splott yn gymdogaeth yng nghanol dinas Caerdydd heb Gyngor Cymuned. Mae wedi'i ddewis fel safle peilot ar gyfer yr ymchwil hwn oherwydd ei fod yn cynrychioli math o fwlch sefydliadol y mae ymchwil blaenorol — gan gynnwys gwaith ar gynllunio cymunedol yn Lloegr (Parker et al., 2015; Bradley a Brownill, 2017) — wedi tynnu sylw ato, ac y mae'r ymchwil hwn yn ceisio ymchwilio iddo yng nghyd-destun Cymru.</p>
               <h2 style={h2}>Pam Splott</h2>
-              <p style={p}>Cymuned drefol fewnol heb y seilwaith sefydliadol ffurfiol i gyfranogi yn y penderfyniadau cynllunio sy'n siapio ble mae ei thrigolion yn byw. Nid diffyg ymgysylltiad yw'r broblem — diffyg mecanwaith dilysiedig i gynrychiolaeth yw hi.</p>
+              <p style={p}>Cymuned drefol fewnol heb strwythur cymunedol ffurfiol cyfatebol i'r hyn a geir mewn wardiau â Chyngor Cymuned. Mae hyn yn codi cwestiwn ymchwil allweddol: sut mae cymunedau mewn wardiau heb gynrychiolaeth strwythurol yn ymgysylltu â phenderfyniadau cynllunio sy'n effeithio ar eu hardal — a sut gallai mecanweithiau newydd gynorthwyo'r broses honno?</p>
               <h2 style={h2}>Statws cyfredol</h2>
               <p style={p}>Mae perthnasoedd cymunedol a sifil wedi'u hadeiladu dros y deuddeg mis diwethaf. Mae'r ymchwil yn dechrau.</p>
               <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ Bydd nodiadau maes a diweddariadau yn ymddangos yma wrth i'r ymchwil fynd rhagddo. ]</p>
@@ -995,9 +948,9 @@ export default function Home() {
               <li style={li}><strong>Institutional power:</strong> Local Authorities override through statutory powers</li>
               <li style={li}><strong>Epistemic power:</strong> Professionals control access through technical expertise</li>
             </ul>
-            <p style={p}>Within already-excluded communities, majoritarian dynamics further silence disabled people, renters, and minorities.</p>
+            <p style={p}>Within already-excluded communities, majoritarian dynamics can further marginalise disabled people, renters, and minorities — a dynamic explored in existing literature on participatory planning (Arnstein, 1969; Cornwall, 2008).</p>
             <h2 style={h2}>Cardiff context</h2>
-            <p style={p}>Cardiff has 28 wards. Six have Community Councils — but even these often offer only tokenistic consultation with no real decision-making power. The other 22 wards have no formal structure at all.</p>
+            <p style={p}>Cardiff has 28 wards. Six have Community Councils, providing a degree of formal community representation. Existing research — including findings from the Wales Audit Office on planning consultation — raises questions about the depth of participation these structures enable in practice, and this research aims to explore those questions specifically in the Cardiff context. The remaining 22 wards have no equivalent formal community structure.</p>
             <p style={p}>The absence of a Community Council does not legally prevent a community from preparing a Place Plan — but it leaves the question of representation unanswered: how can a local authority satisfy itself that a group genuinely represents the neighbourhood, without requiring a new centralised institution?</p>
             <h2 style={h2}>Architecture of Agency</h2>
             <p style={p}>The PhD's central theoretical contribution proposes that spatial, institutional, and technical conditions together produce or foreclose community agency — and that redesigning any one of those three tiers changes who can act, contribute, and be present.</p>
@@ -1187,9 +1140,9 @@ export default function Home() {
       case 'splott':
         return (
           <>
-            <p style={p}>Splott is an inner-city neighbourhood in Cardiff without a Community Council. It is the identified pilot site for this research — selected because it represents precisely the institutional gap the research is trying to address.</p>
+            <p style={p}>Splott is an inner-city neighbourhood in Cardiff without a Community Council. It is the identified pilot site for this research — selected because it represents the kind of institutional gap that existing research on community-led planning (Parker et al., 2015; Bradley and Brownill, 2017) has highlighted, and which this research aims to investigate in the Welsh context.</p>
             <h2 style={h2}>Why Splott</h2>
-            <p style={p}>An inner-city urban community without the formal institutional infrastructure to participate in the planning decisions that shape where its residents live. The problem is not lack of engagement — it is the absence of a verified mechanism for representation.</p>
+            <p style={p}>An inner-city urban community without a formal community structure equivalent to those found in wards with Community Councils. This raises a key research question: how do communities in wards without structural representation currently engage with the planning decisions that shape their area — and how might new mechanisms support that process?</p>
             <h2 style={h2}>Current status</h2>
             <p style={p}>Community and civil society relationships have been built over the past twelve months. The research is beginning.</p>
             <p style={{ ...p, fontStyle: 'italic', color: subtle }}>[ Field notes and updates will appear here as the research progresses. ]</p>
@@ -1301,13 +1254,11 @@ export default function Home() {
     )
   }
 
-  // Pixel art cursors as SVG data URIs — match the theme
-  const C = isDark  // shorthand
+  const C = isDark
   const FILL  = C ? '#e0e0e0' : '#ffffff'
   const MID   = C ? '#aaaaaa' : '#cccccc'
   const DARK  = C ? '#333333' : '#000000'
 
-  // Arrow cursor — classic pixel art arrow pointing top-left
   const cursorArrow = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
     <rect x='0' y='0' width='2' height='12' fill='${DARK}'/>
     <rect x='2' y='2' width='2' height='8' fill='${DARK}'/>
@@ -1324,7 +1275,6 @@ export default function Home() {
     <rect x='5' y='8' width='1' height='1' fill='${MID}'/>
   </svg>`)}`
 
-  // Pointer cursor — pointing finger hand
   const cursorPointer = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
     <rect x='4' y='0' width='2' height='8' fill='${DARK}'/>
     <rect x='6' y='0' width='2' height='1' fill='${DARK}'/>
@@ -1342,7 +1292,6 @@ export default function Home() {
     <rect x='5' y='13' width='6' height='1' fill='${MID}'/>
   </svg>`)}`
 
-  // Grab cursor — open hand
   const cursorGrab = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
     <rect x='2' y='4' width='2' height='6' fill='${DARK}'/>
     <rect x='4' y='2' width='2' height='8' fill='${DARK}'/>
@@ -1360,7 +1309,6 @@ export default function Home() {
     <rect x='3' y='13' width='10' height='1' fill='${MID}'/>
   </svg>`)}`
 
-  // Grabbing cursor — closed fist
   const cursorGrabbing = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' shape-rendering='crispEdges'>
     <rect x='2' y='6' width='12' height='6' fill='${DARK}'/>
     <rect x='2' y='5' width='2' height='1' fill='${DARK}'/>
@@ -1565,7 +1513,6 @@ export default function Home() {
 
       <audio ref={audioRef} preload="auto"><source src="/audio/startup.mp3" type="audio/mpeg" /></audio>
 
-      {/* Splott streetscape — animated pixel art banner */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes walkR { 0% { transform: translateX(-60px) } 100% { transform: translateX(calc(100vw + 60px)) } }
         @keyframes walkL { 0% { transform: translateX(calc(100vw + 60px)) } 100% { transform: translateX(-60px) } }
@@ -1612,51 +1559,37 @@ export default function Home() {
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
-          {/* Sky — transparent so desktop background shows through exactly */}
           <rect x="0" y="0" width="1200" height="130" fill="transparent"/>
 
-          {/* ── Ground plane — everything sits on y=130 ── */}
-          {/* Pavement */}
           <rect x="0"   y="130" width="1200" height="6"  fill={isDark?'#2a2a2a':'#999999'}/>
           <rect x="0"   y="136" width="1200" height="2"  fill={isDark?'#333':'#aaa'}/>
-          {/* Road */}
           <rect x="0"   y="138" width="1200" height="28" fill={isDark?'#1a1a1a':'#555555'}/>
-          {/* Road centre line dashes */}
           {Array.from({length:24},(_,i)=>(
             <rect key={i} x={i*52} y="151" width="32" height="3" fill={isDark?'#444':'#777'}/>
           ))}
-          {/* Kerb line */}
           <rect x="0"   y="130" width="1200" height="2"  fill={isDark?'#555':'#bbbbbb'}/>
           <rect x="0"   y="136" width="1200" height="2"  fill={isDark?'#222':'#888'}/>
 
-          {/* ── FAR LEFT: Park / green space ── */}
-          {/* Grass */}
           <rect x="0"   y="100" width="90"  height="30" fill={isDark?'#1a2a1a':'#559955'}/>
           <rect x="0"   y="96"  width="90"  height="4"  fill={isDark?'#2a3a2a':'#66aa66'}/>
-          {/* Park fence */}
           {Array.from({length:9},(_,i)=>(
             <g key={i}>
               <rect x={i*10+2} y="116" width="2" height="14" fill={isDark?'#4a3a2a':'#886644'}/>
               <rect x={i*10+2} y="115" width="8" height="2"  fill={isDark?'#6a5a3a':'#aa8855'}/>
             </g>
           ))}
-          {/* Park trees */}
           <rect x="10"  y="88"  width="18" height="28" fill={isDark?'#1a3a1a':'#4a8a4a'}/>
           <rect x="10"  y="88"  width="8"  height="14" fill={isDark?'#2a4a2a':'#5a9a5a'}/>
           <rect x="8"   y="115" width="5"  height="15" fill={isDark?'#3a2a1a':'#664422'}/>
           <rect x="50"  y="92"  width="22" height="24" fill={isDark?'#1a3a1a':'#4a8a4a'}/>
           <rect x="50"  y="92"  width="10" height="12" fill={isDark?'#2a4a2a':'#5a9a5a'}/>
           <rect x="57"  y="115" width="5"  height="15" fill={isDark?'#3a2a1a':'#664422'}/>
-          {/* Park bench */}
           <rect x="30"  y="120" width="18" height="3"  fill={isDark?'#6a5a3a':'#aa8855'}/>
           <rect x="31"  y="123" width="2"  height="7"  fill={isDark?'#4a3a2a':'#886644'}/>
           <rect x="45"  y="123" width="2"  height="7"  fill={isDark?'#4a3a2a':'#886644'}/>
 
-          {/* ── LEFT TERRACES ── */}
-          {/* Terrace row 1 */}
           <rect x="90"  y="72"  width="120" height="58" fill={isDark?'#3a2a1a':'#bb9977'}/>
           <rect x="90"  y="72"  width="120" height="4"  fill={isDark?'#2a1a0a':'#997755'}/>
-          {/* Bay windows */}
           {[95,109,123,137,151,165,179,193].map((x,i)=>{
             const litUp = [true,false,true,false,false,true,false,true][i]
             const litLo = [false,true,false,true,true,false,true,false][i]
@@ -1673,19 +1606,15 @@ export default function Home() {
             </g>
             )
           })}
-          {/* Chimneys */}
           {[95,130,165,198].map(x=>(
             <rect key={x} x={x} y="60" width="8" height="12" fill={isDark?'#3a2a1a':'#997755'}/>
           ))}
-          {/* Chimney pots */}
           {[95,130,165,198].map(x=>(
             <rect key={x} x={x+2} y="57" width="4" height="4" fill={isDark?'#555':'#777'}/>
           ))}
-          {/* Party walls */}
           {[104,119,134,149,164,179,194].map(x=>(
             <rect key={x} x={x} y="72" width="2" height="58" fill={isDark?'#2a1a0a':'#997755'}/>
           ))}
-          {/* Doors */}
           {[97,127,157,187].map(x=>(
             <g key={x}>
               <rect x={x}   y="112" width="10" height="18" fill={isDark?'#3355aa':'#4466bb'}/>
@@ -1694,76 +1623,56 @@ export default function Home() {
             </g>
           ))}
 
-          {/* ── SCV CHARITY SHOP ── */}
           <rect x="210" y="78"  width="85"  height="52" fill={isDark?'#2a2a3a':'#cc4444'}/>
           <rect x="210" y="78"  width="85"  height="6"  fill={isDark?'#1a1a2a':'#aa2222'}/>
-          {/* Awning — sits at pavement level y=114 */}
           <rect x="208" y="114" width="89"  height="10" fill={isDark?'#4a3a1a':'#ffcc00'}/>
           {Array.from({length:11},(_,i)=>(
             <rect key={i} x={208+i*8} y="114" width="4" height="10" fill={isDark?'#3a2a0a':'#cc9900'}/>
           ))}
-          {/* Shop window */}
           <rect x="218" y="90"  width="65"  height="22" fill={isDark?'#334455':'#aaccee'}/>
           <rect x="238" y="90"  width="2"   height="22" fill={isDark?'#223':'#7799bb'}/>
           <rect x="258" y="90"  width="2"   height="22" fill={isDark?'#223':'#7799bb'}/>
-          {/* Sign */}
           <rect x="212" y="80"  width="81"  height="10" fill={isDark?'#ffffff':'#ffffff'}/>
           <text x="215" y="89" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700" fill="#cc4444">SCV CHARITY SHOP</text>
-          {/* Door at ground y=114 */}
           <rect x="245" y="114" width="14"  height="16" fill={isDark?'#334455':'#6688aa'}/>
           <rect x="247" y="116" width="4"   height="6"  fill={isDark?'#445566':'#88aacc'}/>
           <rect x="253" y="116" width="4"   height="6"  fill={isDark?'#445566':'#88aacc'}/>
-          {/* Chimney */}
           <rect x="245" y="66"  width="8"   height="12" fill={isDark?'#3a2a1a':'#997755'}/>
 
-          {/* ── CORNER SHOP ── */}
           <rect x="295" y="82"  width="65"  height="48" fill={isDark?'#1a3a1a':'#559944'}/>
           <rect x="295" y="82"  width="65"  height="5"  fill={isDark?'#0a2a0a':'#336633'}/>
-          {/* Awning at y=114 */}
           <rect x="293" y="114" width="69"  height="8"  fill={isDark?'#3a5a3a':'#66aa44'}/>
-          {/* Window */}
           <rect x="300" y="90"  width="55"  height="22" fill={isDark?'#334455':'#aaccee'}/>
           <rect x="325" y="90"  width="2"   height="22" fill={isDark?'#223':'#7799bb'}/>
-          {/* Sign */}
           <rect x="297" y="84"  width="61"  height="8"  fill="#ffffff"/>
           <text x="300" y="91" fontFamily="Space Mono, monospace" fontSize="6" fontWeight="700" fill="#336633">CORNER SHOP</text>
-          {/* Door */}
           <rect x="315" y="114" width="12"  height="16" fill={isDark?'#334455':'#6688aa'}/>
 
-          {/* ── STREET LAMP 1 — base on y=130 ── */}
           <rect x="375" y="70"  width="4"   height="60" fill={isDark?'#555':'#888'}/>
           <rect x="369" y="70"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="369" y="66"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
           {isDark && <ellipse cx="377" cy="68" rx="30" ry="22" fill="#ffeeaa" opacity="0.22" filter="url(#glow-lamp)"/>}
           <rect x="373" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
 
-          {/* ── SPLOTT MAGIC ROUNDABOUT — centrepiece ── */}
-          {/* Road around roundabout */}
           <rect x="390" y="130" width="290" height="36" fill={isDark?'#1a1a1a':'#555555'}/>
-          {/* Island — green oval, fully above ground */}
           <rect x="440" y="94"  width="180" height="4"  fill={isDark?'#1a3a1a':'#4a8a4a'}/>
           <rect x="426" y="98"  width="208" height="4"  fill={isDark?'#1a3a1a':'#4a8a4a'}/>
           <rect x="416" y="102" width="228" height="28" fill={isDark?'#1a3a1a':'#5a9a5a'}/>
           <rect x="416" y="102" width="228" height="6"  fill={isDark?'#2a4a2a':'#6aaa6a'}/>
           <rect x="416" y="128" width="228" height="2"  fill={isDark?'#1a3a1a':'#4a8a4a'}/>
           <rect x="426" y="130" width="208" height="2"  fill={isDark?'#1a2a1a':'#3a7a3a'}/>
-          {/* Kerb */}
           <rect x="438" y="92"  width="184" height="4"  fill={isDark?'#444':'#aaa'}/>
           <rect x="414" y="130" width="232" height="2"  fill={isDark?'#444':'#aaa'}/>
-          {/* Roundabout sculptures */}
-          {/* 1 — chevron cylinder */}
           <rect x="455" y="96"  width="22"  height="22" fill="#cc2222"/>
           {[96,99,102,105,108,111,114].map((y,i)=>(
             <rect key={y} x="455" y={y} width="22" height="2" fill={i%2===0?'#cc2222':'#111111'}/>
           ))}
           <rect x="453" y="96"  width="26"  height="2"  fill={isDark?'#888':'#aaa'}/>
-          {/* 2 — tilted warning sign */}
           <rect x="490" y="91"  width="26"  height="26" fill="#ffcc00"/>
           <rect x="490" y="91"  width="26"  height="3"  fill="#cc9900"/>
           <rect x="490" y="91"  width="3"   height="26" fill="#cc9900"/>
           <rect x="500" y="95"  width="4"   height="12" fill="#000"/>
           <rect x="500" y="109" width="4"   height="4"  fill="#000"/>
-          {/* 3 — triangle stack */}
           <rect x="528" y="110" width="30"  height="4"  fill="#dd4444"/>
           <rect x="532" y="106" width="22"  height="4"  fill="#cc3333"/>
           <rect x="536" y="102" width="14"  height="4"  fill="#bb2222"/>
@@ -1771,7 +1680,6 @@ export default function Home() {
           {[528,532,536].map(x=>(
             <rect key={x} x={x+2} y="110" width="4" height="4" fill="#ffffff"/>
           ))}
-          {/* 4 — sphere of signs */}
           <rect x="568" y="96"  width="30"  height="30" fill="#3355aa"/>
           <rect x="568" y="96"  width="30"  height="5"  fill="#5577cc"/>
           <rect x="568" y="96"  width="5"   height="30" fill="#5577cc"/>
@@ -1780,7 +1688,6 @@ export default function Home() {
             [572,116,'#ffcc00'],[580,116,'#cc2222'],[588,116,'#22aa22']].map(([x,y,c],i)=>(
             <rect key={i} x={x as number} y={y as number} width="6" height="6" fill={c as string}/>
           ))}
-          {/* Small bush shapes on island */}
           {[430,610].map(x=>(
             <g key={x}>
               <rect x={x}   y="114" width="14" height="14" fill={isDark?'#1a3a1a':'#4a7a4a'}/>
@@ -1789,7 +1696,6 @@ export default function Home() {
             </g>
           ))}
 
-          {/* ── TERRACE ROW 2 — right of roundabout ── */}
           <rect x="690" y="76"  width="100" height="54" fill={isDark?'#3a2a1a':'#bb9977'}/>
           <rect x="690" y="76"  width="100" height="4"  fill={isDark?'#2a1a0a':'#997755'}/>
           {[695,709,723,737,751,765,779].map((x,i)=>{
@@ -1818,16 +1724,12 @@ export default function Home() {
             </g>
           ))}
 
-          {/* ── AoA BILLBOARD — sits on ground with legs ── */}
-          {/* Legs from y=130 up */}
           <rect x="810" y="100" width="5"   height="30" fill={isDark?'#555':'#886633'}/>
           <rect x="855" y="100" width="5"   height="30" fill={isDark?'#444':'#775522'}/>
-          {/* Hoarding frame */}
           <rect x="802" y="66"  width="66"  height="36" fill={isDark?'#3a3a1a':'#ccbb88'}/>
           <rect x="802" y="66"  width="66"  height="3"  fill={isDark?'#2a2a0a':'#aa9966'}/>
           <rect x="802" y="66"  width="3"   height="36" fill={isDark?'#2a2a0a':'#aa9966'}/>
           <rect x="865" y="66"  width="3"   height="36" fill={isDark?'#111':'#998855'}/>
-          {/* Billboard — always backlit white, glowing in dark mode */}
           <rect x="805" y="69"  width="60"  height="30" fill="#fffdf5"/>
           {isDark && <rect x="800" y="64" width="70" height="40" fill="#fffacc" opacity="0.3" filter="url(#glow-board)"/>}
           <text x="810" y="82" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700"
@@ -1835,25 +1737,19 @@ export default function Home() {
           <text x="816" y="93" fontFamily="Space Mono, monospace" fontSize="7" fontWeight="700"
             fill="#111111">of Agency</text>
 
-          {/* ── STREET LAMP 2 — base on y=130 ── */}
           <rect x="880" y="70"  width="4"   height="60" fill={isDark?'#555':'#888'}/>
           <rect x="874" y="70"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="874" y="66"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
           {isDark && <ellipse cx="882" cy="68" rx="30" ry="22" fill="#ffeeaa" opacity="0.22" filter="url(#glow-lamp)"/>}
           <rect x="878" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
 
-          {/* ── STAR CENTRE ── */}
-          {/* Main brick block */}
           <rect x="920" y="58"  width="190" height="72" fill={isDark?'#3a2a1a':'#bb8855'}/>
           <rect x="920" y="58"  width="190" height="6"  fill={isDark?'#2a1a0a':'#996633'}/>
-          {/* Brick courses */}
           {[110,116,122].map(y=>(
             <rect key={y} x="920" y={y} width="190" height="1" fill={isDark?'#2a1a0a':'#996633'}/>
           ))}
-          {/* Metal cladding over large windows */}
           <rect x="960" y="66"  width="110" height="28" fill={isDark?'#334455':'#667788'}/>
           <rect x="960" y="66"  width="110" height="3"  fill={isDark?'#445566':'#7788aa'}/>
-          {/* Window grid */}
           {[963,978,993,1008,1023,1038,1053].map(x=>(
             <g key={x}>
               <rect x={x} y="70" width="12" height="20" fill={isDark?'#223344':'#88aabb'}/>
@@ -1861,23 +1757,18 @@ export default function Home() {
               <rect x={x} y="80" width="12" height="1"   fill={isDark?'#111':'#667788'}/>
             </g>
           ))}
-          {/* STAR lettering */}
           <text x="926" y="108" fontFamily="Space Mono, monospace" fontSize="18" fontWeight="700"
             fill={isDark?'#888':'#ccaa88'} letterSpacing="4">STAR</text>
-          {/* Canopy entrance — base on y=130 */}
           <rect x="1072" y="100" width="38"  height="6"  fill={isDark?'#445566':'#7799aa'}/>
           <rect x="1072" y="100" width="38"  height="2"  fill={isDark?'#556677':'#88aacc'}/>
           <rect x="1074" y="106" width="5"   height="24" fill={isDark?'#334455':'#5577aa'}/>
           <rect x="1102" y="106" width="5"   height="24" fill={isDark?'#334455':'#5577aa'}/>
-          {/* Entrance sign */}
           <rect x="1074" y="90"  width="36"  height="10" fill="#fff"/>
           <text x="1076" y="99" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#bb3333">Splott STAR Centre</text>
-          {/* Entrance door */}
           <rect x="1082" y="114" width="16"  height="16" fill={isDark?'#334455':'#aaccdd'}/>
           <rect x="1084" y="116" width="5"   height="7"  fill={isDark?'#556677':'#88aacc'}/>
           <rect x="1091" y="116" width="5"   height="7"  fill={isDark?'#556677':'#88aacc'}/>
 
-          {/* ── RIGHT TERRACES ── */}
           <rect x="1115" y="74"  width="85"  height="56" fill={isDark?'#3a2a1a':'#aa8866'}/>
           <rect x="1115" y="74"  width="85"  height="4"  fill={isDark?'#2a1a0a':'#886644'}/>
           {[1120,1134,1148,1162,1176].map((x,i)=>{
@@ -1906,15 +1797,10 @@ export default function Home() {
             </g>
           ))}
 
-          {/* ── BUS STOP ── */}
-          {/* Pole */}
           <rect x="1055" y="90"  width="3"   height="40" fill={isDark?'#999':'#555'}/>
-          {/* Flag sign — yellow with bus icon */}
           <rect x="1040" y="90"  width="28"  height="18" fill={isDark?'#ffcc00':'#ffcc00'}/>
-          <rect x="1040" y="90"  width="28"  height="18" fill="none"/>
           <rect x="1040" y="90"  width="28"  height="2"  fill="#cc9900"/>
           <rect x="1040" y="106" width="28"  height="2"  fill="#cc9900"/>
-          {/* Bus icon on sign */}
           <rect x="1043" y="93"  width="14"  height="10" fill="#cc2222"/>
           <rect x="1043" y="93"  width="14"  height="3"  fill="#dd3333"/>
           <rect x="1044" y="95"  width="3"   height="3"  fill={isDark?'#334455':'#aaccee'}/>
@@ -1922,16 +1808,13 @@ export default function Home() {
           <rect x="1054" y="95"  width="3"   height="3"  fill={isDark?'#334455':'#aaccee'}/>
           <rect x="1043" y="100" width="3"   height="3"  fill="#111"/>
           <rect x="1054" y="100" width="3"   height="3"  fill="#111"/>
-          {/* "BUS STOP" text */}
           <text x="1059" y="101" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#000000">BUS</text>
           <text x="1059" y="107" fontFamily="Space Mono, monospace" fontSize="5" fontWeight="700" fill="#000000">STOP</text>
-          {/* Shelter — simple 3-sided box */}
           <rect x="1030" y="110" width="32"  height="20" fill={isDark?'rgba(100,120,140,0.3)':'rgba(180,200,220,0.4)'}/>
           <rect x="1030" y="110" width="32"  height="2"  fill={isDark?'#445566':'#7799aa'}/>
           <rect x="1030" y="110" width="2"   height="20" fill={isDark?'#445566':'#7799aa'}/>
           <rect x="1060" y="110" width="2"   height="20" fill={isDark?'#445566':'#7799aa'}/>
 
-          {/* ── STREET LAMP 3 ── */}
           <rect x="1105" y="72"  width="4"   height="58" fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="72"  width="16"  height="4"  fill={isDark?'#555':'#888'}/>
           <rect x="1099" y="68"  width="16"  height="4"  fill={isDark?'#ffeeaa':'#ffffcc'}/>
@@ -1939,13 +1822,10 @@ export default function Home() {
           <rect x="1103" y="126" width="6"   height="4"  fill={isDark?'#444':'#777'}/>
         </svg>
 
-        {/* ── ANIMATED ELEMENTS — positioned over SVG ── */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
 
-          {/* PEDESTRIAN LAYER — z-index 1, behind vehicles */}
           <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
 
-            {/* Dog walker going right */}
             <div className="walk-r" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '35s', animationDelay: '-5s' }}>
               <svg width="40" height="28" viewBox="0 0 40 28" shapeRendering="crispEdges">
                 <rect x="14" y="2"  width="5" height="5" fill="#eeccaa"/>
@@ -1959,7 +1839,6 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Person walking right — red top */}
             <div className="walk-r" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '40s', animationDelay: '-20s' }}>
               <svg width="14" height="28" viewBox="0 0 14 28" shapeRendering="crispEdges">
                 <rect x="4"  y="2"  width="5" height="5" fill="#eeccaa"/>
@@ -1969,7 +1848,6 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Person walking left — green top */}
             <div className="walk-l" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '38s', animationDelay: '-10s' }}>
               <svg width="14" height="28" viewBox="0 0 14 28" shapeRendering="crispEdges">
                 <rect x="4"  y="2"  width="5" height="5" fill="#eeccaa"/>
@@ -1979,7 +1857,6 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Wheelchair user going right */}
             <div className="walk-r" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '45s', animationDelay: '-30s' }}>
               <svg width="36" height="28" viewBox="0 0 36 28" shapeRendering="crispEdges">
                 <rect x="6"  y="2"  width="5" height="5" fill="#eeccaa"/>
@@ -1995,7 +1872,6 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Cyclist going left */}
             <div className="walk-l" style={{ position: 'absolute', left: 0, bottom: '50px', animationDuration: '18s', animationDelay: '-8s' }}>
               <svg width="36" height="32" viewBox="0 0 36 32" shapeRendering="crispEdges">
                 <rect x="12" y="2"  width="5" height="5"  fill="#eeccaa"/>
@@ -2011,12 +1887,10 @@ export default function Home() {
               </svg>
             </div>
 
-          </div>{/* end pedestrian layer */}
+          </div>
 
-          {/* VEHICLE LAYER — z-index 2, in front of pedestrians */}
           <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
 
-            {/* Cardiff Bus going RIGHT */}
             <div className="bus-r" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '28s', animationDelay: '0s' }}>
               <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
                 <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
@@ -2028,10 +1902,8 @@ export default function Home() {
                 <text x="12" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">SPLOTT  Cardiff Bus</text>
                 {[8,28,48,68,88].map(x=>(<rect key={x}   x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>))}
                 {[8,28,48,68,88].map(x=>(<rect key={x+1} x={x} y="28" width="16" height="8"  fill={isDark?'#334455':'#aaccee'}/>))}
-                {/* Headlights at front (right side = direction of travel) */}
                 <rect x="108" y="28" width="8" height="8" fill={isDark?'#ffff88':'#ffff44'}/>
                 {isDark && <rect x="106" y="26" width="12" height="12" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
-                {/* Rear lights at back (left side) */}
                 <rect x="2"  y="30" width="6"  height="6"  fill="#ff4444"/>
                 <rect x="12" y="42" width="20" height="10" fill="#222"/>
                 <rect x="16" y="44" width="12" height="6"  fill="#444"/>
@@ -2040,7 +1912,6 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Cardiff Bus going LEFT */}
             <div className="bus-l" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '24s', animationDelay: '0s' }}>
               <svg width="120" height="52" viewBox="0 0 120 52" shapeRendering="crispEdges">
                 <rect x="2"  y="4"  width="112" height="38" fill="#cc2222"/>
@@ -2052,10 +1923,8 @@ export default function Home() {
                 <text x="36" y="13" fontFamily="Space Mono, monospace" fontSize="5" fill="#cc2222">CARDIFF BAY  Bus</text>
                 {[8,28,48,68,88].map(x=>(<rect key={x}   x={x} y="16" width="16" height="10" fill={isDark?'#334455':'#aaccee'}/>))}
                 {[8,28,48,68,88].map(x=>(<rect key={x+1} x={x} y="28" width="16" height="8"  fill={isDark?'#334455':'#aaccee'}/>))}
-                {/* Headlights at front (left side = direction of travel) */}
                 <rect x="2"  y="28" width="8"  height="8"  fill={isDark?'#ffff88':'#ffff44'}/>
                 {isDark && <rect x="0" y="26" width="12" height="12" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
-                {/* Rear lights at back (right side) */}
                 <rect x="112" y="30" width="6"  height="6"  fill="#ff4444"/>
                 <rect x="12" y="42" width="20" height="10" fill="#222"/>
                 <rect x="16" y="44" width="12" height="6"  fill="#444"/>
@@ -2064,78 +1933,56 @@ export default function Home() {
               </svg>
             </div>
 
-            {/* Blue hatchback going RIGHT — wedge profile, front=right */}
             <div className="car-r" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '20s', animationDelay: '-4s' }}>
               <svg width="58" height="24" viewBox="0 0 58 24" shapeRendering="crispEdges">
-                {/* Body base */}
                 <rect x="2"  y="13" width="54" height="7"  fill={isDark?'#2244aa':'#3355cc'}/>
-                {/* Boot/rear hump — left side, tallish */}
                 <rect x="4"  y="8"  width="14" height="5"  fill={isDark?'#2244aa':'#3355cc'}/>
                 <rect x="4"  y="8"  width="14" height="2"  fill={isDark?'#3355bb':'#4477dd'}/>
-                {/* Roof — slopes down to bonnet on right */}
                 <rect x="18" y="5"  width="20" height="8"  fill={isDark?'#3355bb':'#4466dd'}/>
                 <rect x="38" y="7"  width="8"  height="6"  fill={isDark?'#3355bb':'#4466dd'}/>
                 <rect x="46" y="9"  width="6"  height="4"  fill={isDark?'#2244aa':'#3355cc'}/>
-                {/* Windows */}
                 <rect x="20" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
                 <rect x="30" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
-                {/* Headlights — front right (direction of travel) */}
                 <rect x="52" y="14" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
                 {isDark && <rect x="51" y="13" width="7" height="6" fill="#ffff88" opacity="0.45" filter="url(#glow-head)"/>}
-                {/* Rear lights — back left */}
                 <rect x="2"  y="14" width="4"  height="4"  fill="#dd2222"/>
-                {/* Wheels */}
                 <rect x="8"  y="18" width="12" height="6"  fill="#111"/>
                 <rect x="9"  y="19" width="10" height="4"  fill="#333"/>
                 <rect x="38" y="18" width="12" height="6"  fill="#111"/>
                 <rect x="39" y="19" width="10" height="4"  fill="#333"/>
-                {/* Bumper */}
                 <rect x="52" y="18" width="4"  height="2"  fill={isDark?'#888':'#ccc'}/>
               </svg>
             </div>
 
-            {/* Red hatchback going LEFT — wedge profile, front=left */}
             <div className="car-l" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '18s', animationDelay: '-6s' }}>
               <svg width="58" height="24" viewBox="0 0 58 24" shapeRendering="crispEdges">
-                {/* Body base */}
                 <rect x="2"  y="13" width="54" height="7"  fill={isDark?'#aa3322':'#cc4433'}/>
-                {/* Boot/rear hump — right side */}
                 <rect x="40" y="8"  width="14" height="5"  fill={isDark?'#aa3322':'#cc4433'}/>
                 <rect x="40" y="8"  width="14" height="2"  fill={isDark?'#bb4433':'#dd5544'}/>
-                {/* Roof — slopes down to bonnet on left */}
                 <rect x="20" y="5"  width="20" height="8"  fill={isDark?'#bb4433':'#cc4433'}/>
                 <rect x="12" y="7"  width="8"  height="6"  fill={isDark?'#bb4433':'#cc4433'}/>
                 <rect x="6"  y="9"  width="6"  height="4"  fill={isDark?'#aa3322':'#cc4433'}/>
-                {/* Windows */}
                 <rect x="22" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
                 <rect x="32" y="6"  width="8"  height="6"  fill={isDark?'#334455':'#aaccee'}/>
-                {/* Headlights — front left (direction of travel) */}
                 <rect x="2"  y="14" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
                 {isDark && <rect x="1" y="13" width="7" height="6" fill="#ffff88" opacity="0.45" filter="url(#glow-head)"/>}
-                {/* Rear lights — back right */}
                 <rect x="52" y="14" width="4"  height="4"  fill="#dd2222"/>
-                {/* Wheels */}
                 <rect x="8"  y="18" width="12" height="6"  fill="#111"/>
                 <rect x="9"  y="19" width="10" height="4"  fill="#333"/>
                 <rect x="38" y="18" width="12" height="6"  fill="#111"/>
                 <rect x="39" y="19" width="10" height="4"  fill="#333"/>
-                {/* Bumper */}
                 <rect x="2"  y="18" width="4"  height="2"  fill={isDark?'#888':'#ccc'}/>
               </svg>
             </div>
 
-            {/* Green van going RIGHT — flat front, cabin full width */}
             <div className="car-r" style={{ position: 'absolute', left: 0, bottom: '42px', animationDuration: '25s', animationDelay: '-10s' }}>
               <svg width="60" height="24" viewBox="0 0 60 24" shapeRendering="crispEdges">
                 <rect x="2"  y="6"  width="56" height="14" fill={isDark?'#336622':'#448833'}/>
                 <rect x="2"  y="6"  width="56" height="3"  fill={isDark?'#447733':'#559944'}/>
-                {/* Windows — van has full-width cabin, windows along top */}
                 <rect x="4"  y="7"  width="14" height="5"  fill={isDark?'#223344':'#aaccee'}/>
                 <rect x="20" y="7"  width="14" height="5"  fill={isDark?'#223344':'#aaccee'}/>
-                {/* Headlights — front (right) */}
                 <rect x="54" y="12" width="4"  height="4"  fill={isDark?'#ffff88':'#ffff44'}/>
                 {isDark && <rect x="53" y="11" width="6" height="6" fill="#ffff88" opacity="0.4" filter="url(#glow-head)"/>}
-                {/* Rear lights — back (left) */}
                 <rect x="2"  y="12" width="4"  height="4"  fill="#cc2222"/>
                 <rect x="10" y="18" width="12" height="6"  fill="#111"/>
                 <rect x="12" y="19" width="8"  height="4"  fill="#333"/>
@@ -2144,7 +1991,7 @@ export default function Home() {
               </svg>
             </div>
 
-          </div>{/* end vehicle layer */}
+          </div>
 
         </div>
       </div>
@@ -2171,12 +2018,10 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Drag shadow */}
       {iconDragShadow && draggingIcon && iconDragHasMoved && (
         <div className="drag-shadow" style={{ left: `${iconDragShadow.x}px`, top: `${iconDragShadow.y}px` }} />
       )}
 
-      {/* Windows */}
       {(Object.keys(windows) as WindowId[]).map((id) => {
         const win = windows[id]
         if (!win.isOpen) return null
@@ -2186,7 +2031,6 @@ export default function Home() {
             style={{ left: `${win.position.x}px`, top: `${win.position.y}px`, zIndex: win.zIndex }}
             onClick={() => bringToFront(id)}
           >
-            {/* Tab bar — horizontal navigation */}
             <div className="window-tabs">
               {(Object.keys(windows) as WindowId[]).filter(w => windows[w].isOpen || minimisedWindows.includes(w)).map(wid => (
                 <button
@@ -2210,13 +2054,11 @@ export default function Home() {
         )
       })}
 
-      {/* Menubar */}
       <div className="menubar">
         <div className="menubar-left">
           <button className={`menu-btn ${startMenuOpen ? 'open' : ''}`} onClick={(e) => { e.stopPropagation(); setStartMenuOpen(!startMenuOpen) }} aria-label="Menu" aria-expanded={startMenuOpen}>
             {t.menu}
           </button>
-          {/* Minimised window slots */}
           {minimisedWindows.map(id => (
             <button
               key={id}
@@ -2239,7 +2081,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Start menu */}
       {startMenuOpen && (
         <div className="apple-menu" onClick={(e) => e.stopPropagation()}>
           <button className="apple-menu-item" onClick={() => { toggleTheme(); setStartMenuOpen(false) }}>
@@ -2255,7 +2096,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Cursor trail */}
       {trailDots.map(dot => (
         <div key={dot.id} className="cursor-dot" style={{ left: `${dot.x}px`, top: `${dot.y}px` }} />
       ))}
